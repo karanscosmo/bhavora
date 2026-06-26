@@ -5,6 +5,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Layers, Info, Car, Train, Droplet, Zap, Battery, Factory, TrendingUp, Plus, Minus, Locate } from 'lucide-react';
+
 
 interface District {
   id: string;
@@ -505,7 +507,7 @@ export default function CitiesPage() {
               </div>
               <div className="flex items-center justify-between bg-surface-container-low p-2 rounded-xl border border-outline-variant/10 text-[10px]">
                 <div className="flex items-center gap-1.5 text-on-surface-variant">
-                  <span className="material-symbols-outlined text-primary text-[16px]">trending_up</span>
+                  <TrendingUp />
                   <span>Projected growth in Hebbal Corridor</span>
                 </div>
                 <span className="font-bold text-primary">+{popGrowth}%</span>
@@ -521,7 +523,7 @@ export default function CitiesPage() {
               }}
               className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
             >
-              <span className="material-symbols-outlined text-on-surface-variant">add</span>
+              <Plus />
             </button>
             <button
               onClick={() => {
@@ -529,7 +531,7 @@ export default function CitiesPage() {
               }}
               className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
             >
-              <span className="material-symbols-outlined text-on-surface-variant">remove</span>
+              <Minus />
             </button>
             <button
               onClick={() => {
@@ -538,7 +540,7 @@ export default function CitiesPage() {
               className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
               title="Recenter"
             >
-              <span className="material-symbols-outlined text-on-surface-variant">my_location</span>
+              <Locate />
             </button>
             <button
               onClick={() => {
@@ -549,7 +551,7 @@ export default function CitiesPage() {
               }}
               className="px-4 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center gap-2 hover:bg-white active:scale-95 shadow-md cursor-pointer"
             >
-              <span className="material-symbols-outlined text-on-surface-variant text-[16px]">layers</span>
+              <Layers />
               <span className="text-xs font-semibold text-on-surface-variant">Toggle 3D</span>
             </button>
           </div>
@@ -560,17 +562,17 @@ export default function CitiesPage() {
       <div className="w-80 bg-white/95 border-l border-outline-variant/20 h-full shadow-2xl z-20 flex flex-col p-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-bold text-on-surface text-lg">Layer Controls</h3>
-          <span className="material-symbols-outlined text-on-surface-variant text-[18px] cursor-help">info</span>
+          <Info />
         </div>
 
         <div className="space-y-3 flex-1">
           {[
-            { id: 'traffic', name: 'Traffic Congestion', icon: 'traffic', color: 'text-error', bg: 'bg-error-container/40' },
-            { id: 'metro', name: 'Metro Connectivity', icon: 'subway', color: 'text-primary', bg: 'bg-primary-fixed/20' },
-            { id: 'water', name: 'Water Distribution', icon: 'water_drop', color: 'text-blue-600', bg: 'bg-blue-50' },
-            { id: 'power', name: 'Power Grid Load', icon: 'bolt', color: 'text-amber-600', bg: 'bg-amber-50' },
-            { id: 'ev', name: 'EV Charging Network', icon: 'ev_station', color: 'text-violet-600', bg: 'bg-violet-50' },
-            { id: 'industrial', name: 'Industrial Zones', icon: 'factory', color: 'text-purple-600', bg: 'bg-purple-50' }
+            { id: 'traffic', name: 'Traffic Congestion', icon: <Car size={18} className="text-error" />, color: 'text-error', bg: 'bg-error-container/40' },
+            { id: 'metro', name: 'Metro Connectivity', icon: <Train size={18} className="text-primary" />, color: 'text-primary', bg: 'bg-primary-fixed/20' },
+            { id: 'water', name: 'Water Distribution', icon: <Droplet size={18} className="text-blue-600" />, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { id: 'power', name: 'Power Grid Load', icon: <Zap size={18} className="text-amber-600" />, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { id: 'ev', name: 'EV Charging Network', icon: <Battery size={18} className="text-violet-600" />, color: 'text-violet-600', bg: 'bg-violet-50' },
+            { id: 'industrial', name: 'Industrial Zones', icon: <Factory size={18} className="text-purple-600" />, color: 'text-purple-600', bg: 'bg-purple-50' }
           ].map(layer => (
             <div
               key={layer.id}
@@ -579,7 +581,7 @@ export default function CitiesPage() {
             >
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl ${layer.bg} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                  <span className={`material-symbols-outlined ${layer.color} text-[18px]`}>{layer.icon}</span>
+                  <span className="flex items-center justify-center">{layer.icon}</span>
                 </div>
                 <span className="text-[13px] font-medium text-on-surface">{layer.name}</span>
               </div>

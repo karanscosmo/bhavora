@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
+import { Search, Bell, User, Settings, LogOut, TriangleAlert, Info, AlertCircle } from 'lucide-react';
+
 
 export function TopNav() {
   const router = useRouter();
@@ -147,7 +149,7 @@ export function TopNav() {
         {/* Functional Search Bar */}
         <div ref={searchRef} className="hidden md:block relative">
           <div className="flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20 w-80">
-            <span className="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+            <Search />
             <input 
               value={searchQuery}
               onChange={(e) => {
@@ -186,7 +188,7 @@ export function TopNav() {
             onClick={() => setShowNotifications(!showNotifications)}
             className="p-2 rounded-full hover:bg-surface-container-high/50 transition-all cursor-pointer relative"
           >
-            <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
+            <Bell />
             {notifications.some(n => n.type === 'error' || n.type === 'warning') && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error animate-ping"></span>
             )}
@@ -209,11 +211,9 @@ export function TopNav() {
                     }}
                     className="px-4 py-3 hover:bg-surface-container-low cursor-pointer border-b border-outline-variant/10 text-xs flex gap-2.5 items-start"
                   >
-                    <span className={`material-symbols-outlined text-[16px] mt-0.5 shrink-0 ${
-                      notif.type === 'error' ? 'text-error' : notif.type === 'warning' ? 'text-amber-500' : 'text-primary'
-                    }`}>
-                      {notif.type === 'error' ? 'error' : notif.type === 'warning' ? 'warning' : 'info'}
-                    </span>
+                    {notif.type === 'error' ? <AlertCircle size={16} className="mt-0.5 shrink-0 text-error" /> : 
+                     notif.type === 'warning' ? <TriangleAlert size={16} className="mt-0.5 shrink-0 text-amber-500" /> : 
+                     <Info size={16} className="mt-0.5 shrink-0 text-primary" />}
                     <span className="text-on-surface-variant leading-relaxed">{notif.text}</span>
                   </div>
                 ))}
@@ -232,21 +232,21 @@ export function TopNav() {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center border border-primary/10 hover:bg-primary-fixed-dim transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-primary">account_circle</span>
+            <User />
           </button>
 
           {/* Profile Dropdown */}
           {showProfileMenu && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-outline-variant/30 rounded-2xl shadow-2xl py-2 z-50 text-xs">
               <Link href="/profile" onClick={() => setShowProfileMenu(false)} className="px-4 py-2 hover:bg-surface-container-low cursor-pointer flex items-center gap-2 text-on-surface font-semibold">
-                <span className="material-symbols-outlined text-[16px]">account_circle</span> User Profile
+                <User /> User Profile
               </Link>
               <Link href="/settings" onClick={() => setShowProfileMenu(false)} className="px-4 py-2 hover:bg-surface-container-low cursor-pointer flex items-center gap-2 text-on-surface font-semibold">
-                <span className="material-symbols-outlined text-[16px]">settings</span> Settings
+                <Settings /> Settings
               </Link>
               <div className="h-[1px] bg-outline-variant/10 my-1" />
               <Link href="/auth" onClick={() => setShowProfileMenu(false)} className="px-4 py-2 hover:bg-surface-container-low text-error cursor-pointer flex items-center gap-2 font-bold">
-                <span className="material-symbols-outlined text-[16px] text-error">logout</span> Sign Out
+                <LogOut /> Sign Out
               </Link>
             </div>
           )}

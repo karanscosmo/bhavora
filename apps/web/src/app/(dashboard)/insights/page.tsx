@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
+import { ArrowRight, Calendar, CheckCircle, Database, Droplet, Filter, History, Info, Link, Plug, Rss, Sparkles, Star, TrendingUp, Zap } from 'lucide-react';
+
 
 export default function InsightsPage() {
   const store = useSimulationStore();
@@ -33,10 +35,10 @@ export default function InsightsPage() {
         </div>
         <div className="flex gap-3">
           <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2 cursor-pointer">
-            <span className="material-symbols-outlined text-[18px]">filter_list</span> Filter
+            <Filter /> Filter
           </button>
           <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2 cursor-pointer">
-            <span className="material-symbols-outlined text-[18px]">calendar_today</span> 2024 - 2028
+            <Calendar /> 2024 - 2028
           </button>
         </div>
       </div>
@@ -47,12 +49,12 @@ export default function InsightsPage() {
         <div className="col-span-12 lg:col-span-8 group">
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-6 h-full flex flex-col hover:-translate-y-1 transition-all duration-300 relative overflow-hidden shadow-sm hover:shadow-xl">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <span className="material-symbols-outlined text-[120px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+              <Zap />
             </div>
             <div className="flex justify-between items-start mb-6 relative z-10">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined">electrical_services</span>
+                  <Plug />
                 </div>
                 <div>
                   <p className="font-mono-label text-primary">STRATEGIC INFRASTRUCTURE</p>
@@ -92,14 +94,14 @@ export default function InsightsPage() {
             <div className="mt-8 pt-6 border-t border-outline-variant/30 flex items-center justify-between relative z-10">
               <div className="flex gap-4">
                 <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm cursor-pointer">
-                  <span className="material-symbols-outlined text-[18px]">link</span> Source Data
+                  <Link /> Source Data
                 </button>
                 <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm cursor-pointer">
-                  <span className="material-symbols-outlined text-[18px]">history</span> History
+                  <History /> History
                 </button>
               </div>
               <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer">
-                Take Action <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                Take Action <ArrowRight />
               </button>
             </div>
           </div>
@@ -110,7 +112,7 @@ export default function InsightsPage() {
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-6 h-full flex flex-col hover:-translate-y-1 transition-all duration-300 border-l-4 border-l-secondary shadow-sm hover:shadow-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined">water_drop</span>
+                <Droplet />
               </div>
               <div>
                 <p className="font-mono-label text-secondary">RESOURCE ALLOCATION</p>
@@ -136,11 +138,11 @@ export default function InsightsPage() {
                 <p className="text-body-sm font-medium text-on-surface mb-2">Recommended Mitigation:</p>
                 <ul className="space-y-2">
                   <li className="flex gap-2 text-body-sm text-on-surface-variant font-semibold">
-                    <span className="text-secondary text-[16px] material-symbols-outlined">check_circle</span>
+                    <CheckCircle className="text-secondary text-[16px]" />
                     {metrics.waterDemand > 10 ? "Accelerate Cauvery Stage V phase" : "STP Pipeline diversion"}
                   </li>
                   <li className="flex gap-2 text-body-sm text-on-surface-variant font-semibold">
-                    <span className="text-secondary text-[16px] material-symbols-outlined">check_circle</span>
+                    <CheckCircle className="text-secondary text-[16px]" />
                     Smart meter deployment
                   </li>
                 </ul>
@@ -186,7 +188,7 @@ export default function InsightsPage() {
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all border-b-4 border-b-primary">
             <div className="flex justify-between items-start">
               <div className="flex gap-4">
-                <span className="material-symbols-outlined text-primary text-[32px]">trending_up</span>
+                <TrendingUp />
                 <div>
                   <h4 className="font-bold text-body-lg">Demographic Shift</h4>
                   <p className="text-body-sm text-on-surface-variant">In-migration trend analysis</p>
@@ -197,7 +199,7 @@ export default function InsightsPage() {
             <p className="text-body-md text-on-surface-variant italic">&ldquo;Current zoning laws in SE Bengaluru are insufficient for predicted 2027 residential density under +{popGrowth}% growth scenario.&rdquo;</p>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant">database</span>
+                <Database />
                 <span className="text-body-sm font-medium">Census API + Mobile Pings</span>
               </div>
               <button className="text-primary font-bold text-body-sm hover:underline cursor-pointer">Re-zone Scenarios</button>
@@ -212,7 +214,7 @@ export default function InsightsPage() {
                 <h4 className="font-headline-sm">Decision Engine V5</h4>
               </div>
               <div className="bg-primary text-white p-2 rounded-lg">
-                <span className="material-symbols-outlined">auto_awesome</span>
+                <Sparkles />
               </div>
             </div>
             <div className="relative z-10">
@@ -232,13 +234,13 @@ export default function InsightsPage() {
       {recommendations.length > 0 && (
         <div className="mt-8 bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
           <h3 className="font-bold text-on-surface text-base mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">dynamic_feed</span>
+            <Rss />
             Active Simulation Recommendations Briefs
           </h3>
           <div className="space-y-3">
             {recommendations.map((rec, idx) => (
               <div key={idx} className="p-3.5 bg-primary/5 rounded-xl border border-primary/10 text-xs font-semibold text-primary leading-relaxed flex items-start gap-2 animate-scale-in">
-                <span className="material-symbols-outlined text-sm mt-0.5">info</span>
+                <Info />
                 <span>{rec}</span>
               </div>
             ))}
@@ -260,7 +262,7 @@ export default function InsightsPage() {
           <div>
             <p className="text-on-surface-variant font-label-md">AI TRUST RATING</p>
             <div className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+              <Star />
               <p className="text-headline-sm font-bold">A+</p>
             </div>
           </div>

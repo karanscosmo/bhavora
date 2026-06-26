@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { exportToPDF, exportToCSV } from '@/lib/exportUtils';
+import { BarChart2, Bus, Car, CheckCircle, ChevronRight, FileCheck, FileText, Info, Leaf, ShieldCheck, Table, TriangleAlert, Zap, Hourglass, Download } from 'lucide-react';
+
 
 export default function ReportsPage() {
   const store = useSimulationStore();
@@ -62,7 +64,7 @@ export default function ReportsPage() {
         <div>
           <nav className="flex items-center gap-2 text-on-surface-variant text-sm mb-2">
             <span>Analysis</span>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight />
             <span className="text-primary font-medium">Infrastructure Forecasts</span>
           </nav>
           <h1 className="font-display-sm text-display-sm tracking-tight text-on-surface">Predictive Infrastructure Outlook</h1>
@@ -70,10 +72,11 @@ export default function ReportsPage() {
         </div>
         <div className="flex gap-3 no-print">
           <button onClick={handleExportCSV} className="bg-surface-container text-on-surface-variant px-6 py-2 rounded-lg font-bold text-sm border border-outline-variant/30 hover:bg-surface-container-high transition-all flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">table_view</span> CSV Dump
+            <Table /> CSV Dump
           </button>
           <button onClick={() => handleExportPDF('reports-dashboard', 'bhavora-full-report.pdf')} disabled={isExporting} className="bg-primary text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-primary/90 transition-all flex items-center gap-2 disabled:opacity-50">
-            <span className="material-symbols-outlined text-[18px]">{isExporting ? 'hourglass_top' : 'download'}</span> {isExporting ? 'Exporting...' : 'Export PDF'}
+            {isExporting ? <Hourglass size={18} /> : <Download size={18} />}
+            <span className="text-xs">{isExporting ? 'Exporting...' : 'Export PDF'}</span>
           </button>
         </div>
       </div>
@@ -140,7 +143,7 @@ export default function ReportsPage() {
                 <h3 className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Traffic Congestion Index</h3>
                 <p className="text-headline-sm font-bold text-on-surface mt-1">{trafficIndexValue}<span className={`text-sm font-medium ml-2 ${metrics.trafficCongestion > 0 ? 'text-error' : 'text-emerald-600'}`}>{trafficDeltaLabel}</span></p>
               </div>
-              <span className="material-symbols-outlined text-error">traffic</span>
+              <Car />
             </div>
             <div className="w-full bg-surface-container rounded-full h-1.5 mb-2 overflow-hidden">
               <div className="bg-error h-1.5 rounded-full transition-all duration-[1s]" style={{ width: `${trafficIndexValue}%` }}></div>
@@ -155,7 +158,7 @@ export default function ReportsPage() {
                 <h3 className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Grid Load (Forecasted)</h3>
                 <p className="text-headline-sm font-bold text-on-surface mt-1">{energyLoadGw} GW<span className={`text-sm font-medium ml-2 ${metrics.energyDemand > 0 ? 'text-error' : 'text-emerald-600'}`}>{energyDeltaLabel}</span></p>
               </div>
-              <span className="material-symbols-outlined text-secondary">bolt</span>
+              <Zap />
             </div>
             <div className="w-full bg-surface-container rounded-full h-1.5 mb-2 overflow-hidden">
               <div className="bg-secondary h-1.5 rounded-full transition-all duration-[1s]" style={{ width: `${energyIndexValue}%` }}></div>
@@ -171,30 +174,30 @@ export default function ReportsPage() {
             <h3 className="font-headline-sm text-on-surface mb-6">Report Contents</h3>
             <div className="space-y-1 flex-1 overflow-y-auto">
               <button className="w-full text-left px-4 py-3 rounded-xl bg-white shadow-sm border border-primary/20 text-primary font-semibold flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px]">article</span>
+                <FileText />
                 Executive Summary
               </button>
               <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px]">analytics</span>
+                <BarChart2 />
                 Demographic Shifts
               </button>
               <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px]">commute</span>
+                <Bus />
                 Mobility Infrastructure
               </button>
               <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px]">eco</span>
+                <Leaf />
                 Sustainability Matrix
               </button>
               <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px]">policy</span>
+                <FileCheck />
                 Policy Framework 2035
               </button>
             </div>
             <div className="pt-6 border-t border-outline-variant/30 mt-auto">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-primary/10 rounded-lg">
-                  <span className="material-symbols-outlined text-primary">security</span>
+                  <ShieldCheck />
                 </div>
                 <div className="text-xs">
                   <p className="font-bold text-on-surface">Verified Data</p>
@@ -265,7 +268,7 @@ export default function ReportsPage() {
               {(climateEvent !== "None" || disasterEvent !== "None") && (
                 <div className="bg-error-container text-on-error-container p-6 rounded-2xl border border-error/20">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="material-symbols-outlined text-error">warning</span>
+                    <TriangleAlert />
                     <h5 className="font-bold text-error">Active Hazard Annex</h5>
                   </div>
                   <p className="text-sm">
@@ -276,7 +279,7 @@ export default function ReportsPage() {
 
               <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary">info</span>
+                  <Info />
                   <h5 className="font-bold text-primary">Analyst&apos;s Note</h5>
                 </div>
                 <p className="text-sm text-on-primary-container/80">
@@ -295,7 +298,7 @@ export default function ReportsPage() {
       {/* Floating Export Toast */}
       {isExporting && (
         <div className="fixed bottom-8 right-28 bg-[#213145] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-bounce z-50">
-          <span className="material-symbols-outlined text-secondary">check_circle</span>
+          <CheckCircle />
           <span className="text-sm font-medium">Exporting PDF... This might take a moment.</span>
         </div>
       )}

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+import { ChevronRight } from 'lucide-react';
+import {  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Legend, BarChart, Bar
 } from 'recharts';
 
@@ -48,7 +48,7 @@ export default function AnalyticsPage() {
       <div>
         <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
           <span>Analytics Suite</span>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight />
           <span className="text-primary font-bold">Performance Telemetry</span>
         </nav>
         <h1 className="font-display-sm text-display-sm text-on-surface">Statistical Analytics</h1>

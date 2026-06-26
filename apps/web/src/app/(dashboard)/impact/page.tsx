@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
+import { ArrowRightLeft, ChevronRight, Car, Zap, Cloud, Droplet } from 'lucide-react';
+
 
 export default function ImpactPage() {
   const store = useSimulationStore();
@@ -15,7 +17,7 @@ export default function ImpactPage() {
       progressBefore: 88,
       progressAfter: Math.max(10, 88 + (results?.metrics?.trafficCongestion || -12)),
       color: "bg-error",
-      icon: "traffic",
+      icon: <Car size={20} />,
       label: "Congestion Index"
     },
     {
@@ -25,7 +27,7 @@ export default function ImpactPage() {
       progressBefore: 50,
       progressAfter: Math.min(100, 50 + (results?.metrics?.energyDemand || 24)),
       color: "bg-amber-500",
-      icon: "bolt",
+      icon: <Zap size={20} />,
       label: "Energy Capacity"
     },
     {
@@ -35,7 +37,7 @@ export default function ImpactPage() {
       progressBefore: 75,
       progressAfter: Math.max(10, 75 + (results?.metrics?.carbonEmissions || -18)),
       color: "bg-emerald-500",
-      icon: "co2",
+      icon: <Cloud size={20} />,
       label: "Carbon Stress"
     },
     {
@@ -45,7 +47,7 @@ export default function ImpactPage() {
       progressBefore: 18,
       progressAfter: Math.max(2, 18 - (results?.metrics?.waterDemand || 4)),
       color: "bg-blue-500",
-      icon: "water_drop",
+      icon: <Droplet size={20} />,
       label: "Reserves Remaining"
     }
   ];
@@ -57,7 +59,7 @@ export default function ImpactPage() {
         <div>
           <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
             <span>Impact Analysis</span>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight />
             <span className="text-primary font-bold">Variance Comparison</span>
           </nav>
           <h1 className="font-display-sm text-display-sm text-on-surface">Urban Impact Matrix</h1>
@@ -66,7 +68,7 @@ export default function ImpactPage() {
           </p>
         </div>
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
-          <span className="material-symbols-outlined text-primary text-2xl">compare_arrows</span>
+          <ArrowRightLeft />
           <div>
             <div className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Simulated Index</div>
             <div className="text-lg font-extrabold text-on-surface">Bengaluru 2035</div>
@@ -84,7 +86,7 @@ export default function ImpactPage() {
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                <span className="flex items-center justify-center">{item.icon}</span>
               </div>
               <h3 className="font-bold text-on-surface text-base">{item.name}</h3>
             </div>

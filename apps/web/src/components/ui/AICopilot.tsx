@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
+import { ArrowRight, Bot, Brain, Send, X, Zap } from 'lucide-react';
+
 
 interface Message {
   id: string;
@@ -157,7 +159,7 @@ export function AICopilot() {
         onClick={() => { setIsOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
         className="fixed bottom-6 right-6 w-14 h-14 bg-gray-900 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-40 group border border-white/20"
       >
-        <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">robot_2</span>
+        <Bot />
         <span className="absolute -top-1 -right-1 flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
@@ -177,7 +179,7 @@ export function AICopilot() {
             <div className="p-4 bg-gray-900 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
-                  <span className="material-symbols-outlined text-emerald-400 text-[18px]">bolt</span>
+                  <Zap />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm tracking-tight">City Operations Agent</h3>
@@ -185,7 +187,7 @@ export function AICopilot() {
                 </div>
               </div>
               <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <X />
               </button>
             </div>
 
@@ -200,7 +202,7 @@ export function AICopilot() {
                   }`}>
                     {msg.role === 'agent' && (
                       <div className="flex items-center gap-1.5 mb-2 text-primary">
-                        <span className="material-symbols-outlined text-[14px]">psychology</span>
+                        <Brain />
                         <span className="text-[10px] font-bold uppercase tracking-widest">System</span>
                       </div>
                     )}
@@ -216,7 +218,7 @@ export function AICopilot() {
                             className="w-full py-2 px-3 bg-white border border-outline-variant/30 rounded-xl text-xs font-bold text-primary hover:bg-primary/5 transition-colors flex items-center justify-between group"
                           >
                             {action.label}
-                            <span className="material-symbols-outlined text-[14px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                            <ArrowRight />
                           </button>
                         ))}
                       </div>
@@ -243,7 +245,7 @@ export function AICopilot() {
                   disabled={!input.trim()}
                   className="w-12 h-12 bg-gray-900 text-white rounded-xl flex items-center justify-center disabled:opacity-50 hover:bg-black transition-colors"
                 >
-                  <span className="material-symbols-outlined">send</span>
+                  <Send />
                 </button>
               </form>
             </div>

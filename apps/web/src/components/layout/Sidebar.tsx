@@ -3,29 +3,31 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Building2, LayoutDashboard, Network, Workflow, PieChart, FolderOpen, Activity, TriangleAlert, Lightbulb, FileText, BarChart2 } from 'lucide-react';
+
 
 export function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: 'Dashboard', path: '/overview', icon: 'dashboard' },
-    { name: 'Platform Info', path: '/platform', icon: 'hub' },
-    { name: 'Cities Twin', path: '/cities', icon: 'location_city' },
-    { name: 'Decision Twin', path: '/decision-twin', icon: 'account_tree' },
-    { name: 'Impact Analysis', path: '/impact', icon: 'donut_large' },
-    { name: 'Saved Scenarios', path: '/scenarios', icon: 'folder_open' },
-    { name: 'Simulation Results', path: '/simulation-results', icon: 'vital_signs' },
-    { name: 'Disaster Mode', path: '/disaster', icon: 'warning' },
-    { name: 'AI Insights', path: '/insights', icon: 'insights' },
-    { name: 'Reports', path: '/reports', icon: 'description' },
-    { name: 'Analytics', path: '/analytics', icon: 'bar_chart' },
+    { name: 'Dashboard', path: '/overview', icon: <LayoutDashboard size={20} /> },
+    { name: 'Platform Info', path: '/platform', icon: <Network size={20} /> },
+    { name: 'Cities Twin', path: '/cities', icon: <Building2 size={20} /> },
+    { name: 'Decision Twin', path: '/decision-twin', icon: <Workflow size={20} /> },
+    { name: 'Impact Analysis', path: '/impact', icon: <PieChart size={20} /> },
+    { name: 'Saved Scenarios', path: '/scenarios', icon: <FolderOpen size={20} /> },
+    { name: 'Simulation Results', path: '/simulation-results', icon: <Activity size={20} /> },
+    { name: 'Disaster Mode', path: '/disaster', icon: <TriangleAlert size={20} /> },
+    { name: 'AI Insights', path: '/insights', icon: <Lightbulb size={20} /> },
+    { name: 'Reports', path: '/reports', icon: <FileText size={20} /> },
+    { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
   ];
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col p-4 bg-surface border-r border-outline-variant/20 shadow-lg select-none">
       <div className="mb-4 px-2">
         <h2 className="text-on-surface font-headline-sm flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">location_city</span>
+          <Building2 />
           Decision Twin
         </h2>
         <p className="font-label-md text-on-surface-variant mt-1 opacity-70">Bengaluru Urban</p>
@@ -46,7 +48,7 @@ export function Sidebar() {
                   : 'text-on-surface-variant hover:bg-surface-container-highest'
               }`}
             >
-              <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+              <span className="flex items-center justify-center w-6 h-6">{item.icon}</span>
               <span className="text-[13px] font-medium">{item.name}</span>
             </Link>
           );

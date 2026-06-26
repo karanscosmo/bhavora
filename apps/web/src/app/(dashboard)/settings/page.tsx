@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
+import { BarChart2, Bell, ChevronRight } from 'lucide-react';
+
 
 export default function SettingsPage() {
   const [confidence, setConfidence] = useState(95);
@@ -21,7 +23,7 @@ export default function SettingsPage() {
       <div>
         <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
           <span>Identity Center</span>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight />
           <span className="text-primary font-bold">Preferences</span>
         </nav>
         <h1 className="font-display-sm text-display-sm text-on-surface">System Settings</h1>
@@ -34,7 +36,7 @@ export default function SettingsPage() {
         {/* Simulation Settings */}
         <div className="lg:col-span-8 bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm space-y-6">
           <h3 className="font-bold text-on-surface text-base border-b border-outline-variant/10 pb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">analytics</span>
+            <BarChart2 />
             Simulation Engine Calibration
           </h3>
 
@@ -92,7 +94,7 @@ export default function SettingsPage() {
         <div className="lg:col-span-4 bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm flex flex-col justify-between min-h-[320px]">
           <div>
             <h3 className="font-bold text-on-surface text-base border-b border-outline-variant/10 pb-3 mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">notifications</span>
+              <Bell />
               Alert Preferences
             </h3>
 

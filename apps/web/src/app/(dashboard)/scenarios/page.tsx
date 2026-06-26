@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { exportToCSV } from '@/lib/exportUtils';
+import { ArrowRightLeft, BarChart2, Calendar, ChevronRight, Copy, Download, FileSymlink, History, Trash, User } from 'lucide-react';
+
 
 interface SavedScenario {
   id: string;
@@ -129,7 +131,7 @@ export default function ScenariosPage() {
         <div>
           <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
             <span>Scenario Management</span>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight />
             <span className="text-primary font-bold">Saved Profiles</span>
           </nav>
           <h1 className="font-display-sm text-display-sm text-on-surface">Scenario Library</h1>
@@ -142,7 +144,7 @@ export default function ScenariosPage() {
             onClick={handleExportCSV} 
             className="bg-surface-container text-on-surface-variant px-6 py-2 rounded-lg font-bold text-sm border border-outline-variant/30 hover:bg-surface-container-high transition-all flex items-center gap-2"
           >
-            <span className="material-symbols-outlined text-[20px]">download</span>
+            <Download />
             Export Library
           </button>
           <button 
@@ -150,7 +152,7 @@ export default function ScenariosPage() {
             onClick={handleCompare}
             className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-md disabled:opacity-40 disabled:scale-100 flex items-center gap-1.5"
           >
-            <span className="material-symbols-outlined text-[16px]">compare</span>
+            <ArrowRightLeft />
             Compare Selected ({selectedIds.length}/2)
           </button>
         </div>
@@ -161,7 +163,7 @@ export default function ScenariosPage() {
         <div className="bg-primary-fixed/20 border border-primary/20 rounded-3xl p-6 relative animate-scale-in">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-primary text-base flex items-center gap-2">
-              <span className="material-symbols-outlined">analytics</span>
+              <BarChart2 />
               Comparative Variance Summary
             </h3>
             <button 
@@ -214,9 +216,9 @@ export default function ScenariosPage() {
                 <div className="space-y-1">
                   <h3 className="font-bold text-on-surface text-base">{scen.name}</h3>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-on-surface-variant">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">account_circle</span> {scen.creator}</span>
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {scen.date}</span>
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">history</span> Engine {scen.version}</span>
+                    <span className="flex items-center gap-1"><User /> {scen.creator}</span>
+                    <span className="flex items-center gap-1"><Calendar /> {scen.date}</span>
+                    <span className="flex items-center gap-1"><History /> Engine {scen.version}</span>
                   </div>
                 </div>
               </div>
@@ -234,7 +236,7 @@ export default function ScenariosPage() {
                   onClick={() => handleLoad(scen)}
                   className="w-full md:w-auto px-4 py-2 border border-outline-variant/40 hover:bg-surface-container hover:border-outline-variant/80 rounded-xl text-xs font-bold text-on-surface transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">file_open</span>
+                  <FileSymlink />
                   Load Results
                 </button>
                 <button 
@@ -242,14 +244,14 @@ export default function ScenariosPage() {
                   className="w-10 h-10 rounded-full flex items-center justify-center bg-surface hover:bg-primary-container/50 border border-outline-variant/30 text-on-surface-variant transition-colors"
                   title="Duplicate Scenario"
                 >
-                  <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                  <Copy />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDelete(scen.id); }}
                   className="w-10 h-10 rounded-full flex items-center justify-center bg-surface hover:bg-error-container border border-outline-variant/30 text-error transition-colors"
                   title="Delete Scenario"
                 >
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                  <Trash />
                 </button>
               </div>
             </div>
@@ -260,7 +262,7 @@ export default function ScenariosPage() {
       {/* Version Logs / Timeline */}
       <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
         <h3 className="font-bold text-on-surface text-base mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined">history_toggle_off</span>
+          <History />
           Engine Execution History
         </h3>
         <div className="relative border-l border-outline-variant/30 pl-6 ml-4 space-y-6 text-xs text-on-surface-variant font-medium">

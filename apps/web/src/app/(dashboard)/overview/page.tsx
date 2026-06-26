@@ -5,6 +5,8 @@ import { useSimulationStore } from '@/store/useSimulationStore';
 import { ActionModal } from '@/components/ui/ActionModal';
 import { exportToPDF } from '@/lib/exportUtils';
 import { useRouter } from 'next/navigation';
+import { BadgeCheck, Droplet, Landmark, MoreVertical, Sparkles, TrendingUp, TrendingDown, Zap, Hourglass, Download } from 'lucide-react';
+
 
 export default function OverviewPage() {
 
@@ -133,8 +135,8 @@ export default function OverviewPage() {
             disabled={isExporting}
             className="bg-primary text-on-primary px-6 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:opacity-90 transition-all cursor-pointer disabled:opacity-50 no-print"
           >
-            <span className="material-symbols-outlined text-[20px]">{isExporting ? 'hourglass_top' : 'file_download'}</span>
-            {isExporting ? 'Exporting...' : 'Export PDF'}
+            {isExporting ? <Hourglass size={20} /> : <Download size={20} />}
+            <span className="text-xs">{isExporting ? 'Exporting...' : 'Export PDF'}</span>
           </button>
         </div>
       </div>
@@ -142,7 +144,7 @@ export default function OverviewPage() {
       <div className="mb-8 p-4 bg-primary-fixed-dim/20 border border-primary/20 rounded-2xl flex items-center gap-4 relative overflow-hidden group animate-fade-in">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"></div>
         <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg">
-          <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          <Sparkles />
         </div>
         <div className="flex-1">
           <h4 className="font-label-md text-primary uppercase tracking-wider">AI Predictive Insight</h4>
@@ -167,7 +169,7 @@ export default function OverviewPage() {
           <p className="text-on-surface-variant font-label-md mb-2">Population</p>
           <h3 className="text-headline-sm font-bold text-on-surface">{displayPopulation}M</h3>
           <div className="mt-4 flex items-center gap-1 text-tertiary">
-            <span className="material-symbols-outlined text-[18px]">trending_up</span>
+            <TrendingUp />
             <span className="text-[11px] font-bold">+{popGrowth}% target</span>
           </div>
         </div>
@@ -187,7 +189,7 @@ export default function OverviewPage() {
           <p className="text-on-surface-variant font-label-md mb-2">Energy Demand</p>
           <h3 className="text-headline-sm font-bold text-on-surface">{metrics.energyDemand > 0 ? "+" : ""}{metrics.energyDemand}%</h3>
           <div className="mt-4 flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[18px]">bolt</span>
+            <Zap />
             <span className="text-[11px] font-medium">{displayEnergy} GW / Day</span>
           </div>
         </div>
@@ -197,7 +199,7 @@ export default function OverviewPage() {
             {metrics.waterDemand > 10 ? 'Critical' : 'Normal'}
           </h3>
           <div className="mt-4 flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[18px]">water_drop</span>
+            <Droplet />
             <span className="text-[11px] font-medium">{displayWater}% Capacity</span>
           </div>
         </div>
@@ -205,7 +207,7 @@ export default function OverviewPage() {
           <p className="text-on-surface-variant font-label-md mb-2">CO2 Emissions</p>
           <h3 className="text-headline-sm font-bold text-on-surface">{displayCarbon}t</h3>
           <div className="mt-4 flex items-center gap-1 text-tertiary">
-            <span className="material-symbols-outlined text-[18px]">{metrics.carbonEmissions < 0 ? 'trending_down' : 'trending_up'}</span>
+            {metrics.carbonEmissions < 0 ? <TrendingDown size={18} /> : <TrendingUp size={18} />}
             <span className="text-[11px] font-bold">{metrics.carbonEmissions}% Mtd</span>
           </div>
         </div>
@@ -213,7 +215,7 @@ export default function OverviewPage() {
           <p className="text-on-surface-variant font-label-md mb-2">Jobs Index</p>
           <h3 className="text-headline-sm font-bold text-on-surface">{displayJobs}</h3>
           <div className="mt-4 flex items-center gap-1 text-tertiary">
-            <span className="material-symbols-outlined text-[18px]">verified</span>
+            <BadgeCheck />
             <span className="text-[11px] font-bold">High Growth</span>
           </div>
         </div>
@@ -221,7 +223,7 @@ export default function OverviewPage() {
           <p className="text-on-surface-variant font-label-md mb-2">GDP Growth</p>
           <h3 className="text-headline-sm font-bold text-primary">{displayGdp}%</h3>
           <div className="mt-4 flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[18px]">account_balance</span>
+            <Landmark />
             <span className="text-[11px] font-medium">Metropolitan</span>
           </div>
         </div>
@@ -258,7 +260,7 @@ export default function OverviewPage() {
           <div className="bg-surface p-6 rounded-2xl border border-outline-variant/20 shadow-sm flex-1">
             <div className="flex justify-between items-start mb-6">
               <h3 className="font-headline-sm text-on-surface">Energy Demand Peak Profile</h3>
-              <span className="material-symbols-outlined text-on-surface-variant">more_vert</span>
+              <MoreVertical />
             </div>
             <div className="h-48 w-full flex items-end justify-between gap-2 px-2">
               <div className="w-full h-full relative flex items-end gap-2">

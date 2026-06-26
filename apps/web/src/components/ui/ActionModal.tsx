@@ -1,5 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Sparkles, X } from 'lucide-react';
+
 
 interface ActionModalProps {
   isOpen: boolean;
@@ -31,7 +33,7 @@ export function ActionModal({ isOpen, onClose, onExecute, title, description, re
             <div className="p-6 border-b border-outline-variant/20 flex items-center justify-between bg-primary-fixed/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                  <Sparkles />
                 </div>
                 <div>
                   <h3 className="font-headline-sm text-primary tracking-tight">{title}</h3>
@@ -39,7 +41,7 @@ export function ActionModal({ isOpen, onClose, onExecute, title, description, re
                 </div>
               </div>
               <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-black/5 flex items-center justify-center text-on-surface-variant transition-colors">
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <X />
               </button>
             </div>
             
@@ -64,7 +66,7 @@ export function ActionModal({ isOpen, onClose, onExecute, title, description, re
                 Cancel
               </button>
               <button onClick={onExecute} className="px-5 py-2.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">play_arrow</span>
+                <Play />
                 Execute Scenario
               </button>
             </div>

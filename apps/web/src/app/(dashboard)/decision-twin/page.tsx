@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import type { Map as MapboxMap, GeoJSONSource } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ArrowRightLeft, Layers, Locate, Waves, Factory, Leaf, Hourglass, BarChart2 } from 'lucide-react';
+
 
 export default function DecisionTwinPage() {
   const router = useRouter();
@@ -229,10 +231,10 @@ export default function DecisionTwinPage() {
           </div>
           <div className="flex gap-2">
             <button className="bg-white/80 backdrop-blur-xl p-2 rounded-lg hover:bg-white transition-all shadow-sm border border-outline-variant/30">
-              <span className="material-symbols-outlined text-on-surface-variant text-[18px]">layers</span>
+              <Layers />
             </button>
             <button className="bg-white/80 backdrop-blur-xl p-2 rounded-lg hover:bg-white transition-all shadow-sm border border-outline-variant/30">
-              <span className="material-symbols-outlined text-on-surface-variant text-[18px]">my_location</span>
+              <Locate />
             </button>
           </div>
         </div>
@@ -282,9 +284,9 @@ export default function DecisionTwinPage() {
             <label className="font-label-md text-on-surface block mb-3 uppercase tracking-wider text-[11px] font-bold">Preset Archetypes</label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { id: 'climate', name: 'Flood Risk', icon: 'flood' },
-                { id: 'industrial', name: 'Tech Boom', icon: 'factory' },
-                { id: 'green', name: 'EV Town', icon: 'energy_savings_leaf' }
+                { id: 'climate', name: 'Flood Risk', icon: <Waves size={22} /> },
+                { id: 'industrial', name: 'Tech Boom', icon: <Factory size={22} /> },
+                { id: 'green', name: 'EV Town', icon: <Leaf size={22} /> }
               ].map(arch => (
                 <button 
                   key={arch.id}
@@ -295,7 +297,7 @@ export default function DecisionTwinPage() {
                       : 'border-outline-variant/30 bg-surface-container-low hover:border-outline-variant/80'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[22px] mb-1">{arch.icon}</span>
+                  <span className="mb-1 flex items-center justify-center">{arch.icon}</span>
                   <span className="text-[10px] leading-tight font-semibold">{arch.name}</span>
                 </button>
               ))}
@@ -414,8 +416,8 @@ export default function DecisionTwinPage() {
             disabled={isSimulating}
             className="w-full py-4 bg-primary text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:scale-[1.02] transition-all shadow-lg active:scale-95 disabled:opacity-50"
           >
-            <span className="material-symbols-outlined">{isSimulating ? 'hourglass_top' : 'analytics'}</span>
-            <span className="text-md">{isSimulating ? 'Computing Vitality Factors...' : 'Run Platform Simulation'}</span>
+            {isSimulating ? <Hourglass size={20} /> : <BarChart2 size={20} />}
+            <span className="font-bold">{isSimulating ? "SIMULATING LOAD..." : "EXECUTE SIMULATION"}</span>
           </button>
           <p className="text-[10px] text-center text-on-surface-variant mt-3 font-semibold opacity-60">ESTIMATED RUN TIME: 2 SECONDS • REAL PUBLIC DATASETS</p>
         </div>

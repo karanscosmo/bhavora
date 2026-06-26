@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
+import { ArrowRight, ChevronRight, RefreshCw, X, Server, Workflow, PieChart, LineChart, Brain, FileText } from 'lucide-react';
+
 
 interface EngineSpec {
   name: string;
@@ -40,7 +42,7 @@ export default function PlatformPage() {
       id: "decision-twin",
       name: "Decision Twin",
       description: "Aggregates multi-source geospatial data to form a real-time responsive digital clone of the city's physical infrastructure.",
-      icon: "dns",
+      icon: <Server size={24} />,
       color: "text-blue-600",
       bg: "bg-blue-50"
     },
@@ -48,7 +50,7 @@ export default function PlatformPage() {
       id: "scenario-engine",
       name: "Scenario Engine",
       description: "Allows urban planner simulation of policy shifts, infrastructure projects, demographic flows, and climate variations.",
-      icon: "account_tree",
+      icon: <Workflow size={24} />,
       color: "text-cyan-600",
       bg: "bg-cyan-50"
     },
@@ -56,7 +58,7 @@ export default function PlatformPage() {
       id: "impact-engine",
       name: "Impact Engine",
       description: "Formulates system-wide variance reports detailing traffic congestion, carbon footprints, energy loads, and water capacity.",
-      icon: "donut_large",
+      icon: <PieChart size={24} />,
       color: "text-emerald-600",
       bg: "bg-emerald-50"
     },
@@ -64,7 +66,7 @@ export default function PlatformPage() {
       id: "forecast-engine",
       name: "Forecast Engine",
       description: "Generates 15-year projection curves of demographic shifts, infrastructure wear-and-tear, and zoning needs.",
-      icon: "timeline",
+      icon: <LineChart size={24} />,
       color: "text-violet-600",
       bg: "bg-violet-50"
     },
@@ -72,7 +74,7 @@ export default function PlatformPage() {
       id: "ai-insights-engine",
       name: "AI Insights Engine",
       description: "Constantly scans the simulated outcomes to automatically identify bottlenecks, project deficits, and trigger warnings.",
-      icon: "psychology",
+      icon: <Brain size={24} />,
       color: "text-amber-600",
       bg: "bg-amber-50"
     },
@@ -80,7 +82,7 @@ export default function PlatformPage() {
       id: "report-generator",
       name: "Report Generator",
       description: "Compiles all scenario parameters, timeline metrics, and AI recommendations into executive PDF strategy briefs.",
-      icon: "description",
+      icon: <FileText size={24} />,
       color: "text-purple-600",
       bg: "bg-purple-50"
     }
@@ -92,7 +94,7 @@ export default function PlatformPage() {
       <div>
         <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
           <span>Platform Overview</span>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight />
           <span className="text-primary font-bold">Bhavora Architecture</span>
         </nav>
         <h1 className="font-display-sm text-display-sm text-on-surface">City Intelligence Architecture</h1>
@@ -112,7 +114,7 @@ export default function PlatformPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 rounded-2xl ${eng.bg} flex items-center justify-center`}>
-                  <span className={`material-symbols-outlined text-2xl ${eng.color}`}>{eng.icon}</span>
+                  <span className={`flex items-center justify-center ${eng.color}`}>{eng.icon}</span>
                 </div>
                 <span className="text-[10px] font-mono font-bold tracking-widest text-on-surface-variant/40">ENGINE LAYER</span>
               </div>
@@ -121,7 +123,7 @@ export default function PlatformPage() {
             </div>
             <div className="mt-4 pt-3 border-t border-outline-variant/10 text-right">
               <span onClick={() => fetchSpec(eng.id)} className={`text-[11px] font-bold ${eng.color} flex items-center justify-end gap-1 cursor-pointer hover:underline`}>
-                View Technical Specs <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                View Technical Specs <ArrowRight />
               </span>
             </div>
           </div>
@@ -166,14 +168,14 @@ export default function PlatformPage() {
             <div className="p-6 bg-surface-container flex justify-between items-center border-b border-outline-variant/20">
               <h2 className="text-xl font-bold text-on-surface">Technical Specifications</h2>
               <button onClick={() => setSelectedEngine(null)} className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors">
-                <span className="material-symbols-outlined text-lg">close</span>
+                <X />
               </button>
             </div>
             
             <div className="p-6">
               {isLoading ? (
                 <div className="py-12 flex justify-center">
-                  <span className="material-symbols-outlined animate-spin text-3xl text-primary">refresh</span>
+                  <RefreshCw />
                 </div>
               ) : engineSpec ? (
                 <div className="space-y-6">

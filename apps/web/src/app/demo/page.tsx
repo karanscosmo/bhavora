@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { motion } from 'framer-motion';
+import { PlayCircle, Rocket } from 'lucide-react';
+
 
 const DEMO_STEPS = [
   { id: 1, name: "Initialize City Twin", duration: 5000, description: "Loading Bengaluru 3D map and baseline metrics..." },
@@ -84,7 +86,7 @@ export default function DemoPage() {
         
         <div className="mb-12 text-center">
           <div className="w-16 h-16 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-primary text-3xl">play_circle</span>
+            <PlayCircle />
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Bhavora Live Demo</h1>
           <p className="text-white/60 text-lg leading-relaxed max-w-xl mx-auto">
@@ -97,7 +99,7 @@ export default function DemoPage() {
             onClick={() => setIsDemoRunning(true)}
             className="px-10 py-4 bg-primary text-white rounded-2xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(var(--color-primary),0.4)] flex items-center gap-3 cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[24px]">rocket_launch</span>
+            <Rocket />
             RUN FULL CITY DEMO
           </button>
         ) : (

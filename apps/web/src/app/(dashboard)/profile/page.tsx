@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronRight, LogOut } from 'lucide-react';
+
 
 interface UserProfile {
   name: string;
@@ -52,7 +54,7 @@ export default function ProfilePage() {
       <div>
         <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
           <span>Identity Center</span>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight />
           <span className="text-primary font-bold">User Profile</span>
         </nav>
         <h1 className="font-display-sm text-display-sm text-on-surface">Member Profile</h1>
@@ -76,7 +78,7 @@ export default function ProfilePage() {
             onClick={handleLogout}
             className="mt-6 w-full py-2.5 bg-error text-white rounded-xl text-xs font-bold hover:bg-error/95 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-error/10"
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
+            <LogOut />
             Sign Out
           </button>
         </div>

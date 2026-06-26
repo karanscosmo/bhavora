@@ -1,6 +1,8 @@
 "use client";
 import React from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
+import { Car, ChevronRight, Cloud, Download, Droplet, Leaf, Shield, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+
 
 export default function SimulationResultsPage() {
   const store = useSimulationStore();
@@ -20,7 +22,7 @@ export default function SimulationResultsPage() {
         <div>
           <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
             <span>Simulations</span>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight />
             <span className="text-primary font-bold">Results</span>
           </nav>
           <h1 className="font-display-sm text-display-sm text-on-surface">Simulation Analysis</h1>
@@ -42,10 +44,10 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-start">
             <div className="bg-surface-container p-2 rounded-lg">
-              <span className="material-symbols-outlined text-primary">traffic</span>
+              <Car />
             </div>
             <span className={`${(results?.metrics?.trafficCongestion || -10) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              <span className="material-symbols-outlined text-sm">{(results?.metrics?.trafficCongestion || -10) > 0 ? 'trending_up' : 'trending_down'}</span>
+              {(results?.metrics?.trafficCongestion || -10) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {Math.abs(results?.metrics?.trafficCongestion || -10)}%
             </span>
           </div>
@@ -58,10 +60,10 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-start">
             <div className="bg-surface-container p-2 rounded-lg">
-              <span className="material-symbols-outlined text-primary">bolt</span>
+              <Zap />
             </div>
             <span className={`${(results?.metrics?.energyDemand || 24) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              <span className="material-symbols-outlined text-sm">{(results?.metrics?.energyDemand || 24) > 0 ? 'trending_up' : 'trending_down'}</span>
+              {(results?.metrics?.energyDemand || 24) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {Math.abs(results?.metrics?.energyDemand || 24)}%
             </span>
           </div>
@@ -74,10 +76,10 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-start">
             <div className="bg-surface-container p-2 rounded-lg">
-              <span className="material-symbols-outlined text-primary">water_drop</span>
+              <Droplet />
             </div>
             <span className={`${(results?.metrics?.waterDemand || 4) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              <span className="material-symbols-outlined text-sm">{(results?.metrics?.waterDemand || 4) > 0 ? 'trending_up' : 'trending_down'}</span>
+              {(results?.metrics?.waterDemand || 4) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {Math.abs(results?.metrics?.waterDemand || 4)}%
             </span>
           </div>
@@ -90,10 +92,10 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-start">
             <div className="bg-surface-container p-2 rounded-lg">
-              <span className="material-symbols-outlined text-primary">co2</span>
+              <Cloud />
             </div>
             <span className={`${(results?.metrics?.carbonEmissions || -18) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              <span className="material-symbols-outlined text-sm">{(results?.metrics?.carbonEmissions || -18) > 0 ? 'trending_up' : 'trending_down'}</span>
+              {(results?.metrics?.carbonEmissions || -18) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {Math.abs(results?.metrics?.carbonEmissions || -18)}%
             </span>
           </div>
@@ -109,7 +111,7 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-on-surface">Sustainability Score</h3>
-            <span className="material-symbols-outlined text-emerald-500 text-2xl">eco</span>
+            <Leaf />
           </div>
           <div className="flex items-end gap-2">
             <span className="text-4xl font-extrabold text-emerald-500">{sustainabilityScore}</span>
@@ -121,7 +123,7 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-on-surface">Resilience Score</h3>
-            <span className="material-symbols-outlined text-primary text-2xl">shield</span>
+            <Shield />
           </div>
           <div className="flex items-end gap-2">
             <span className="text-4xl font-extrabold text-primary">{resilienceScore}</span>
@@ -133,7 +135,7 @@ export default function SimulationResultsPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 hover:-translate-y-1 transition-transform">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-on-surface">Economic Score</h3>
-            <span className="material-symbols-outlined text-amber-500 text-2xl">trending_up</span>
+            <TrendingUp />
           </div>
           <div className="flex items-end gap-2">
             <span className="text-4xl font-extrabold text-amber-500">{economicScore}</span>
@@ -179,7 +181,7 @@ export default function SimulationResultsPage() {
             <p className="text-on-surface-variant text-body-sm">Granular breakdown of simulation variances and risk assessment.</p>
           </div>
           <button className="flex items-center gap-2 text-primary font-bold hover:underline">
-            <span className="material-symbols-outlined">download</span>
+            <Download />
             Export Dataset
           </button>
         </div>

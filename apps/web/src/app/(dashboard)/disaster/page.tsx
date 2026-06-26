@@ -6,6 +6,8 @@ import { useSimulationStore } from '@/store/useSimulationStore';
 import { exportToPDF } from '@/lib/exportUtils';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { BarChart2, Brain, Car, Droplet, Hospital, Layers, Locate, MessageCircle, Minus, Plus, PowerOff, TrendingUp, Waves, Zap } from 'lucide-react';
+
 
 export default function DisasterResponsePage() {
   const store = useSimulationStore();
@@ -172,7 +174,7 @@ export default function DisasterResponsePage() {
             <>
               <div className="absolute top-1/4 left-1/3 pointer-events-auto group cursor-pointer">
                 <div className="w-6 h-6 bg-error rounded-full flex items-center justify-center text-white animate-pulse shadow-lg">
-                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>flood</span>
+                  <Waves />
                 </div>
                 <div className="absolute left-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
                   <p className="text-label-md font-bold text-error">Central Inundation</p>
@@ -182,7 +184,7 @@ export default function DisasterResponsePage() {
 
               <div className="absolute bottom-1/3 right-1/4 pointer-events-auto group cursor-pointer">
                 <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white animate-pulse shadow-lg" style={{ animationDelay: "0.5s" }}>
-                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                  <Zap />
                 </div>
                 <div className="absolute right-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
                   <p className="text-label-md font-bold text-secondary">Grid Instability</p>
@@ -210,18 +212,18 @@ export default function DisasterResponsePage() {
         <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-2">
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-1 rounded-xl shadow-lg flex flex-col">
             <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
-              <span className="material-symbols-outlined">add</span>
+              <Plus />
             </button>
             <div className="h-[1px] bg-outline-variant/20 mx-2"></div>
             <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
-              <span className="material-symbols-outlined">remove</span>
+              <Minus />
             </button>
           </div>
           <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors cursor-pointer">
-            <span className="material-symbols-outlined">layers</span>
+            <Layers />
           </button>
           <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors cursor-pointer">
-            <span className="material-symbols-outlined">my_location</span>
+            <Locate />
           </button>
         </div>
 
@@ -266,7 +268,7 @@ export default function DisasterResponsePage() {
             <p className="text-label-md font-bold text-on-surface">Operations Comms</p>
             <p className="text-[10px] text-on-surface-variant">6 Personnel Active on Ground</p>
           </div>
-          <span className="material-symbols-outlined text-primary">chat_bubble</span>
+          <MessageCircle />
         </button>
       </div>
 
@@ -278,7 +280,7 @@ export default function DisasterResponsePage() {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  <span className="material-symbols-outlined text-[14px]">psychology</span>
+                  <Brain />
                   AI Strategy Engine
                 </div>
                 <span className="text-[10px] font-mono-label opacity-70">EXEC_T_00.2s</span>
@@ -298,13 +300,13 @@ export default function DisasterResponsePage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-surface p-4 rounded-2xl border border-outline-variant/30 flex flex-col justify-between h-40">
               <div>
-                <span className="material-symbols-outlined text-primary mb-2">local_hospital</span>
+                <Hospital />
                 <div className="text-label-md text-on-surface-variant font-bold uppercase">Hospital Load</div>
               </div>
               <div className="flex items-end justify-between">
                 <span className="text-display-sm font-bold text-on-surface tracking-tighter">{hospitalLoad}%</span>
                 <span className={`font-mono-label text-[10px] pb-2 flex items-center ${hospitalTrendColor}`}>
-                  {hospitalTrend !== 'Stable' && <span className="material-symbols-outlined text-[14px]">trending_up</span>}
+                  {hospitalTrend !== 'Stable' && <TrendingUp />}
                   {hospitalTrend}
                 </span>
               </div>
@@ -315,7 +317,7 @@ export default function DisasterResponsePage() {
             
             <div className="bg-surface p-4 rounded-2xl border border-outline-variant/30 flex flex-col justify-between h-40">
               <div>
-                <span className="material-symbols-outlined text-secondary mb-2">water_drop</span>
+                <Droplet />
                 <div className="text-label-md text-on-surface-variant font-bold uppercase">Stormwater Level</div>
               </div>
               <div className="flex items-end justify-between">
@@ -338,7 +340,7 @@ export default function DisasterResponsePage() {
             <div className="space-y-3">
               <div className="flex gap-4 p-4 rounded-xl hover:bg-surface-container-low transition-all border border-transparent hover:border-outline-variant/30 group">
                 <div className="w-12 h-12 rounded-full bg-error-container flex-shrink-0 flex items-center justify-center text-error group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined">power_off</span>
+                  <PowerOff />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-1">
@@ -357,7 +359,7 @@ export default function DisasterResponsePage() {
               
               <div className="flex gap-4 p-4 rounded-xl hover:bg-surface-container-low transition-all border border-transparent hover:border-outline-variant/30 group">
                 <div className="w-12 h-12 rounded-full bg-secondary-container flex-shrink-0 flex items-center justify-center text-on-secondary-container group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined">traffic</span>
+                  <Car />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-1">
@@ -374,7 +376,7 @@ export default function DisasterResponsePage() {
           <div className="p-6 rounded-2xl bg-surface-container-high/20 border border-outline-variant/20">
             <div className="flex items-center justify-between mb-6">
               <span className="text-label-md font-bold uppercase text-on-surface-variant">Disaster Severity Trend</span>
-              <span className="material-symbols-outlined text-primary">analytics</span>
+              <BarChart2 />
             </div>
             <div className="h-32 flex items-end gap-2">
               <div className="flex-1 bg-primary/10 rounded-t-lg transition-all hover:bg-primary/30 h-[40%]"></div>

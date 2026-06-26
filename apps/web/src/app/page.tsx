@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { Building2, Activity, PlayCircle, Play, Server, Workflow, PieChart, LineChart, Brain, FileText } from 'lucide-react';
+
 
 export default function RedesignedLandingPage() {
   const [activePreview, setActivePreview] = useState<'cities' | 'decision' | 'results' | 'impact' | 'ai' | 'reports'>('cities');
@@ -70,7 +72,7 @@ export default function RedesignedLandingPage() {
                 </Link>
                 <Link href="/demo">
                   <button className="group flex items-center gap-2.5 px-7 py-4 bg-white border border-outline-variant/30 hover:bg-white/80 text-gray-700 rounded-2xl text-[14px] font-bold transition-all hover:scale-[1.02] active:scale-[0.97] shadow-sm cursor-pointer">
-                    <span className="material-symbols-outlined text-blue-600 text-lg group-hover:rotate-12 transition-transform">play_circle</span>
+                    <PlayCircle />
                     Run Bengaluru 2035 Demo
                   </button>
                 </Link>
@@ -141,16 +143,16 @@ export default function RedesignedLandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: "Decision Twin", desc: "Digital GIS layout plotting physical lines and resource grids.", icon: "dns" },
-              { name: "Scenario Engine", desc: "Policy configuration interface evaluating custom parameters.", icon: "account_tree" },
-              { name: "Impact Engine", desc: "Formulates before vs after load indicators and bottlenecks.", icon: "donut_large" },
-              { name: "Forecast Engine", desc: "Generates 15-year demographic and load curve projections.", icon: "timeline" },
-              { name: "AI Insights Engine", desc: "Scans simulated city state to trigger planning recommendations.", icon: "psychology" },
-              { name: "Report Generator", desc: "Compiles all parameters and recommendations into strategy files.", icon: "description" }
+              { name: "Decision Twin", desc: "Digital GIS layout plotting physical lines and resource grids.", icon: <Server size={32} /> },
+              { name: "Scenario Engine", desc: "Policy configuration interface evaluating custom parameters.", icon: <Workflow size={32} /> },
+              { name: "Impact Engine", desc: "Formulates before vs after load indicators and bottlenecks.", icon: <PieChart size={32} /> },
+              { name: "Forecast Engine", desc: "Generates 15-year demographic and load curve projections.", icon: <LineChart size={32} /> },
+              { name: "AI Insights Engine", desc: "Scans simulated city state to trigger planning recommendations.", icon: <Brain size={32} /> },
+              { name: "Report Generator", desc: "Compiles all parameters and recommendations into strategy files.", icon: <FileText size={32} /> }
             ].map(eng => (
               <div key={eng.name} className="bg-white border border-outline-variant/30 rounded-3xl p-6 flex flex-col justify-between shadow-sm">
                 <div>
-                  <span className="material-symbols-outlined text-primary text-3xl mb-4">{eng.icon}</span>
+                  <span className="text-primary mb-4 block">{eng.icon}</span>
                   <h3 className="text-sm font-bold text-gray-900 mb-2">{eng.name}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{eng.desc}</p>
                 </div>
@@ -284,7 +286,7 @@ export default function RedesignedLandingPage() {
                   </Link>
                 </div>
                 <div className="bg-[#213145] text-white p-5 rounded-2xl space-y-3 shadow-md">
-                  <div className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-[18px]">psychology</span><span className="text-[10px] font-bold uppercase tracking-wider text-primary-fixed-dim">AI RECOMMENDATION</span></div>
+                  <div className="flex items-center gap-2"><Brain /><span className="text-[10px] font-bold uppercase tracking-wider text-primary-fixed-dim">AI RECOMMENDATION</span></div>
                   <p className="text-xs text-white/80 leading-relaxed">North Bengaluru should add 11 new power substations before 2032 to prevent grid overload.</p>
                 </div>
               </div>
@@ -387,7 +389,7 @@ export default function RedesignedLandingPage() {
               <div className="flex flex-wrap gap-4 justify-center pt-4">
                 <Link href="/demo">
                   <button className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl text-sm font-bold hover:from-blue-400 hover:to-blue-500 transition-all hover:scale-[1.03] active:scale-95 shadow-2xl shadow-blue-600/20 flex items-center gap-2 cursor-pointer">
-                    <span className="material-symbols-outlined text-xl group-hover:translate-x-0.5 transition-transform">play_arrow</span>
+                    <Play />
                     Run Bengaluru 2035 Demo
                   </button>
                 </Link>
