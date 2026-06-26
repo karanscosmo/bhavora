@@ -68,7 +68,31 @@ interface SimulationStore {
     climateEvent: string;
     disasterEvent: string;
   }>) => void;
-  runSimulation: (customInputs?: any) => Promise<any>;
+  runSimulation: (customInputs?: Partial<{
+    evAdoption: number;
+    popGrowth: number;
+    indExpansion: number;
+    metroExpansion: number;
+    renewableGrowth: number;
+    climateEvent: string;
+    disasterEvent: string;
+    name?: string;
+  }>) => Promise<{
+    metrics: {
+      energyDemand: number;
+      carbonEmissions: number;
+      trafficCongestion: number;
+      waterDemand: number;
+      jobsCreated: number;
+      infrastructureStress: number;
+    };
+    recommendations: string[];
+    timeline: Array<{
+      year: number;
+      energy: number;
+      traffic: number;
+    }>;
+  }>;
   loadScenario: (scenario: SavedScenario) => void;
   deleteScenario: (id: string) => void;
 }

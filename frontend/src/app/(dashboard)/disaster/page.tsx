@@ -213,7 +213,7 @@ export default function DisasterResponsePage() {
               </div>
               <div className="flex items-end justify-between">
                 <span className="text-display-sm font-bold text-on-surface tracking-tighter">{hospitalLoad}%</span>
-                <span className={`font-mono-label text-[10px] pb-2 flex items-center ${hospitalTrend === 'Stable' ? 'text-on-surface-variant' : 'text-error'}`}>
+                <span className={`font-mono-label text-[10px] pb-2 flex items-center ${hospitalTrendColor}`}>
                   {hospitalTrend !== 'Stable' && <span className="material-symbols-outlined text-[14px]">trending_up</span>}
                   {hospitalTrend}
                 </span>

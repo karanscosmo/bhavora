@@ -1,15 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function ImpactPage() {
   const store = useSimulationStore();
-  const [results, setResults] = useState<any>(store);
-
-  useEffect(() => {
-    setResults(store);
-  }, [store]);
+  const results = store;
 
   const metrics = [
     {

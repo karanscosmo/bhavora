@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function JudgeDemoPage() {
@@ -16,7 +15,7 @@ export default function JudgeDemoPage() {
   // Auto progression of steps for the 90 second walkthrough (approx 8 steps * 10 seconds)
   useEffect(() => {
     if (!isPlaying) return;
-    setProgress(0);
+    setTimeout(() => setProgress(0), 0);
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {

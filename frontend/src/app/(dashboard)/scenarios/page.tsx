@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
 
@@ -29,13 +29,23 @@ interface SavedScenario {
   };
 }
 
+interface ComparisonData {
+  name1: string;
+  name2: string;
+  diffs: Array<{
+    label: string;
+    val1: string;
+    val2: string;
+  }>;
+}
+
 export default function ScenariosPage() {
   const router = useRouter();
   const store = useSimulationStore();
   const scenarios = store.savedScenarios;
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [compareResult, setCompareResult] = useState<any | null>(null);
+  const [compareResult, setCompareResult] = useState<ComparisonData | null>(null);
 
   const handleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -125,7 +135,7 @@ export default function ScenariosPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {compareResult.diffs.map((d: any) => (
+            {compareResult.diffs.map((d) => (
               <div key={d.label} className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant/10 text-center">
                 <div className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-2">{d.label}</div>
                 <div className="grid grid-cols-2 gap-2 text-xs">

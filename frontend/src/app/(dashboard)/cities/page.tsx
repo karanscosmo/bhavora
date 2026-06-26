@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
+import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface District {
   id: string;
@@ -10,12 +12,21 @@ interface District {
   traffic: number;
   energy: string;
   risk: string;
-  x: string; // Left offset % for mock layout positioning
-  y: string; // Top offset % for mock layout positioning
   status: 'High Risk' | 'Optimal' | 'Normal';
   statusColor: string;
   statusBg: string;
+  lng: number;
+  lat: number;
 }
+
+// Define Bengaluru coordinate points for district overlays
+const rawDistricts = [
+  { id: "whitefield", name: "Whitefield", basePop: 1.2, baseTraffic: 94, baseEnergy: "Stable", baseRisk: 8.4, lng: 77.7499, lat: 12.9698 },
+  { id: "electronic_city", name: "Electronic City", basePop: 0.8, baseTraffic: 62, baseEnergy: "100% Health", baseRisk: 3.1, lng: 77.6729, lat: 12.8501 },
+  { id: "indiranagar", name: "Indiranagar", basePop: 0.45, baseTraffic: 78, baseEnergy: "92% Health", baseRisk: 5.2, lng: 77.6412, lat: 12.9784 },
+  { id: "hebbal", name: "Hebbal", basePop: 0.6, baseTraffic: 54, baseEnergy: "96% Health", baseRisk: 4.8, lng: 77.5913, lat: 13.0358 },
+  { id: "koramangala", name: "Koramangala", basePop: 0.55, baseTraffic: 92, baseEnergy: "Critical Load", baseRisk: 7.9, lng: 77.6245, lat: 12.9352 }
+];
 
 export default function CitiesPage() {
   const store = useSimulationStore();
@@ -31,170 +42,275 @@ export default function CitiesPage() {
   });
 
   const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
+  const markersRef = useRef<MapboxMarker[]>([]);
 
   const toggleLayer = (layer: string) => {
-    setActiveLayers(prev => ({ ...prev, [layer]: !prev[layer] }));
+    setActiveLayers(prev => {
+      const next = { ...prev, [layer]: !prev[layer] };
+      // Dynamically toggle mapbox layers visibility if loaded
+      if (mapRef.current) {
+        const map = mapRef.current;
+        const layerId = `layer-${layer}`;
+        if (map.getLayer(layerId)) {
+          map.setLayoutProperty(layerId, 'visibility', next[layer] ? 'visible' : 'none');
+        }
+      }
+      return next;
+    });
   };
 
-  // Dynamically compute district details based on store state
-  const rawDistricts = [
-    { id: "whitefield", name: "Whitefield", basePop: 1.2, baseTraffic: 94, baseEnergy: "Stable", baseRisk: 8.4, x: "70%", y: "40%" },
-    { id: "electronic_city", name: "Electronic City", basePop: 0.8, baseTraffic: 62, baseEnergy: "100% Health", baseRisk: 3.1, x: "60%", y: "72%" },
-    { id: "indiranagar", name: "Indiranagar", basePop: 0.45, baseTraffic: 78, baseEnergy: "92% Health", baseRisk: 5.2, x: "45%", y: "45%" },
-    { id: "hebbal", name: "Hebbal", basePop: 0.6, baseTraffic: 54, baseEnergy: "96% Health", baseRisk: 4.8, x: "42%", y: "22%" },
-    { id: "koramangala", name: "Koramangala", basePop: 0.55, baseTraffic: 92, baseEnergy: "Critical Load", baseRisk: 7.9, x: "52%", y: "56%" }
-  ];
+  // Dynamic calculations based on global Zustand store
+  const districts: District[] = React.useMemo(() => {
+    return rawDistricts.map(d => {
+      const population = (d.basePop * (1 + popGrowth / 100)).toFixed(2) + "M";
+      const traffic = Math.min(100, Math.max(10, Math.round(d.baseTraffic + metrics.trafficCongestion)));
+      
+      let energy = d.baseEnergy;
+      if (metrics.energyDemand > 15) {
+        if (d.id === 'whitefield' || d.id === 'koramangala') energy = "Critical Load";
+        else if (d.id === 'electronic_city') energy = "Peak Draw";
+      }
 
-  const districts: District[] = rawDistricts.map(d => {
-    const population = (d.basePop * (1 + popGrowth / 100)).toFixed(2) + "M";
-    const traffic = Math.min(100, Math.max(10, Math.round(d.baseTraffic + metrics.trafficCongestion)));
-    
-    let energy = d.baseEnergy;
-    if (metrics.energyDemand > 15) {
-      if (d.id === 'whitefield' || d.id === 'koramangala') energy = "Critical Load";
-      else if (d.id === 'electronic_city') energy = "Peak Draw";
-    }
+      const calculatedRisk = Math.min(10, Math.max(0, d.baseRisk + (metrics.infrastructureStress - 68) * 0.05));
+      const risk = calculatedRisk.toFixed(1) + "/10";
 
-    const calculatedRisk = Math.min(10, Math.max(0, d.baseRisk + (metrics.infrastructureStress - 68) * 0.05));
-    const risk = calculatedRisk.toFixed(1) + "/10";
+      let status: 'High Risk' | 'Optimal' | 'Normal' = 'Normal';
+      let statusColor = "text-primary";
+      let statusBg = "bg-primary-fixed/20";
 
-    let status: 'High Risk' | 'Optimal' | 'Normal' = 'Normal';
-    let statusColor = "text-primary";
-    let statusBg = "bg-primary-fixed/20";
+      if (traffic > 85 || calculatedRisk > 7.5) {
+        status = 'High Risk';
+        statusColor = "text-error";
+        statusBg = "bg-error-container";
+      } else if (traffic < 65 && calculatedRisk < 5.0) {
+        status = 'Optimal';
+        statusColor = "text-tertiary";
+        statusBg = "bg-tertiary-container";
+      }
 
-    if (traffic > 85 || calculatedRisk > 7.5) {
-      status = 'High Risk';
-      statusColor = "text-error";
-      statusBg = "bg-error-container";
-    } else if (traffic < 65 && calculatedRisk < 5.0) {
-      status = 'Optimal';
-      statusColor = "text-tertiary";
-      statusBg = "bg-tertiary-container";
-    }
+      return {
+        id: d.id,
+        name: d.name,
+        population,
+        traffic,
+        energy,
+        risk,
+        status,
+        statusColor,
+        statusBg,
+        lng: d.lng,
+        lat: d.lat
+      };
+    });
+  }, [popGrowth, metrics]);
 
-    return {
-      id: d.id,
-      name: d.name,
-      population,
-      traffic,
-      energy,
-      risk,
-      x: d.x,
-      y: d.y,
-      status,
-      statusColor,
-      statusBg
-    };
-  });
-
-  // If a district is selected, find its updated version
-  const currentSelectedDistrict = selectedDistrict 
-    ? districts.find(d => d.id === selectedDistrict.id) || selectedDistrict 
-    : null;
-
-  // Global City Index Values
   const cityHealthIndex = Math.min(100, Math.max(0, Math.round(100 - metrics.infrastructureStress + 36)));
   const urbanResilience = Math.min(100, Math.max(0, Math.round(100 - metrics.infrastructureStress * 0.4)));
   const carbonDeltaStr = (metrics.carbonEmissions > 0 ? "+" : "") + metrics.carbonEmissions + "%";
+
+  // Check for search-initiated district selections
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('selectedDistrictId');
+      if (stored) {
+        const found = districts.find(d => d.id === stored);
+        if (found) {
+          setTimeout(() => {
+            setSelectedDistrict(found);
+          }, 0);
+          sessionStorage.removeItem('selectedDistrictId');
+          // Fly map to district if loaded
+          if (mapRef.current) {
+            mapRef.current.flyTo({ center: [found.lng, found.lat], zoom: 13, speed: 1.2 });
+          }
+        }
+      }
+    }
+  }, [districts]);
+
+  // Client-Side Mapbox Initializer
+  useEffect(() => {
+    let map: MapboxMap | null = null;
+    
+    import('mapbox-gl').then((mapboxglModule) => {
+      const mapboxgl = mapboxglModule.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoiYmhhdm9yYSIsImEiOiJkZW1vIn0';
+
+      if (!mapContainerRef.current) return;
+
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/light-v10',
+        center: [77.5946, 12.9716],
+        zoom: 11,
+        pitch: 45,
+        attributionControl: false
+      });
+
+      mapRef.current = map;
+
+      map.on('load', () => {
+        setMapLoaded(true);
+
+        // Define lines and shapes representing urban node overlays
+        if (!map) return;
+        map.addSource('traffic-corridors', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [77.6186, 12.9176],
+                    [77.6729, 12.8501],
+                    [77.7499, 12.9698]
+                  ]
+                }
+              }
+            ]
+          }
+        });
+
+        map.addLayer({
+          id: 'layer-traffic',
+          type: 'line',
+          source: 'traffic-corridors',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+            visibility: 'visible'
+          },
+          paint: {
+            'line-color': '#ba1a1a',
+            'line-width': 4,
+            'line-opacity': 0.8
+          }
+        });
+
+        // Add metro line source
+        map.addSource('metro-lines', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [77.5913, 13.0358],
+                    [77.6412, 12.9784],
+                    [77.6245, 12.9352],
+                    [77.6729, 12.8501]
+                  ]
+                }
+              }
+            ]
+          }
+        });
+
+        map.addLayer({
+          id: 'layer-metro',
+          type: 'line',
+          source: 'metro-lines',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+            visibility: 'visible'
+          },
+          paint: {
+            'line-color': '#004ac6',
+            'line-width': 4,
+            'line-opacity': 0.8
+          }
+        });
+      });
+    });
+
+    return () => {
+      if (map) {
+        map.remove();
+      }
+    };
+  }, []);
+
+  // Update District Custom HTML Markers inside Mapbox
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+    
+    // Clear old markers
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    import('mapbox-gl').then((mapboxglModule) => {
+      const mapboxgl = mapboxglModule.default;
+      const map = mapRef.current;
+      if (!map) return;
+
+      districts.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'w-6 h-6 rounded-full border-2 bg-white/50 flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-125 shadow-lg';
+        el.style.borderColor = d.status === 'High Risk' ? '#ba1a1a' : d.status === 'Optimal' ? '#10b981' : '#004ac6';
+        
+        const child = document.createElement('div');
+        child.className = `w-2.5 h-2.5 rounded-full ${d.status === 'High Risk' ? 'bg-error animate-pulse' : d.status === 'Optimal' ? 'bg-tertiary' : 'bg-primary'}`;
+        el.appendChild(child);
+
+        el.addEventListener('click', () => {
+          setSelectedDistrict(d);
+          map.flyTo({ center: [d.lng, d.lat], zoom: 12.5 });
+        });
+
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([d.lng, d.lat])
+          .addTo(map);
+
+        markersRef.current.push(marker);
+      });
+    });
+  }, [mapLoaded, districts]);
 
   return (
     <div className="absolute inset-0 overflow-hidden flex select-none animate-fade-in">
       {/* Interactive Map (Left Panel) */}
       <div className="flex-1 relative bg-[#e5eeff] overflow-hidden">
-        {/* Map Grid and Base Image */}
-        <div 
-          className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-700 opacity-60 mix-blend-multiply" 
-          style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWCLJjzLm5_6cIlTrbUeZPKB3j1yMbf6uipdGKwXlKMht67rfwpTVHYAKI6h2KSj0a2dwWoJrRD8_4r2IX1Kly5-9t7m-4EHhChkRwSjOT4pubCBKxGoqrYYpqYEdHxrYef_i7hl_bexnk6TmVzQmEKXICwaeOJM4w3pen0ytDIsH1TZAQdG0hX9zzA37AkWJmsqebSJDVyp_FunaoQsmdJnwis0K6hZXCAz2X0X75K-236MgvioH8bg2BnEEllz2FUNX-IsR9uDY')" }}
-        />
-
-        {/* Layer Graphical Filters */}
-        <div className="absolute inset-0 z-10 pointer-events-none">
-          {activeLayers.traffic && (
-            <div className="absolute inset-0 bg-red-500/5 mix-blend-color-burn transition-all">
-              <svg className="w-full h-full">
-                <path d="M 100 200 L 400 350 L 700 320" fill="none" stroke="#ba1a1a" strokeWidth="4" strokeDasharray="8 6" className="animate-pulse" />
-                <path d="M 300 500 L 500 560 L 600 700" fill="none" stroke="#ba1a1a" strokeWidth="3" className="animate-pulse" />
-              </svg>
-            </div>
-          )}
-          {activeLayers.metro && (
-            <div className="absolute inset-0 transition-all">
-              <svg className="w-full h-full">
-                <path d="M 200 150 Q 420 380 600 720" fill="none" stroke="#004ac6" strokeWidth="4" />
-                <path d="M 420 380 L 700 400" fill="none" stroke="#004ac6" strokeWidth="3" strokeDasharray="5" />
-              </svg>
-            </div>
-          )}
-          {activeLayers.water && (
-            <div className="absolute inset-0 transition-all">
-              <svg className="w-full h-full">
-                <circle cx="450" cy="450" r="120" fill="none" stroke="#2563eb" strokeWidth="1.5" strokeDasharray="4 8" className="animate-spin" style={{ animationDuration: '30s' }} />
-                <circle cx="450" cy="450" r="180" fill="none" stroke="#2563eb" strokeWidth="1" strokeDasharray="6 12" className="animate-spin" style={{ animationDuration: '45s' }} />
-              </svg>
-            </div>
-          )}
-          {activeLayers.power && (
-            <div className="absolute inset-0 transition-all">
-              <svg className="w-full h-full">
-                <line x1="70%" y1="40%" x2="52%" y2="56%" stroke="#d97706" strokeWidth="2" strokeDasharray="5" />
-                <line x1="60%" y1="72%" x2="52%" y2="56%" stroke="#d97706" strokeWidth="2" />
-                <line x1="45%" y1="45%" x2="52%" y2="56%" stroke="#d97706" strokeWidth="2" />
-              </svg>
-            </div>
-          )}
-        </div>
-
-        {/* District Markers */}
-        {districts.map(d => (
-          <div 
-            key={d.id} 
-            className="absolute z-20 group"
-            style={{ left: d.x, top: d.y }}
-          >
-            <div 
-              onClick={() => setSelectedDistrict(selectedDistrict?.id === d.id ? null : d)}
-              className={`w-6 h-6 rounded-full border-2 bg-white/40 flex items-center justify-center cursor-pointer hover:scale-125 transition-transform ${
-                d.status === 'High Risk' ? 'border-error' : d.status === 'Optimal' ? 'border-tertiary' : 'border-primary'
-              }`}
-            >
-              <div className={`w-2.5 h-2.5 rounded-full ${
-                d.status === 'High Risk' ? 'bg-error animate-pulse' : d.status === 'Optimal' ? 'bg-tertiary' : 'bg-primary'
-              }`} />
-            </div>
-
-            {/* Hover Tooltip (when not clicked) */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-white/90 backdrop-blur-xl border border-outline-variant/30 px-3 py-1.5 rounded-xl shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 group-hover:translate-y-[-4px] transition-all whitespace-nowrap z-30">
-              <span className="text-xs font-bold text-on-surface">{d.name}</span>
-              <span className={`text-[10px] ml-2 font-mono ${d.statusColor}`}>{d.status}</span>
-            </div>
-          </div>
-        ))}
+        {/* Real Interactive Mapbox Container */}
+        <div ref={mapContainerRef} className="absolute inset-0 z-0 w-full h-full" />
 
         {/* District Details Floating Overlay (When Clicked) */}
-        {currentSelectedDistrict && (
+        {selectedDistrict && (
           <div className="absolute top-24 left-6 w-72 bg-white/95 backdrop-blur-xl border border-outline-variant/30 p-5 rounded-2xl shadow-2xl z-30 animate-scale-in">
             <div className="flex justify-between items-start mb-3">
-              <h4 className="font-headline-sm text-on-surface">{currentSelectedDistrict.name}</h4>
-              <span className={`px-2.5 py-0.5 ${currentSelectedDistrict.statusBg} ${currentSelectedDistrict.statusColor} text-[10px] font-bold rounded-full uppercase`}>
-                {currentSelectedDistrict.status}
+              <h4 className="font-headline-sm text-on-surface">{selectedDistrict.name}</h4>
+              <span className={`px-2.5 py-0.5 ${selectedDistrict.statusBg} ${selectedDistrict.statusColor} text-[10px] font-bold rounded-full uppercase`}>
+                {selectedDistrict.status}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Population</p>
-                <p className="text-sm font-bold text-on-surface">{currentSelectedDistrict.population}</p>
+                <p className="text-sm font-bold text-on-surface">{selectedDistrict.population}</p>
               </div>
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Traffic Load</p>
-                <p className={`text-sm font-bold ${currentSelectedDistrict.traffic > 80 ? 'text-error' : 'text-on-surface'}`}>{currentSelectedDistrict.traffic}%</p>
+                <p className={`text-sm font-bold ${selectedDistrict.traffic > 80 ? 'text-error' : 'text-on-surface'}`}>{selectedDistrict.traffic}%</p>
               </div>
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Energy Grid</p>
-                <p className="text-sm font-bold text-on-surface">{currentSelectedDistrict.energy}</p>
+                <p className="text-sm font-bold text-on-surface">{selectedDistrict.energy}</p>
               </div>
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Risk Score</p>
-                <p className="text-sm font-bold text-on-surface">{currentSelectedDistrict.risk}</p>
+                <p className="text-sm font-bold text-on-surface">{selectedDistrict.risk}</p>
               </div>
             </div>
             <button 
@@ -247,14 +363,42 @@ export default function CitiesPage() {
 
           {/* Mini controls */}
           <div className="flex gap-2">
-            {['add', 'remove', 'explore'].map(btn => (
-              <button key={btn} className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md">
-                <span className="material-symbols-outlined text-on-surface-variant">{btn}</span>
-              </button>
-            ))}
-            <button className="px-4 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center gap-2 hover:bg-white active:scale-95 shadow-md">
+            <button 
+              onClick={() => {
+                if (mapRef.current) mapRef.current.zoomIn();
+              }}
+              className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-on-surface-variant">add</span>
+            </button>
+            <button 
+              onClick={() => {
+                if (mapRef.current) mapRef.current.zoomOut();
+              }}
+              className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-on-surface-variant">remove</span>
+            </button>
+            <button 
+              onClick={() => {
+                if (mapRef.current) mapRef.current.flyTo({ center: [77.5946, 12.9716], zoom: 11, pitch: 45 });
+              }}
+              className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
+              title="Recenter"
+            >
+              <span className="material-symbols-outlined text-on-surface-variant">my_location</span>
+            </button>
+            <button 
+              onClick={() => {
+                if (mapRef.current) {
+                  const currentPitch = mapRef.current.getPitch();
+                  mapRef.current.setPitch(currentPitch === 0 ? 45 : 0);
+                }
+              }}
+              className="px-4 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center gap-2 hover:bg-white active:scale-95 shadow-md cursor-pointer"
+            >
               <span className="material-symbols-outlined text-on-surface-variant text-[16px]">layers</span>
-              <span className="text-xs font-semibold text-on-surface-variant">3D Layer</span>
+              <span className="text-xs font-semibold text-on-surface-variant">Toggle 3D</span>
             </button>
           </div>
         </div>

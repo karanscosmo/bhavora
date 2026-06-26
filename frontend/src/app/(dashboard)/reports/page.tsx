@@ -261,7 +261,7 @@ export default function ReportsPage() {
               <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="material-symbols-outlined text-primary">info</span>
-                  <h5 className="font-bold text-primary">Analyst's Note</h5>
+                  <h5 className="font-bold text-primary">Analyst&apos;s Note</h5>
                 </div>
                 <p className="text-sm text-on-primary-container/80">
                   The simulation assumes a steady-state GDP growth pattern. If industrial park expansions exceed {indExpansion} zones, recalculation is mandatory.

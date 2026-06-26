@@ -1,15 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 
 export default function RedesignedLandingPage() {
-  const [loaded, setLoaded] = useState(false);
   const [activePreview, setActivePreview] = useState<'cities' | 'decision' | 'results' | 'impact' | 'ai' | 'reports'>('cities');
-
-  useEffect(() => {
-    setLoaded(true);
-  }, []);
 
   return (
     <div className="bg-[#f8f9ff] text-gray-900 min-h-screen font-sans selection:bg-primary/20 scroll-smooth">
@@ -173,17 +168,17 @@ export default function RedesignedLandingPage() {
 
           {/* Module navigation tabs */}
           <div className="flex flex-wrap justify-center mb-8 bg-surface-container rounded-2xl p-1.5 max-w-2xl mx-auto border border-outline-variant/20 gap-1">
-            {[
+            {([
               { id: 'cities', label: "Cities Twin" },
               { id: 'decision', label: "Decision Twin" },
               { id: 'results', label: "Results" },
               { id: 'impact', label: "Impact Analysis" },
               { id: 'ai', label: "AI Insights" },
               { id: 'reports', label: "Reports" }
-            ].map(tab => (
+            ] as const).map(tab => (
               <button 
                 key={tab.id}
-                onClick={() => setActivePreview(tab.id as any)}
+                onClick={() => setActivePreview(tab.id)}
                 className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   activePreview === tab.id ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-900'
                 }`}
@@ -330,7 +325,7 @@ export default function RedesignedLandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white border border-outline-variant/30 rounded-3xl p-8 shadow-sm flex flex-col justify-between h-48">
               <p className="text-xs italic text-gray-500 leading-relaxed">
-                "Bhavora has transformed our capital budget allocation. We simulated the EV adoption curve in Whitefield and identified grid deficits three years ahead of real-world impact."
+                &ldquo;Bhavora has transformed our capital budget allocation. We simulated the EV adoption curve in Whitefield and identified grid deficits three years ahead of real-world impact.&rdquo;
               </p>
               <div className="mt-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">AK</div>
@@ -342,7 +337,7 @@ export default function RedesignedLandingPage() {
             </div>
             <div className="bg-white border border-outline-variant/30 rounded-3xl p-8 shadow-sm flex flex-col justify-between h-48">
               <p className="text-xs italic text-gray-500 leading-relaxed">
-                "Being able to cross-analyze traffic bottlenecks alongside power grid stresses within a single persistent twin is game-changing. It simplifies multi-departmental approvals."
+                &ldquo;Being able to cross-analyze traffic bottlenecks alongside power grid stresses within a single persistent twin is game-changing. It simplifies multi-departmental approvals.&rdquo;
               </p>
               <div className="mt-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">SM</div>
@@ -384,10 +379,10 @@ export default function RedesignedLandingPage() {
           <div className="max-w-[1440px] mx-auto px-6 text-center relative z-10">
             <div className="max-w-3xl mx-auto space-y-6">
               <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.1]">
-                De-risk Tomorrow's Infrastructure <br/>With Bhavora
+                De-risk Tomorrow&apos;s Infrastructure <br/>With Bhavora
               </h2>
               <p className="text-xs text-gray-400 leading-relaxed max-w-xl mx-auto">
-                Access Bengaluru's Chief Urban Planner dashboard to configure variables and print recommendations.
+                Access Bengaluru&apos;s Chief Urban Planner dashboard to configure variables and print recommendations.
               </p>
               <div className="flex flex-wrap gap-4 justify-center pt-4">
                 <Link href="/demo">

@@ -22,13 +22,15 @@ export default function DecisionTwinPage() {
 
   // Sync state if store updates (e.g. loaded scenario or demo mode)
   useEffect(() => {
-    setEvAdoption(store.evAdoption);
-    setPopGrowth(store.popGrowth);
-    setIndExpansion(store.indExpansion);
-    setMetroExpansion(store.metroExpansion);
-    setRenewableGrowth(store.renewableGrowth);
-    setClimateEvent(store.climateEvent);
-    setDisasterEvent(store.disasterEvent);
+    setTimeout(() => {
+      setEvAdoption(store.evAdoption);
+      setPopGrowth(store.popGrowth);
+      setIndExpansion(store.indExpansion);
+      setMetroExpansion(store.metroExpansion);
+      setRenewableGrowth(store.renewableGrowth);
+      setClimateEvent(store.climateEvent);
+      setDisasterEvent(store.disasterEvent);
+    }, 0);
   }, [
     store.evAdoption,
     store.popGrowth,

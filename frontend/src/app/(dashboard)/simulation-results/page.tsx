@@ -1,16 +1,10 @@
 "use client";
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function SimulationResultsPage() {
   const store = useSimulationStore();
-  const [results, setResults] = useState<any>(store);
-
-  useEffect(() => {
-    setResults(store);
-  }, [store]);
-
+  const results = store;
   const recScore = (8.4 - ((results?.metrics?.infrastructureStress || 68) - 68) * 0.05).toFixed(1);
 
   return (

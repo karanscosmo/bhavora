@@ -1,31 +1,39 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
+interface UserProfile {
+  name: string;
+  email: string;
+  department: string;
+  role: string;
+  joined: string;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
+  const [user] = useState<UserProfile>(() => {
+    const defaultAdmin = {
+      name: "Karan Sharma",
+      email: "karan.sharma@bbmp.gov.in",
+      department: "BBMP / Urban Development Cell",
+      role: "Chief Urban Planner",
+      joined: "October 2024"
+    };
     if (typeof window !== 'undefined') {
       const savedUser = localStorage.getItem('bhavoraUser');
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      } else {
-        // Fallback default admin user
-        const defaultAdmin = {
-          name: "Karan Sharma",
-          email: "karan.sharma@bbmp.gov.in",
-          department: "BBMP / Urban Development Cell",
-          role: "Chief Urban Planner",
-          joined: "October 2024"
-        };
-        localStorage.setItem('bhavoraUser', JSON.stringify(defaultAdmin));
-        setUser(defaultAdmin);
+        try {
+          return JSON.parse(savedUser);
+        } catch (e) {
+          console.error(e);
+        }
       }
+      localStorage.setItem('bhavoraUser', JSON.stringify(defaultAdmin));
     }
-  }, []);
+    return defaultAdmin;
+  });
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {

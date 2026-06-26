@@ -194,7 +194,7 @@ export default function InsightsPage() {
               </div>
               <span className="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-mono-label font-bold">UPDATED 2M AGO</span>
             </div>
-            <p className="text-body-md text-on-surface-variant italic">"Current zoning laws in SE Bengaluru are insufficient for predicted 2027 residential density under +{popGrowth}% growth scenario."</p>
+            <p className="text-body-md text-on-surface-variant italic">&ldquo;Current zoning laws in SE Bengaluru are insufficient for predicted 2027 residential density under +{popGrowth}% growth scenario.&rdquo;</p>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-on-surface-variant">database</span>
