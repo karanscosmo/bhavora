@@ -1,218 +1,370 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
-export default function LandingPage() {
+/* ────────────────── Floating Particles Component ────────────────── */
+function Particles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(18)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: `${3 + Math.random() * 4}px`,
+            height: `${3 + Math.random() * 4}px`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            background: `rgba(0,74,198,${0.08 + Math.random() * 0.12})`,
+            animation: `particle-drift ${8 + Math.random() * 12}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 5}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ────────────────── Animated Counter ────────────────── */
+function AnimatedNumber({ target, suffix = '', prefix = '' }: { target: string; suffix?: string; prefix?: string }) {
+  const [display, setDisplay] = useState(prefix + '0' + suffix);
+  const ref = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.pageYOffset;
-      const heroVisual = document.getElementById('hero-visual');
-      if (heroVisual) {
-        heroVisual.style.transform = `translateY(${scrolled * 0.1}px)`;
-      }
+    const num = parseFloat(target.replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) { setDisplay(prefix + target + suffix); return; }
+    const duration = 1200;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = (num * eased).toFixed(target.includes('.') ? 1 : 0);
+      setDisplay(prefix + current + (target.includes('+') && progress === 1 ? '+' : '') + suffix);
+      if (progress < 1) requestAnimationFrame(animate);
     };
-    window.addEventListener('scroll', handleScroll);
+    requestAnimationFrame(animate);
+  }, [target, suffix, prefix]);
+
+  return <span ref={ref}>{display}</span>;
+}
+
+/* ────────────────── FLOATING DATA CARD ────────────────── */
+function DataCard({ label, value, icon, color, delay, className = '' }: {
+  label: string; value: string; icon: string; color: string; delay: string; className?: string;
+}) {
+  return (
+    <div className={`glass rounded-2xl p-4 w-52 opacity-0 animate-scale-in ${delay} ${className}`}
+         style={{ animationFillMode: 'forwards' }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">{label}</span>
+        <span className={`material-symbols-outlined text-[18px] ${color}`}>{icon}</span>
+      </div>
+      <div className={`text-xl font-bold ${color}`}>{value}</div>
+      <div className="w-full h-1 bg-gray-200/60 rounded-full mt-2 overflow-hidden">
+        <div className={`h-full rounded-full ${color === 'text-blue-600' ? 'bg-blue-500' : color === 'text-emerald-600' ? 'bg-emerald-500' : color === 'text-amber-600' ? 'bg-amber-500' : color === 'text-violet-600' ? 'bg-violet-500' : 'bg-cyan-500'}`}
+             style={{ width: '0%', animation: 'fade-in 0.3s ease-out forwards', animationDelay: '1.5s' }}
+             ref={(el) => { if (el) setTimeout(() => { el.style.width = `${40 + Math.random() * 50}%`; el.style.transition = 'width 1.2s cubic-bezier(0.22,1,0.36,1)'; }, 1600); }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MAIN LANDING PAGE
+   ════════════════════════════════════════════════════════════════════ */
+export default function LandingPage() {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(true);
+    const handleScroll = () => {
+      const s = window.pageYOffset;
+      const v = document.getElementById('hero-visual');
+      if (v) v.style.transform = `translateY(${s * 0.08}px)`;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <div className="bg-[#f8f9ff] text-gray-900 min-h-screen">
-      {/* TopAppBar */}
-      <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-white/80 backdrop-blur-xl shadow-sm border-b border-gray-200/50">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm">B</div>
-            <span className="text-xl font-bold tracking-tight text-gray-900">BHAVORA</span>
+    <div className="bg-[#f7f8ff] text-gray-900 min-h-screen overflow-x-hidden">
+      {/* ══════════ NAV ══════════ */}
+      <header className="fixed top-0 left-0 w-full z-50 glass-strong h-16">
+        <div className="max-w-[1440px] mx-auto h-full px-6 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-blue-600/25 group-hover:shadow-blue-600/40 transition-shadow">B</div>
+              <span className="text-[19px] font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">BHAVORA</span>
+            </Link>
+            <nav className="hidden md:flex items-center gap-1">
+              <Link href="/overview" className="text-[13px] text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 px-4 py-2 rounded-xl transition-all font-medium">Dashboard</Link>
+              <Link href="/demo" className="text-[13px] text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 px-4 py-2 rounded-xl transition-all font-medium">Demo</Link>
+              <Link href="/scenario-builder" className="text-[13px] text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 px-4 py-2 rounded-xl transition-all font-medium">Simulate</Link>
+              <Link href="/twin" className="text-[13px] text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 px-4 py-2 rounded-xl transition-all font-medium">City Twin</Link>
+            </nav>
           </div>
-          <nav className="hidden md:flex items-center gap-1">
-            <Link href="/overview" className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-2 rounded-lg text-sm font-medium">Dashboard</Link>
-            <Link href="/demo" className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-2 rounded-lg text-sm font-medium">Demo</Link>
-            <Link href="/scenario-builder" className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-2 rounded-lg text-sm font-medium">Simulate</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/demo">
-            <button className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-500 transition-all active:scale-95 shadow-sm">
-              Run Demo
-            </button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-1.5 text-[12px] text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-medium">
+              <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+              Engine Online
+            </div>
+            <Link href="/demo">
+              <button className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[13px] font-bold hover:from-blue-500 hover:to-blue-600 transition-all active:scale-95 shadow-md shadow-blue-600/20">
+                Run Demo
+              </button>
+            </Link>
+          </div>
         </div>
       </header>
 
       <main className="relative pt-16">
-        {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden">
-          <div className="absolute inset-0 z-0 bg-gradient-to-b from-blue-50/50 to-transparent"></div>
-          <div className="relative z-10 max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left: Typography */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-medium">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
-                </span>
-                Bengaluru Twin Now Live
+        {/* ══════════ HERO ══════════ */}
+        <section className="relative min-h-[100vh] flex items-center overflow-hidden">
+          {/* Background layers */}
+          <div className="absolute inset-0 city-grid-bg"></div>
+          <div className="absolute inset-0 hero-gradient"></div>
+          <Particles />
+
+          {/* Connection lines SVG */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.07]" viewBox="0 0 1440 900">
+            <path d="M200,450 Q400,300 700,420 T1200,380" fill="none" stroke="#004ac6" strokeWidth="1.5" strokeDasharray="8 6" style={{ animation: 'draw-line 4s ease-out forwards' }} />
+            <path d="M100,600 Q500,500 900,550 T1400,480" fill="none" stroke="#00687a" strokeWidth="1" strokeDasharray="6 8" style={{ animation: 'draw-line 5s ease-out 0.5s forwards' }} />
+            <circle cx="700" cy="420" r="4" fill="#004ac6" className="animate-pulse" />
+            <circle cx="450" cy="360" r="3" fill="#00687a" className="animate-pulse" />
+            <circle cx="1000" cy="400" r="3" fill="#006242" className="animate-pulse" />
+          </svg>
+
+          <div className="relative z-10 max-w-[1440px] mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* ── LEFT: CONTENT ── */}
+            <div className="lg:col-span-5 space-y-7">
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-[13px] text-blue-700 font-medium opacity-0 ${loaded ? 'animate-fade-up' : ''}`}
+                   style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+                <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span></span>
+                Bengaluru Decision Twin • Live
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight">
-                The AI Decision <span className="text-blue-600 italic">Twin</span> For Cities
+
+              <h1 className={`text-[3.2rem] md:text-[3.6rem] leading-[1.08] font-extrabold tracking-tight text-gray-900 opacity-0 ${loaded ? 'animate-fade-up' : ''}`}
+                  style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                The AI Decision{' '}
+                <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent italic">Twin</span>{' '}
+                For Cities
               </h1>
-              <p className="text-lg text-gray-500 max-w-lg leading-relaxed">
-                Simulate the future impact of infrastructure and policy decisions before investing public resources. Leverage hyper-accurate data models for resilient urban planning.
+
+              <p className={`text-[17px] text-gray-500 leading-relaxed max-w-[480px] opacity-0 ${loaded ? 'animate-fade-up' : ''}`}
+                 style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
+                Simulate infrastructure, climate, mobility, energy, and policy decisions before spending billions in the real world.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+
+              <div className={`flex flex-wrap gap-3 pt-1 opacity-0 ${loaded ? 'animate-fade-up' : ''}`}
+                   style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
                 <Link href="/demo">
-                  <button className="group px-8 py-4 bg-blue-600 text-white rounded-2xl text-lg font-bold shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 hover:scale-[1.02] transition-all active:scale-95 flex items-center gap-3">
+                  <button className="group flex items-center gap-2.5 px-7 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-2xl text-[15px] font-bold shadow-xl shadow-blue-600/25 hover:shadow-blue-500/35 hover:scale-[1.02] transition-all active:scale-[0.97] animate-pulse-glow">
                     <span className="material-symbols-outlined text-xl group-hover:translate-x-0.5 transition-transform">play_arrow</span>
                     Run Bengaluru 2035 Demo
                   </button>
                 </Link>
-                <Link href="/overview">
-                  <button className="px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-2xl text-lg font-medium hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
-                    Explore Dashboard
+                <Link href="/twin">
+                  <button className="flex items-center gap-2 px-7 py-4 glass hover:bg-white/70 text-gray-700 rounded-2xl text-[15px] font-semibold transition-all hover:scale-[1.02] active:scale-[0.97]">
+                    <span className="material-symbols-outlined text-blue-600 text-xl">location_city</span>
+                    Explore City Twin
                   </button>
                 </Link>
               </div>
-              <div className="flex gap-12 pt-8 border-t border-gray-200/60 mt-4">
+
+              {/* Metrics strip */}
+              <div className={`flex gap-10 pt-8 border-t border-gray-200/60 opacity-0 ${loaded ? 'animate-fade-up' : ''}`}
+                   style={{ animationDelay: '1000ms', animationFillMode: 'forwards' }}>
                 <div>
-                  <div className="text-3xl font-bold text-gray-900">1.2M+</div>
-                  <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">Data Nodes</div>
+                  <div className="text-[28px] font-extrabold text-gray-900"><AnimatedNumber target="1.2" suffix="M+" /></div>
+                  <div className="text-[11px] text-gray-400 uppercase tracking-[0.15em] font-semibold mt-0.5">Data Points</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-900">99.8%</div>
-                  <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">Sim Accuracy</div>
+                  <div className="text-[28px] font-extrabold text-gray-900"><AnimatedNumber target="99.8" suffix="%" /></div>
+                  <div className="text-[11px] text-gray-400 uppercase tracking-[0.15em] font-semibold mt-0.5">Sim Accuracy</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-emerald-600">LIVE</div>
-                  <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">Engine Status</div>
+                  <div className="text-[28px] font-extrabold text-gray-900"><AnimatedNumber target="50" suffix="+" /></div>
+                  <div className="text-[11px] text-gray-400 uppercase tracking-[0.15em] font-semibold mt-0.5">Urban Variables</div>
                 </div>
               </div>
             </div>
 
-            {/* Right: Visual Identity */}
-            <div id="hero-visual" className="lg:col-span-6 relative h-[540px] flex items-center justify-center transition-transform duration-75">
-              <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-white/50">
-                <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB82AMsV0y5iFxw8vhyEgiPxfo_p3S-3C1uTDlelygUfB_33WAngO32N1gSxgHugfa883yqHkEBvyi8wrZo7DkUg4WSeOmwp8YQQ9dDujWWrehDElVUwAIv2OtIIyBfdqAeXn7tKswc9EMzlDKPrhIfD49k7Hr0H7KXqsk0icerXiGwiv7a_cM4rsTWFUNhydKFR4o8rRKsDwYXOLCAgv3otIZs3XHeqp1tC8r3WScYA3MhcZ5MOJO4opeJMSzW-cKzp69gM6oFZI8" alt="Bengaluru Skyline"/>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#f8f9ff]/40 to-transparent"></div>
-                
-                <div className="absolute top-8 left-6 glass-card p-4 rounded-xl w-56 animate-float">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-500 uppercase font-medium">Traffic Density</span>
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">traffic</span>
-                  </div>
-                  <div className="flex items-end gap-1.5 h-12">
-                    <div className="w-2 flex-1 bg-blue-200 rounded-t-sm h-[40%]"></div>
-                    <div className="w-2 flex-1 bg-blue-300 rounded-t-sm h-[55%]"></div>
-                    <div className="w-2 flex-1 bg-blue-500 rounded-t-sm h-[80%]"></div>
-                    <div className="w-2 flex-1 bg-blue-400 rounded-t-sm h-[60%]"></div>
-                    <div className="w-2 flex-1 bg-blue-600 rounded-t-sm h-[90%]"></div>
-                  </div>
-                  <div className="mt-2 text-blue-600 text-xs font-mono font-bold">+12% Congestion Delta</div>
+            {/* ── RIGHT: CITY TWIN VISUAL ── */}
+            <div id="hero-visual" className="lg:col-span-7 relative flex items-center justify-center" style={{ minHeight: '600px' }}>
+              {/* Main card */}
+              <div className={`relative w-full max-w-[580px] h-[480px] rounded-3xl overflow-hidden shadow-2xl border border-white/40 opacity-0 ${loaded ? 'animate-scale-in' : ''}`}
+                   style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+                <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB82AMsV0y5iFxw8vhyEgiPxfo_p3S-3C1uTDlelygUfB_33WAngO32N1gSxgHugfa883yqHkEBvyi8wrZo7DkUg4WSeOmwp8YQQ9dDujWWrehDElVUwAIv2OtIIyBfdqAeXn7tKswc9EMzlDKPrhIfD49k7Hr0H7KXqsk0icerXiGwiv7a_cM4rsTWFUNhydKFR4o8rRKsDwYXOLCAgv3otIZs3XHeqp1tC8r3WScYA3MhcZ5MOJO4opeJMSzW-cKzp69gM6oFZI8" alt="Bengaluru Digital Twin" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#f7f8ff]/30 via-transparent to-transparent"></div>
+                {/* Scan line effect */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-blue-400/30 to-transparent"
+                       style={{ animation: 'float-slow 4s ease-in-out infinite', top: '30%' }} />
                 </div>
+                {/* Live indicator */}
+                <div className="absolute top-5 left-5 glass-dark rounded-full px-3 py-1.5 flex items-center gap-2">
+                  <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span></span>
+                  <span className="text-white/80 text-[11px] font-mono font-semibold tracking-wider">BENGALURU • LIVE</span>
+                </div>
+                {/* Coordinates */}
+                <div className="absolute bottom-5 left-5 text-white/40 text-[10px] font-mono tracking-wider">
+                  12.9716° N, 77.5946° E
+                </div>
+              </div>
 
-                <div className="absolute bottom-16 right-6 glass-card p-4 rounded-xl w-48 animate-float-delayed">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500 uppercase font-medium">Energy Load</span>
-                    <span className="material-symbols-outlined text-emerald-600 text-[18px]">bolt</span>
-                  </div>
-                  <div className="text-2xl text-gray-900 font-bold">4.2 GW</div>
-                  <div className="w-full bg-gray-200 h-1 rounded-full mt-2 overflow-hidden">
-                    <div className="bg-emerald-500 h-full w-2/3 rounded-full"></div>
-                  </div>
-                  <div className="mt-2 text-gray-500 text-xs">Peak Projection: 14:00</div>
-                </div>
+              {/* Floating data overlays */}
+              <div className="absolute -top-2 right-8 animate-float-slow">
+                <DataCard label="Traffic Delta" value="+12%" icon="traffic" color="text-blue-600" delay="delay-700" />
+              </div>
+              <div className="absolute top-28 -left-8 animate-float-medium">
+                <DataCard label="Energy Load" value="4.2 GW" icon="bolt" color="text-amber-600" delay="delay-1000" />
+              </div>
+              <div className="absolute bottom-32 -left-4 animate-float-fast">
+                <DataCard label="Water Stress" value="Medium" icon="water_drop" color="text-cyan-600" delay="delay-1200" />
+              </div>
+              <div className="absolute bottom-8 right-4 animate-float-medium">
+                <DataCard label="Carbon Impact" value="-18%" icon="co2" color="text-emerald-600" delay="delay-1500" />
+              </div>
+              <div className="absolute top-1/2 right-0 translate-x-4 animate-float-slow">
+                <DataCard label="Employment" value="+14%" icon="work" color="text-violet-600" delay="delay-2000" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Bento Grid */}
-        <section className="py-20 max-w-[1440px] mx-auto px-6">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-4xl font-bold text-gray-900">Engineered for Urban Complexity</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">
+        {/* ══════════ CAPABILITIES BENTO ══════════ */}
+        <section className="py-24 max-w-[1440px] mx-auto px-6 relative">
+          <Particles />
+          <div className="text-center mb-16 space-y-4 relative z-10">
+            <h2 className="text-4xl md:text-[2.8rem] font-extrabold text-gray-900 tracking-tight">Engineered for Urban Complexity</h2>
+            <p className="text-[17px] text-gray-500 max-w-2xl mx-auto leading-relaxed">
               Move from reactive planning to proactive governance with a multi-layered simulation environment.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <div className="md:col-span-8 bg-white rounded-3xl p-8 border border-gray-200/50 flex flex-col justify-between overflow-hidden relative group shadow-sm hover:shadow-md transition-shadow">
-              <div className="relative z-10">
-                <h3 className="text-2xl font-bold mb-3">Scenario Builder</h3>
-                <p className="text-gray-500 max-w-md">
-                  Toggle parameters for population growth, climate events, and infrastructure changes to see real-time ripple effects across the city.
-                </p>
-              </div>
-              <div className="relative h-48 mt-6 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
-                <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5RNdRyaCFgPt2CzuxYWaYs7dp7gpNsKExThNlrrYPiuq2RP9b1oWFMle-ngH5tAo3VSQsqRkpDjdqE_COcW-rAJbUU2R-ZQv0TMuTNg3ZGAe4tzPMZ2EmgnR6ZVTxvRyHW94YlVMUr7kem49nUNDnoxpgaOT-dhAL3w1ft0ek3NGhjJya7kVwGZIpzi3MvjmBTbSMdffA0Ac4AjIexkcKvF7U9JdUDsOXFuDtFic_1BpFnTOJ5EDmtDIVpiSneRi0TlQvhel1gVw" alt="UI Mockup"/>
-              </div>
-            </div>
-            
-            <div className="md:col-span-4 bg-blue-600 text-white rounded-3xl p-8 flex flex-col justify-end relative overflow-hidden group shadow-sm">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/30 rounded-full blur-3xl"></div>
-              <div className="relative z-10">
-                <span className="material-symbols-outlined text-5xl mb-6 opacity-80" style={{fontVariationSettings: "'FILL' 1"}}>vital_signs</span>
-                <h3 className="text-2xl font-bold mb-3">Vitality Index</h3>
-                <p className="text-blue-100/80 text-sm">
-                  Predict socio-economic outcomes with our proprietary AI-driven Vitality Index.
-                </p>
-              </div>
-            </div>
 
-            <div className="md:col-span-4 bg-white rounded-3xl p-8 border border-gray-200/50 flex flex-col shadow-sm">
-              <h3 className="text-xl font-bold mb-4">Live Telemetry</h3>
-              <div className="space-y-3 flex-grow">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="text-xs text-gray-500 uppercase font-medium">Air Quality</span>
-                  <span className="text-emerald-600 font-bold text-sm">Good (42 AQI)</span>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 relative z-10">
+            {/* Scenario Builder - Large */}
+            <Link href="/scenario-builder" className="md:col-span-8 group">
+              <div className="glass-strong rounded-3xl p-8 h-full flex flex-col justify-between overflow-hidden relative hover:shadow-xl transition-all duration-300 cursor-pointer min-h-[380px]">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-all duration-500"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-blue-600 text-[18px]">account_tree</span>
+                    </div>
+                    <span className="text-[11px] text-blue-600 uppercase tracking-wider font-bold">Core Feature</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 group-hover:text-blue-600 transition-colors">Scenario Builder</h3>
+                  <p className="text-gray-500 max-w-md text-[15px] leading-relaxed">
+                    Toggle parameters for population growth, climate events, and infrastructure changes to see real-time ripple effects across the city.
+                  </p>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="text-xs text-gray-500 uppercase font-medium">Water Pressure</span>
-                  <span className="text-gray-700 font-bold text-sm">Stable</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="text-xs text-gray-500 uppercase font-medium">Waste Efficiency</span>
-                  <span className="text-blue-600 font-bold text-sm">89%</span>
+                <div className="relative h-44 mt-6 rounded-2xl overflow-hidden border border-gray-200/50 bg-gray-50/50 group-hover:border-blue-200/50 transition-all">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5RNdRyaCFgPt2CzuxYWaYs7dp7gpNsKExThNlrrYPiuq2RP9b1oWFMle-ngH5tAo3VSQsqRkpDjdqE_COcW-rAJbUU2R-ZQv0TMuTNg3ZGAe4tzPMZ2EmgnR6ZVTxvRyHW94YlVMUr7kem49nUNDnoxpgaOT-dhAL3w1ft0ek3NGhjJya7kVwGZIpzi3MvjmBTbSMdffA0Ac4AjIexkcKvF7U9JdUDsOXFuDtFic_1BpFnTOJ5EDmtDIVpiSneRi0TlQvhel1gVw" alt="Scenario Builder" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className="md:col-span-8 bg-white rounded-3xl p-8 border border-gray-200/50 flex items-center justify-between relative overflow-hidden shadow-sm">
-              <div className="max-w-xs relative z-10">
-                <h3 className="text-2xl font-bold mb-3">Departmental Bridge</h3>
-                <p className="text-gray-500">
-                  Break silos. Allow departments to collaborate on a single source of truth for unified urban strategy.
-                </p>
-              </div>
-              <div className="relative flex -space-x-4">
-                <div className="w-14 h-14 rounded-full border-4 border-white bg-blue-100 flex items-center justify-center font-bold text-sm text-blue-800">TC</div>
-                <div className="w-14 h-14 rounded-full border-4 border-white bg-cyan-100 flex items-center justify-center font-bold text-sm text-cyan-800">PW</div>
-                <div className="w-14 h-14 rounded-full border-4 border-white bg-emerald-100 flex items-center justify-center font-bold text-sm text-emerald-800">ENV</div>
-                <div className="w-14 h-14 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gray-500 text-lg">add</span>
+            {/* Vitality Index */}
+            <Link href="/insights" className="md:col-span-4 group">
+              <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white rounded-3xl p-8 flex flex-col justify-end relative overflow-hidden min-h-[380px] hover:shadow-xl hover:shadow-blue-600/20 transition-all duration-300 cursor-pointer">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-blue-400/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-400/10 rounded-full blur-2xl"></div>
+                <div className="relative z-10">
+                  <span className="material-symbols-outlined text-5xl mb-6 text-blue-200/60" style={{fontVariationSettings: "'FILL' 1"}}>vital_signs</span>
+                  <h3 className="text-2xl font-bold mb-2">Vitality Index</h3>
+                  <p className="text-blue-100/70 text-[14px] leading-relaxed">
+                    Predict socio-economic outcomes with our proprietary AI-driven Vitality Index across 8 districts.
+                  </p>
                 </div>
               </div>
-            </div>
+            </Link>
+
+            {/* Live Telemetry */}
+            <Link href="/overview" className="md:col-span-4 group">
+              <div className="glass-strong rounded-3xl p-8 flex flex-col min-h-[280px] hover:shadow-xl transition-all duration-300 cursor-pointer">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-emerald-600 text-[18px]">monitoring</span>
+                  </div>
+                  <h3 className="text-lg font-bold group-hover:text-blue-600 transition-colors">Live Telemetry</h3>
+                </div>
+                <div className="space-y-3 flex-grow">
+                  {[
+                    { label: 'Air Quality', value: 'Good (42 AQI)', color: 'text-emerald-600' },
+                    { label: 'Water Pressure', value: 'Stable', color: 'text-gray-700' },
+                    { label: 'Grid Efficiency', value: '89%', color: 'text-blue-600' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center justify-between p-3.5 bg-white/50 rounded-xl border border-white/60 group-hover:bg-white/70 transition-colors">
+                      <span className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">{item.label}</span>
+                      <span className={`${item.color} font-bold text-[13px]`}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Link>
+
+            {/* Departmental Bridge */}
+            <Link href="/overview" className="md:col-span-8 group">
+              <div className="glass-strong rounded-3xl p-8 flex items-center justify-between relative overflow-hidden min-h-[280px] hover:shadow-xl transition-all duration-300 cursor-pointer">
+                <div className="absolute top-0 left-0 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
+                <div className="max-w-sm relative z-10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-violet-600 text-[18px]">hub</span>
+                    </div>
+                    <span className="text-[11px] text-violet-600 uppercase tracking-wider font-bold">Collaboration</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 group-hover:text-blue-600 transition-colors">Departmental Bridge</h3>
+                  <p className="text-gray-500 text-[15px] leading-relaxed">
+                    Break silos. Allow departments to collaborate on a single source of truth for unified urban strategy.
+                  </p>
+                </div>
+                <div className="relative flex -space-x-4">
+                  {[
+                    { label: 'TC', bg: 'bg-blue-100', text: 'text-blue-700' },
+                    { label: 'PW', bg: 'bg-cyan-100', text: 'text-cyan-700' },
+                    { label: 'ENV', bg: 'bg-emerald-100', text: 'text-emerald-700' },
+                    { label: '+', bg: 'bg-gray-100', text: 'text-gray-500', isIcon: true },
+                  ].map((d, i) => (
+                    <div key={d.label} className={`w-14 h-14 rounded-full border-[3px] border-white ${d.bg} flex items-center justify-center font-bold text-sm ${d.text} shadow-sm group-hover:scale-110 transition-transform`}
+                         style={{ transitionDelay: `${i * 50}ms` }}>
+                      {d.isIcon ? <span className="material-symbols-outlined text-lg">add</span> : d.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Link>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="py-20 bg-gray-900 relative overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px]"></div>
+        {/* ══════════ CTA ══════════ */}
+        <section className="py-24 bg-gradient-to-b from-gray-900 via-[#0a1628] to-gray-900 relative overflow-hidden">
+          <div className="absolute inset-0 city-grid-bg opacity-[0.03]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/8 rounded-full blur-[120px]"></div>
+          <Particles />
           <div className="max-w-[1440px] mx-auto px-6 text-center relative z-10">
             <div className="max-w-3xl mx-auto space-y-8">
-              <h2 className="text-4xl md:text-5xl font-bold text-white">The Future of Bengaluru is Digital.</h2>
-              <p className="text-lg text-gray-400">
-                Join 24 institutional partners already using BHAVORA to de-risk over $14B in planned infrastructure investments.
+              <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.1]">
+                The Future of Bengaluru<br/>is <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Digital.</span>
+              </h2>
+              <p className="text-lg text-gray-400 leading-relaxed max-w-xl mx-auto">
+                Join 24 institutional partners already using Bhavora to de-risk over ₹1.2 Lakh Crore in planned infrastructure investments.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-wrap gap-4 justify-center pt-4">
                 <Link href="/demo">
-                  <button className="px-10 py-4 bg-blue-600 text-white rounded-2xl text-lg font-bold hover:scale-[1.03] transition-transform active:scale-95 shadow-xl shadow-blue-600/30">
+                  <button className="group px-10 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl text-lg font-bold hover:from-blue-400 hover:to-blue-500 transition-all hover:scale-[1.03] active:scale-95 shadow-2xl shadow-blue-600/30 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-xl group-hover:translate-x-0.5 transition-transform">play_arrow</span>
                     Run Live Demo
                   </button>
                 </Link>
                 <Link href="/scenario-builder">
-                  <button className="px-10 py-4 bg-white/10 border border-white/20 text-white rounded-2xl text-lg font-medium hover:bg-white/20 transition-colors">
-                    Build Scenario
+                  <button className="px-10 py-4 border border-white/15 text-white/80 rounded-2xl text-lg font-medium hover:bg-white/5 hover:border-white/25 transition-all">
+                    Build Custom Scenario
                   </button>
                 </Link>
               </div>
@@ -221,18 +373,18 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="py-6 border-t border-gray-200/50 bg-white">
+      {/* ══════════ FOOTER ══════════ */}
+      <footer className="py-6 bg-gray-900 border-t border-white/5">
         <div className="max-w-[1440px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
-            <span className="font-bold text-blue-600">BHAVORA</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-gray-400 text-sm">© 2025 Bugs2Bucks. All rights reserved.</span>
+            <span className="font-bold text-blue-400 text-sm">BHAVORA</span>
+            <span className="text-gray-700">|</span>
+            <span className="text-gray-500 text-[12px]">© 2025 Bugs2Bucks. Built for SIH 2025.</span>
           </div>
           <div className="flex gap-8">
-            <a className="text-gray-400 hover:text-blue-600 transition-colors text-sm" href="#">Privacy</a>
-            <a className="text-gray-400 hover:text-blue-600 transition-colors text-sm" href="#">Security</a>
-            <a className="text-gray-400 hover:text-blue-600 transition-colors text-sm" href="#">System Status</a>
+            <span className="text-gray-500 hover:text-blue-400 transition-colors text-[12px] cursor-pointer">Privacy</span>
+            <span className="text-gray-500 hover:text-blue-400 transition-colors text-[12px] cursor-pointer">Security</span>
+            <span className="text-gray-500 hover:text-blue-400 transition-colors text-[12px] cursor-pointer">System Status</span>
           </div>
         </div>
       </footer>
