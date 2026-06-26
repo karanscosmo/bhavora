@@ -14,13 +14,21 @@ app.add_middleware(
 )
 
 class ScenarioInputs(BaseModel):
-    evAdoption: float
-    populationGrowth: float
-    industrialExpansion: float
-    metroExpansion: float
-    renewableEnergyGrowth: float
-    climateEvent: str
-    disasterEvent: str
+    # camelCase inputs
+    evAdoption: float | None = None
+    populationGrowth: float | None = None
+    industrialExpansion: float | None = None
+    metroExpansion: float | None = None
+    renewableEnergyGrowth: float | None = None
+    climateEvent: str | None = "None"
+    disasterEvent: str | None = "None"
+    
+    # snake_case inputs
+    ev_adoption_rate: float | None = None
+    population_growth: float | None = None
+    new_industrial_parks: float | None = None
+    new_metro_lines: float | None = None
+    time_horizon_years: int | None = None
 
 @app.get("/")
 def read_root():
@@ -28,22 +36,36 @@ def read_root():
 
 @app.post("/simulate")
 def run_simulation(inputs: ScenarioInputs):
-    # Deterministic simulation engine based on actual rules (not random)
-    # Example logic mapping inputs to impacts
-    
+    # Resolve parameter overrides between camelCase and snake_case
+    ev_val = inputs.evAdoption if inputs.evAdoption is not None else (inputs.ev_adoption_rate * 100 if inputs.ev_adoption_rate is not None else 45.0)
+    pop_val = inputs.populationGrowth if inputs.populationGrowth is not None else (inputs.population_growth * 100 if inputs.population_growth is not None else 12.0)
+    ind_val = inputs.industrialExpansion if inputs.industrialExpansion is not None else (inputs.new_industrial_parks if inputs.new_industrial_parks is not None else 4.0)
+    metro_val = inputs.metroExpansion if inputs.metroExpansion is not None else (inputs.new_metro_lines if inputs.new_metro_lines is not None else 2.0)
+    renew_val = inputs.renewableEnergyGrowth if inputs.renewableEnergyGrowth is not None else 25.0
+    climate = inputs.climateEvent if inputs.climateEvent is not None else "None"
+    disaster = inputs.disasterEvent if inputs.disasterEvent is not None else "None"
+
     # Base load assumption (GW)
     base_energy = 4.2 
     
-    # Impacts
-    energy_impact = (inputs.evAdoption * 0.15) + (inputs.populationGrowth * 0.4) + (inputs.industrialExpansion * 0.6) - (inputs.renewableEnergyGrowth * 0.2)
-    carbon_impact = (inputs.industrialExpansion * 0.8) + (inputs.populationGrowth * 0.3) - (inputs.evAdoption * 0.4) - (inputs.renewableEnergyGrowth * 0.5)
-    traffic_impact = (inputs.populationGrowth * 0.5) - (inputs.metroExpansion * 0.6) - (inputs.evAdoption * 0.05)
-    water_impact = (inputs.populationGrowth * 0.4) + (inputs.industrialExpansion * 0.3)
-    employment_impact = (inputs.industrialExpansion * 0.5) + (inputs.metroExpansion * 0.2)
+    # Mathematical impacts (weighted logic)
+    energy_impact = (ev_val * 0.15) + (pop_val * 0.4) + (ind_val * 0.6) - (renew_val * 0.2)
+    carbon_impact = (ind_val * 0.8) + (pop_val * 0.3) - (ev_val * 0.4) - (renew_val * 0.5)
+    traffic_impact = (pop_val * 0.5) - (metro_val * 0.6) - (ev_val * 0.05)
+    water_impact = (pop_val * 0.4) + (ind_val * 0.3)
+    employment_impact = (ind_val * 0.5) + (metro_val * 0.2)
     
     # Stress score (0-100)
     infra_stress = 30 + (energy_impact * 2) + (traffic_impact * 1.5) + (water_impact * 2)
     
+    # Add adjustments based on hazards
+    if climate == "100-Year Flood":
+        traffic_impact += 25.0
+        infra_stress += 20.0
+    if disaster == "Substation Failure":
+        energy_impact += 12.0
+        infra_stress += 15.0
+
     # AI recommendations based on calculated values
     recommendations = []
     if energy_impact > 15:
@@ -76,7 +98,6 @@ def run_simulation(inputs: ScenarioInputs):
 
 @app.get("/districts")
 def get_districts():
-    # Return mock real district data until DB is hooked up
     return {
         "districts": [
             {"id": "whitefield", "name": "Whitefield", "population": 250000, "trafficScore": 85, "waterDemand": 90, "energyDemand": 95, "employmentIndex": 88, "growthIndex": 12, "riskIndex": 65},

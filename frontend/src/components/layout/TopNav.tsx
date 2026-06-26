@@ -24,9 +24,9 @@ export function TopNav() {
             <p className="font-label-md text-label-md text-on-surface leading-none">Admin Cluster</p>
             <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">BBMP / Urban Dev</p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center border border-primary/10">
+          <Link href="/profile" className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center border border-primary/10 hover:bg-primary-fixed-dim transition-all">
             <span className="material-symbols-outlined text-primary">account_circle</span>
-          </div>
+          </Link>
         </div>
       </div>
     </header>
