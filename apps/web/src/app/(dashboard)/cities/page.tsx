@@ -158,7 +158,7 @@ export default function CitiesPage() {
         setMapLoaded(true);
 
         if (!map) return;
-        
+
         // 1. Traffic Congestion Heatmap (Red/Orange points)
         map.addSource('traffic-heat', {
           type: 'geojson',
