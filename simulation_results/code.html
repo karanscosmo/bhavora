@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<title>BHAVORA | Simulation Results</title>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f8f9ff",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container-low": "#eff4ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary": "#004ac6",
+                        "outline-variant": "#c3c6d7",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface-bright": "#f8f9ff",
+                        "surface-tint": "#0053db",
+                        "on-background": "#0b1c30",
+                        "on-secondary-fixed": "#001f26",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737686",
+                        "on-tertiary-container": "#bdffdb",
+                        "on-primary-container": "#eeefff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "tertiary": "#006242",
+                        "on-primary-fixed": "#00174b",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-surface": "#213145",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#57dffe",
+                        "secondary": "#00687a",
+                        "secondary-fixed": "#acedff",
+                        "on-secondary-container": "#006172",
+                        "surface-dim": "#cbdbf5",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-container": "#e5eeff",
+                        "primary-container": "#2563eb",
+                        "error-container": "#ffdad6",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f8f9ff",
+                        "surface-container-high": "#dce9ff",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#b4c5ff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#007d55",
+                        "surface-variant": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "card": "20px"
+                    },
+                    "spacing": {
+                        "2xl": "48px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "3xl": "64px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "sm": "8px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "mono-label": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "display-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400"}],
+                        "display-sm": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 0.5px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            border-radius: 20px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-surface/80 dark:bg-surface-container-highest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-4">
+<span class="font-display-sm text-display-sm font-bold tracking-tight text-primary">BHAVORA</span>
+<nav class="hidden md:flex ml-10 space-x-6">
+<a class="text-on-surface-variant font-medium hover:bg-surface-container-high/50 transition-all duration-150 ease-in-out px-3 py-1 rounded-md" href="#">Home</a>
+<a class="text-on-surface-variant font-medium hover:bg-surface-container-high/50 transition-all duration-150 ease-in-out px-3 py-1 rounded-md" href="#">Scenarios</a>
+<a class="text-primary font-bold border-b-2 border-primary px-3 py-1" href="#">Simulations</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-surface-container-high/50 rounded-full transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high/50 rounded-full transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col p-4 bg-surface dark:bg-surface-container border-r border-outline-variant/20 shadow-lg hidden md:flex">
+<div class="mb-8 px-2">
+<h2 class="text-on-surface font-headline-sm">Decision Twin</h2>
+<p class="text-on-surface-variant text-label-md">Bengaluru Urban</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="location_city">location_city</span>
+<span class="text-label-md">Bengaluru Twin</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="text-label-md">Scenario Builder</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-primary font-bold bg-primary-fixed/30 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="vital_signs">vital_signs</span>
+<span class="text-label-md">Simulations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="text-label-md">Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-md">Settings</span>
+</a>
+</nav>
+<button class="mt-auto w-full py-3 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined">play_arrow</span>
+            Run Simulation
+        </button>
+</aside>
+<!-- Main Content -->
+<main class="md:pl-64 pt-16 min-h-screen">
+<div class="p-6 md:p-8 max-w-[1440px] mx-auto">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+<div>
+<nav class="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
+<span>Simulations</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-bold">Results (Page 4)</span>
+</nav>
+<h1 class="font-display-sm text-display-sm text-on-surface">Simulation Analysis</h1>
+<p class="text-on-surface-variant font-body-md max-w-xl">Comprehensive impact assessment of the Mixed-Use Mobility Hub vs Baseline Urban Density.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="glass-card px-6 py-4 flex flex-col items-center">
+<span class="text-label-md text-on-surface-variant uppercase tracking-wider">Rec. Score</span>
+<div class="flex items-baseline gap-1">
+<span class="font-display-sm text-display-sm text-primary">8.4</span>
+<span class="text-on-surface-variant font-body-sm">/ 10</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Grid Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<!-- Traffic -->
+<div class="glass-card p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-surface-container p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">traffic</span>
+</div>
+<span class="text-tertiary font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                            10%
+                        </span>
+</div>
+<div class="mt-4">
+<p class="text-on-surface-variant text-label-md">Traffic Impact</p>
+<h3 class="text-headline-sm font-bold">-10% Congestion</h3>
+</div>
+</div>
+<!-- Energy -->
+<div class="glass-card p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-surface-container p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">bolt</span>
+</div>
+<span class="text-error font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            24%
+                        </span>
+</div>
+<div class="mt-4">
+<p class="text-on-surface-variant text-label-md">Energy Impact</p>
+<h3 class="text-headline-sm font-bold">+24% Load</h3>
+</div>
+</div>
+<!-- Water -->
+<div class="glass-card p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-surface-container p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">water_drop</span>
+</div>
+<span class="text-error font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            4%
+                        </span>
+</div>
+<div class="mt-4">
+<p class="text-on-surface-variant text-label-md">Water Impact</p>
+<h3 class="text-headline-sm font-bold">+4% Demand</h3>
+</div>
+</div>
+<!-- Carbon -->
+<div class="glass-card p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-surface-container p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">co2</span>
+</div>
+<span class="text-tertiary font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                            18%
+                        </span>
+</div>
+<div class="mt-4">
+<p class="text-on-surface-variant text-label-md">Carbon Impact</p>
+<h3 class="text-headline-sm font-bold">-18% Emissions</h3>
+</div>
+</div>
+</div>
+<!-- Visual Comparison: Heatmaps -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+<div class="glass-card p-6 overflow-hidden">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-sm text-on-surface">Baseline Scenario</h3>
+<span class="bg-surface-container px-3 py-1 rounded-full text-label-md text-on-surface-variant">Current (2023)</span>
+</div>
+<div class="relative h-96 rounded-xl overflow-hidden bg-surface-variant/20 border border-outline-variant/30">
+<div class="absolute inset-0 z-0 bg-cover bg-center" data-alt="A top-down architectural map visualization of Bengaluru city center in a high-key light mode style. The map shows baseload traffic density as a soft orange and red glow over a minimalist gray and white street grid. Professional urban planning aesthetic with clean lines and premium data visualization layers." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjJqA2zqyjwS3nX5WpOsgGzm-Z3FtlRp-Sq4BiHABV4AfXuq0w9swBBhNoF_yjmmwWBDNlXsSEbD90U3X59uhEKXgn5uGqZa_ZDXkGbFo6rWFwN_X1rbwK54xhENNFLdcA4qM_thrw--s1eqIyxlfRsH37ID_E669achFMgh_adt7Ji1iy9kI_A2mUNrZ7vTgeacuxl7MqqLq9LUc60zHai_mCDsCWIFDV3Yzp1wZtFtZnMeVUkDpzXzukVvOBLqy4emO3aeShEXc')"></div>
+<div class="absolute bottom-4 left-4 glass-card px-4 py-2 flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<span class="text-label-md text-on-surface">Congestion Peak</span>
+</div>
+</div>
+</div>
+<div class="glass-card p-6 overflow-hidden">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-sm text-on-surface">Post-Simulation</h3>
+<span class="bg-primary-container/20 text-primary px-3 py-1 rounded-full text-label-md font-bold">Optimized (2025)</span>
+</div>
+<div class="relative h-96 rounded-xl overflow-hidden bg-surface-variant/20 border border-outline-variant/30">
+<div class="absolute inset-0 z-0 bg-cover bg-center" data-alt="A top-down architectural map visualization of Bengaluru city center showing improved traffic flow after simulated urban intervention. The heatmap displays a shift towards calming blue and green hues, indicating reduced density. The visual style is crisp, sophisticated, and light-toned, mimicking high-end digital twin software." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCECrqMCWrozB7nT_o7yxC7JP9ndVCum8yE5ST3mKEM9ChxJVs8wYMeHGUS-tvpAVW8GLYsVW3hDRoQRL-IZb_OpN35FWiVWAfBtORqNdIOGKVSZ7YwobswJISJQLWQlbbE-KMp9H0bEc71BatDY7wn-2ou37vSwcs9WOGgdJtohrnICL7JE5NR3orluKPDEw3L1Vq3tuMXgky_vNboaWOpeUI86eyrG5S0474Vbmm7P3qwWQjq_2lCQA5wm6CWqyNwAKWQF_8yjb0')"></div>
+<div class="absolute bottom-4 left-4 glass-card px-4 py-2 flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-label-md text-on-surface">Optimized Flow</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Impact Summary: Data Grid -->
+<div class="glass-card p-8">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="font-headline-sm text-on-surface">Impact Detailed Summary</h3>
+<p class="text-on-surface-variant text-body-sm">Granular breakdown of simulation variances and risk assessment.</p>
+</div>
+<button class="flex items-center gap-2 text-primary font-bold hover:underline">
+<span class="material-symbols-outlined">download</span>
+                        Export Dataset
+                    </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 text-left">
+<th class="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Parameter</th>
+<th class="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Baseline</th>
+<th class="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Simulated</th>
+<th class="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Variance</th>
+<th class="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Risk Level</th>
+<th class="pb-4 px-4"></th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-5 px-4 font-semibold text-on-surface">Transit Throughput</td>
+<td class="py-5 px-4">12,400 p/h</td>
+<td class="py-5 px-4">15,800 p/h</td>
+<td class="py-5 px-4 text-tertiary font-bold">+27.4%</td>
+<td class="py-5 px-4">
+<span class="bg-tertiary-fixed-dim/30 text-on-tertiary-fixed-variant px-2 py-1 rounded text-label-md">LOW</span>
+</td>
+<td class="py-5 px-4 text-right">
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">arrow_forward</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-5 px-4 font-semibold text-on-surface">Grid Stress Index</td>
+<td class="py-5 px-4">64.2</td>
+<td class="py-5 px-4">79.5</td>
+<td class="py-5 px-4 text-error font-bold">+23.8%</td>
+<td class="py-5 px-4">
+<span class="bg-error-container text-on-error-container px-2 py-1 rounded text-label-md">CRITICAL</span>
+</td>
+<td class="py-5 px-4 text-right">
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">arrow_forward</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-5 px-4 font-semibold text-on-surface">Public Space Ratio</td>
+<td class="py-5 px-4">14%</td>
+<td class="py-5 px-4">22%</td>
+<td class="py-5 px-4 text-tertiary font-bold">+8.0%</td>
+<td class="py-5 px-4">
+<span class="bg-tertiary-fixed-dim/30 text-on-tertiary-fixed-variant px-2 py-1 rounded text-label-md">LOW</span>
+</td>
+<td class="py-5 px-4 text-right">
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">arrow_forward</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-5 px-4 font-semibold text-on-surface">Particulate Matter (PM2.5)</td>
+<td class="py-5 px-4">42 µg/m³</td>
+<td class="py-5 px-4">34 µg/m³</td>
+<td class="py-5 px-4 text-tertiary font-bold">-19.0%</td>
+<td class="py-5 px-4">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-1 rounded text-label-md">MODERATE</span>
+</td>
+<td class="py-5 px-4 text-right">
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">arrow_forward</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Scenario Timeline / Growth Chart Placeholder -->
+<div class="mt-8 glass-card p-8 h-80 relative flex items-center justify-center">
+<div class="text-center z-10">
+<span class="material-symbols-outlined text-primary text-4xl mb-4">analytics</span>
+<h4 class="font-headline-sm text-on-surface">Trend Projection</h4>
+<p class="text-on-surface-variant text-body-md">Projected impact over a 10-year implementation horizon.</p>
+</div>
+<!-- Hypothetical chart visual -->
+<div class="absolute bottom-0 left-0 w-full h-full opacity-10 flex items-end px-8 gap-4 pointer-events-none">
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 40%"></div>
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 55%"></div>
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 45%"></div>
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 70%"></div>
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 85%"></div>
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 60%"></div>
+<div class="bg-primary flex-1 rounded-t-lg transition-all duration-1000" style="height: 90%"></div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for Action (Contextual Suppression Logic Handled via Page Type) -->
+<!-- As this is a Details/Results page, the FAB is omitted per "Contextual FAB Suppression" rules -->
+<script>
+        // Micro-interaction for hover states on metrics
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 200ms ease-out';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>

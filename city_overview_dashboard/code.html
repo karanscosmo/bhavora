@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BHAVORA | City Overview Dashboard</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#f8f9ff",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "primary-fixed": "#dbe1ff",
+                      "surface-container-low": "#eff4ff",
+                      "inverse-on-surface": "#eaf1ff",
+                      "primary": "#004ac6",
+                      "outline-variant": "#c3c6d7",
+                      "on-tertiary-fixed": "#002113",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "surface-bright": "#f8f9ff",
+                      "surface-tint": "#0053db",
+                      "on-background": "#0b1c30",
+                      "on-secondary-fixed": "#001f26",
+                      "on-tertiary": "#ffffff",
+                      "outline": "#737686",
+                      "on-tertiary-container": "#bdffdb",
+                      "on-primary-container": "#eeefff",
+                      "tertiary-fixed": "#6ffbbe",
+                      "on-surface": "#0b1c30",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "tertiary": "#006242",
+                      "on-primary-fixed": "#00174b",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "inverse-surface": "#213145",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#57dffe",
+                      "secondary": "#00687a",
+                      "secondary-fixed": "#acedff",
+                      "on-secondary-container": "#006172",
+                      "surface-dim": "#cbdbf5",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "surface-container": "#e5eeff",
+                      "primary-container": "#2563eb",
+                      "error-container": "#ffdad6",
+                      "on-surface-variant": "#434655",
+                      "surface": "#f8f9ff",
+                      "surface-container-high": "#dce9ff",
+                      "error": "#ba1a1a",
+                      "inverse-primary": "#b4c5ff",
+                      "on-primary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-container": "#007d55",
+                      "surface-variant": "#d3e4fe"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px",
+                      "card": "20px"
+              },
+              "spacing": {
+                      "2xl": "48px",
+                      "lg": "24px",
+                      "xl": "32px",
+                      "3xl": "64px",
+                      "gutter": "24px",
+                      "container-max": "1440px",
+                      "sm": "8px",
+                      "unit": "4px",
+                      "xs": "4px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "mono-label": ["JetBrains Mono"],
+                      "body-sm": ["Inter"],
+                      "display-sm": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "mono-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0", "fontWeight": "500"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "display-sm": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9ff; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 0.5px solid rgba(255, 255, 255, 0.5); }
+        .pulse-dot { width: 8px; height: 8px; background-color: #006242; border-radius: 50%; position: relative; }
+        .pulse-dot::after { content: ''; position: absolute; width: 100%; height: 100%; background-color: inherit; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3); opacity: 0; } }
+        .grid-dashboard { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+        .sidebar-item-active { background: rgba(0, 74, 198, 0.1); color: #004ac6; border-radius: 12px; font-weight: 600; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-on-surface bg-background">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-8">
+<h1 class="font-display-sm text-display-sm font-bold tracking-tight text-primary">BHAVORA</h1>
+<div class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20 w-80">
+<span class="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-full placeholder:text-on-surface-variant/60" placeholder="Search urban nodes..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-2 border-l border-outline-variant/30">
+<div class="text-right hidden sm:block">
+<p class="font-label-md text-label-md text-on-surface leading-none">Admin Cluster</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">BBMP / Urban Dev</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center border border-primary/10">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col p-4 bg-surface border-r border-outline-variant/20 shadow-lg">
+<div class="mb-8 px-2">
+<h2 class="text-on-surface font-headline-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">location_city</span>
+                Decision Twin
+            </h2>
+<p class="font-label-md text-on-surface-variant mt-1 opacity-70">Bengaluru Urban</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-3 sidebar-item-active" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">location_city</span>
+<span class="font-label-md">Bengaluru Twin</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-md">Scenario Builder</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">vital_signs</span>
+<span class="font-label-md">Simulations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md">Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto p-4 bg-primary rounded-xl text-on-primary">
+<p class="font-label-md mb-2">Simulation Engine</p>
+<p class="text-[11px] opacity-80 mb-4">Run urban growth models for 2030 predictions.</p>
+<button class="w-full bg-white text-primary font-bold py-2 px-4 rounded-lg text-sm active:scale-95 transition-transform">Run Simulation</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">City Overview Dashboard</h1>
+<p class="text-body-md text-on-surface-variant">Real-time metropolitan performance analytics for Bengaluru Cluster.</p>
+</div>
+<div class="flex gap-3">
+<div class="bg-surface border border-outline-variant/30 rounded-lg px-4 py-2 flex items-center gap-2 shadow-sm">
+<span class="pulse-dot"></span>
+<span class="font-mono-label text-on-surface">LIVE: 14:32:05</span>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-[20px]">file_download</span>
+                    Export PDF
+                </button>
+</div>
+</div>
+<!-- AI Insight Banner -->
+<div class="mb-8 p-4 bg-primary-fixed-dim/20 border border-primary/20 rounded-card flex items-center gap-4 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"></div>
+<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-primary uppercase tracking-wider">AI Predictive Insight</h4>
+<p class="text-body-md font-semibold text-on-surface">Traffic at <span class="text-primary underline decoration-dotted">Silk Board</span> expected to surge 12% in next 2 hours. <span class="text-on-surface-variant font-normal">Recommend activating peak-hour signal sync on ORR.</span></p>
+</div>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-bold text-xs hover:bg-primary-container/80 transition-all">TAKE ACTION</button>
+</div>
+<!-- Metric Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-8">
+<!-- Population -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20 group hover:shadow-md transition-shadow">
+<p class="text-on-surface-variant font-label-md mb-2">Population</p>
+<h3 class="text-headline-sm font-bold text-on-surface">13.6M</h3>
+<div class="mt-4 flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+<span class="text-[11px] font-bold">+1.8% YoY</span>
+</div>
+</div>
+<!-- Traffic Index -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20">
+<p class="text-on-surface-variant font-label-md mb-2">Traffic Index</p>
+<div class="flex items-center gap-2">
+<h3 class="text-headline-sm font-bold text-error">High</h3>
+<div class="px-2 py-0.5 bg-error-container text-on-error-container rounded text-[10px] font-bold">CRITICAL</div>
+</div>
+<div class="mt-4 w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-[88%] h-full bg-error"></div>
+</div>
+</div>
+<!-- Energy -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20">
+<p class="text-on-surface-variant font-label-md mb-2">Energy Demand</p>
+<h3 class="text-headline-sm font-bold text-on-surface">+4.2%</h3>
+<div class="mt-4 flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span class="text-[11px] font-medium">8.4 GWh / Day</span>
+</div>
+</div>
+<!-- Water -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20">
+<p class="text-on-surface-variant font-label-md mb-2">Water Reserves</p>
+<h3 class="text-headline-sm font-bold text-error">Critical</h3>
+<div class="mt-4 flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">water_drop</span>
+<span class="text-[11px] font-medium">18% Capacity</span>
+</div>
+</div>
+<!-- Carbon -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20">
+<p class="text-on-surface-variant font-label-md mb-2">CO2 Emissions</p>
+<h3 class="text-headline-sm font-bold text-on-surface">2.4t</h3>
+<div class="mt-4 flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">trending_down</span>
+<span class="text-[11px] font-bold">-0.5% Mtd</span>
+</div>
+</div>
+<!-- Employment -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20">
+<p class="text-on-surface-variant font-label-md mb-2">Jobs Index</p>
+<h3 class="text-headline-sm font-bold text-on-surface">114.2</h3>
+<div class="mt-4 flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span class="text-[11px] font-bold">High Growth</span>
+</div>
+</div>
+<!-- GDP -->
+<div class="bg-surface p-6 rounded-card shadow-sm border border-outline-variant/20">
+<p class="text-on-surface-variant font-label-md mb-2">GDP Growth</p>
+<h3 class="text-headline-sm font-bold text-primary">8.4%</h3>
+<div class="mt-4 flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">account_balance</span>
+<span class="text-[11px] font-medium">Metropolitan</span>
+</div>
+</div>
+</div>
+<!-- Main Analytics Section -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Traffic Heatmap Widget -->
+<div class="col-span-12 lg:col-span-8 bg-surface rounded-card border border-outline-variant/20 overflow-hidden shadow-sm flex flex-col">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<div>
+<h3 class="font-headline-sm text-on-surface">Real-Time Traffic Congestion</h3>
+<p class="text-body-sm text-on-surface-variant">Heatmap visualization of average transit speeds.</p>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="px-4 py-1.5 bg-white shadow-sm rounded-md text-xs font-bold text-primary">Map View</button>
+<button class="px-4 py-1.5 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors">Satellite</button>
+</div>
+</div>
+<div class="flex-1 min-h-[400px] relative">
+<div class="w-full h-full bg-cover bg-center" data-alt="A sophisticated digital city map of Bengaluru with glowing neon overlays representing traffic flow. Vibrant red and orange heat zones highlight congestion points near major tech parks and junctions like Silk Board and Hebbal. The map is detailed with architectural outlines and park areas in a clean, professional aesthetic with soft blues and grays." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWuypSYZ0QS6VzvQZ1E8WSG55OxBmGREGk-oBeUM_rJxPG3eZLWtOEyUTOOD7vH085OC7wd1GGSzCSRWFUZvPnGROa6_kA1gQJrqnG41E2VtmCysv3OZtXIm5oqxnlQZsgMMPTwR14APu6GTogfweayrZ80dpFeE-IfqJ-wFrPkoS3KEDYkQDzseKukhFvMzi5T9hnZearqdJFnYGFEj-kiUnDjSBSl82piBBrOj2lNhvuvr3-P7FdeBkM99Ks6SG8Ando-12H-_Y')"></div>
+<!-- Floating Overlay Stats -->
+<div class="absolute bottom-6 right-6 flex flex-col gap-3">
+<div class="glass-card p-4 rounded-xl shadow-lg border border-white/40">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase mb-1">Avg Speed City-wide</p>
+<p class="text-xl font-bold text-on-surface">18 km/h</p>
+</div>
+<div class="glass-card p-4 rounded-xl shadow-lg border border-white/40">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase mb-1">Active Incidents</p>
+<p class="text-xl font-bold text-error">12 Major</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column Stats -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-8">
+<!-- City Trends Chart (Recharts Style Placeholder) -->
+<div class="bg-surface p-6 rounded-card border border-outline-variant/20 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline-sm text-on-surface">Energy Demand</h3>
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</div>
+<div class="h-48 w-full flex items-end justify-between gap-2 px-2">
+<!-- Simulated Chart Bars/Lines -->
+<div class="w-full h-full relative flex items-end gap-1">
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[40%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[55%]"></div>
+</div></div></div></div></div></main></body></html>
