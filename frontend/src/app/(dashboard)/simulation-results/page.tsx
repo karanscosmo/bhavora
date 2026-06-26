@@ -1,20 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function SimulationResultsPage() {
-  const [results, setResults] = useState<any>(null);
+  const store = useSimulationStore();
+  const [results, setResults] = useState<any>(store);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('simulationResults');
-      if (stored) {
-        setResults(JSON.parse(stored));
-      }
-    }
-  }, []);
+    setResults(store);
+  }, [store]);
+
+  const recScore = (8.4 - ((results?.metrics?.infrastructureStress || 68) - 68) * 0.05).toFixed(1);
+
   return (
-    <div className="p-6 md:p-8 max-w-[1440px] mx-auto">
+    <div className="p-6 md:p-8 max-w-[1440px] mx-auto animate-fade-in">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
@@ -30,7 +30,7 @@ export default function SimulationResultsPage() {
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl px-6 py-4 flex flex-col items-center">
             <span className="text-label-md text-on-surface-variant uppercase tracking-wider">Rec. Score</span>
             <div className="flex items-baseline gap-1">
-              <span className="font-display-sm text-display-sm text-primary">8.4</span>
+              <span className="font-display-sm text-display-sm text-primary">{recScore}</span>
               <span className="text-on-surface-variant font-body-sm">/ 10</span>
             </div>
           </div>

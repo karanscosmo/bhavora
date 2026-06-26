@@ -1,10 +1,75 @@
 "use client";
 
 import React from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function DisasterResponsePage() {
+  const store = useSimulationStore();
+  const { climateEvent, disasterEvent } = store;
+
+  // Compute active variables based on current store climate hazard
+  let activeLoad = "68.0%";
+  let disruptions = "0 Nodes";
+  let hospitalLoad = 45;
+  let hospitalTrend = "Stable";
+  let hospitalTrendColor = "text-on-surface-variant";
+  let stormwaterLevel = "1.2m";
+  let stormwaterStatus = "NORMAL";
+  let stormwaterProgress = 30;
+  let stormwaterColor = "bg-primary";
+  let recTitle = "Normal Monitoring Protocols";
+  let recBody = "No active hazards registered. Urban performance stress limits remain within target validation bounds.";
+  let displayMapBlinkers = false;
+
+  if (climateEvent === "100-Year Flood") {
+    activeLoad = "94.2%";
+    disruptions = "12 Nodes";
+    hospitalLoad = 82;
+    hospitalTrend = "+12%";
+    hospitalTrendColor = "text-error";
+    stormwaterLevel = "4.2m";
+    stormwaterStatus = "CRITICAL";
+    stormwaterProgress = 95;
+    stormwaterColor = "bg-secondary";
+    recTitle = "Reroute traffic from Bellandur Junction";
+    recBody = "A 100-year flood event detected at Koramangala Valley. Probability of total arterial failure: 87%.";
+    displayMapBlinkers = true;
+  } else if (climateEvent === "Extreme Heatwave") {
+    activeLoad = "98.6%";
+    disruptions = "18 Nodes";
+    hospitalLoad = 95;
+    hospitalTrend = "+24%";
+    hospitalTrendColor = "text-error";
+    stormwaterLevel = "0.4m";
+    stormwaterStatus = "LOW AQUIFER";
+    stormwaterProgress = 10;
+    stormwaterColor = "bg-amber-500";
+    recTitle = "Activate Grid Buffers in North Bengaluru";
+    recBody = "Extreme Heatwave detected. Substation peak capacity threshold breached. Initiate localized rolling grid cooling protocols.";
+    displayMapBlinkers = true;
+  } else if (climateEvent === "Severe Drought") {
+    activeLoad = "74.8%";
+    disruptions = "4 Nodes";
+    hospitalLoad = 62;
+    hospitalTrend = "+5%";
+    hospitalTrendColor = "text-amber-600";
+    stormwaterLevel = "0.1m";
+    stormwaterStatus = "DEPLETED";
+    stormwaterProgress = 2;
+    stormwaterColor = "bg-red-500";
+    recTitle = "Deploy Emergency Tanker Route Coordination";
+    recBody = "Severe drought conditions detected. Ground aquifers depleted. Redirect recycled STP pipelines to central distribution tanks.";
+    displayMapBlinkers = true;
+  }
+
+  const handleHazardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    store.setInputs({ climateEvent: val });
+    store.runSimulation({ climateEvent: val });
+  };
+
   return (
-    <div className="absolute inset-0 flex overflow-hidden">
+    <div className="absolute inset-0 flex overflow-hidden animate-fade-in">
       {/* Interactive Map (The Base Layer) */}
       <div className="flex-1 relative bg-[#e5eeff] overflow-hidden" style={{ backgroundImage: "radial-gradient(circle, #c3c6d7 1px, transparent 1px)", backgroundSize: "32px 32px" }}>
         {/* Simulated Map Canvas */}
@@ -13,25 +78,29 @@ export default function DisasterResponsePage() {
         {/* Map Overlays: Critical Infrastructure Hazards */}
         <div className="absolute inset-0 z-10 p-6 pointer-events-none">
           {/* Blinking Alerts */}
-          <div className="absolute top-1/4 left-1/3 pointer-events-auto group cursor-pointer">
-            <div className="w-6 h-6 bg-error rounded-full flex items-center justify-center text-white animate-pulse shadow-lg">
-              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>flood</span>
-            </div>
-            <div className="absolute left-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-label-md font-bold text-error">Bellandur Inundation</p>
-              <p className="text-body-sm text-on-surface-variant">Depth: 1.4m. Impact: Road 4B closed.</p>
-            </div>
-          </div>
+          {displayMapBlinkers && (
+            <>
+              <div className="absolute top-1/4 left-1/3 pointer-events-auto group cursor-pointer">
+                <div className="w-6 h-6 bg-error rounded-full flex items-center justify-center text-white animate-pulse shadow-lg">
+                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>flood</span>
+                </div>
+                <div className="absolute left-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-label-md font-bold text-error">Central Inundation</p>
+                  <p className="text-body-sm text-on-surface-variant">Depth: {stormwaterLevel}. Arterial corridors restricted.</p>
+                </div>
+              </div>
 
-          <div className="absolute bottom-1/3 right-1/4 pointer-events-auto group cursor-pointer">
-            <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white animate-pulse shadow-lg" style={{ animationDelay: "0.5s" }}>
-              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-            </div>
-            <div className="absolute right-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-label-md font-bold text-secondary">Grid Instability</p>
-              <p className="text-body-sm text-on-surface-variant">Substation 12 Overload. Risk: High.</p>
-            </div>
-          </div>
+              <div className="absolute bottom-1/3 right-1/4 pointer-events-auto group cursor-pointer">
+                <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white animate-pulse shadow-lg" style={{ animationDelay: "0.5s" }}>
+                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                </div>
+                <div className="absolute right-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-label-md font-bold text-secondary">Grid Instability</p>
+                  <p className="text-body-sm text-on-surface-variant">Peak substation strain monitored.</p>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* SVG Cascade Effect Layer */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60">
@@ -50,18 +119,18 @@ export default function DisasterResponsePage() {
         {/* Floating Map Controls */}
         <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-2">
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-1 rounded-xl shadow-lg flex flex-col">
-            <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors">
+            <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
               <span className="material-symbols-outlined">add</span>
             </button>
             <div className="h-[1px] bg-outline-variant/20 mx-2"></div>
-            <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors">
+            <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
               <span className="material-symbols-outlined">remove</span>
             </button>
           </div>
-          <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors">
+          <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors cursor-pointer">
             <span className="material-symbols-outlined">layers</span>
           </button>
-          <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors">
+          <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors cursor-pointer">
             <span className="material-symbols-outlined">my_location</span>
           </button>
         </div>
@@ -73,25 +142,30 @@ export default function DisasterResponsePage() {
               <span className="text-label-md font-bold uppercase tracking-tight text-on-surface-variant">Active Load:</span>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-error"></span>
-                <span className="font-mono-label text-error">94.2%</span>
+                <span className="font-mono-label text-error">{activeLoad}</span>
               </div>
             </div>
             <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 px-4 py-2 rounded-full shadow-lg flex items-center gap-3">
               <span className="text-label-md font-bold uppercase tracking-tight text-on-surface-variant">Disruptions:</span>
-              <span className="font-mono-label text-on-surface">12 Nodes</span>
+              <span className="font-mono-label text-on-surface">{disruptions}</span>
             </div>
           </div>
           <div className="flex gap-4 pointer-events-auto">
-            <select className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-full px-6 py-2 text-label-md font-bold shadow-lg focus:ring-2 focus:ring-primary outline-none">
-              <option>Flood Event (100-Year)</option>
-              <option>Extreme Heatwave</option>
-              <option>Sewer Overflow</option>
+            <select 
+              value={climateEvent}
+              onChange={handleHazardChange}
+              className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-full px-6 py-2 text-label-md font-bold shadow-lg focus:ring-2 focus:ring-primary outline-none cursor-pointer text-sm"
+            >
+              <option value="None">No Climate Hazard</option>
+              <option value="100-Year Flood">Flood Event (100-Year)</option>
+              <option value="Extreme Heatwave">Extreme Heatwave</option>
+              <option value="Severe Drought">Severe Drought</option>
             </select>
           </div>
         </div>
 
         {/* Operations Comms */}
-        <button className="absolute bottom-6 left-6 bg-white/80 backdrop-blur-xl border border-outline-variant/30 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 hover:scale-[1.02] transition-transform z-50 pointer-events-auto">
+        <button className="absolute bottom-6 left-6 bg-white/80 backdrop-blur-xl border border-outline-variant/30 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 hover:scale-[1.02] transition-transform z-50 pointer-events-auto cursor-pointer">
           <div className="flex -space-x-3">
             <div className="w-8 h-8 rounded-full border-2 border-white bg-primary-fixed overflow-hidden flex items-center justify-center text-[10px] font-bold text-on-primary-fixed">JD</div>
             <div className="w-8 h-8 rounded-full border-2 border-white bg-secondary-fixed overflow-hidden flex items-center justify-center text-[10px] font-bold text-on-secondary-fixed">AK</div>
@@ -119,14 +193,13 @@ export default function DisasterResponsePage() {
                 </div>
                 <span className="text-[10px] font-mono-label opacity-70">EXEC_T_00.2s</span>
               </div>
-              <h3 className="font-headline-sm mb-2">Reroute traffic from Bellandur Junction</h3>
+              <h3 className="font-headline-sm mb-2">{recTitle}</h3>
               <p className="text-body-sm opacity-90 mb-4 leading-relaxed">
-                A 100-year flood event detected at Koramangala Valley. 
-                Probability of total arterial failure: <span className="font-bold underline decoration-secondary-fixed">87%</span>.
+                {recBody}
               </p>
               <div className="flex gap-2">
-                <button className="bg-white text-primary px-4 py-2 rounded-lg text-label-md font-bold shadow-md hover:bg-surface-bright transition-colors">Execute Rerouting</button>
-                <button className="bg-primary-container text-white px-4 py-2 rounded-lg text-label-md font-medium border border-white/20">Analyze Impact</button>
+                <button className="bg-white text-primary px-4 py-2 rounded-lg text-label-md font-bold shadow-md hover:bg-surface-bright transition-colors cursor-pointer">Execute Protocols</button>
+                <button className="bg-primary-container text-white px-4 py-2 rounded-lg text-label-md font-medium border border-white/20 cursor-pointer">Analyze Impact</button>
               </div>
             </div>
           </div>
@@ -139,14 +212,14 @@ export default function DisasterResponsePage() {
                 <div className="text-label-md text-on-surface-variant font-bold uppercase">Hospital Load</div>
               </div>
               <div className="flex items-end justify-between">
-                <span className="text-display-sm font-bold text-on-surface tracking-tighter">82%</span>
-                <span className="text-error font-mono-label text-[10px] pb-2 flex items-center">
-                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                  +12%
+                <span className="text-display-sm font-bold text-on-surface tracking-tighter">{hospitalLoad}%</span>
+                <span className={`font-mono-label text-[10px] pb-2 flex items-center ${hospitalTrend === 'Stable' ? 'text-on-surface-variant' : 'text-error'}`}>
+                  {hospitalTrend !== 'Stable' && <span className="material-symbols-outlined text-[14px]">trending_up</span>}
+                  {hospitalTrend}
                 </span>
               </div>
               <div className="w-full bg-surface-container rounded-full h-1 mt-2">
-                <div className="bg-primary h-full rounded-full" style={{ width: '82%' }}></div>
+                <div className="bg-primary h-full rounded-full transition-all duration-[1s]" style={{ width: `${hospitalLoad}%` }}></div>
               </div>
             </div>
             
@@ -156,11 +229,11 @@ export default function DisasterResponsePage() {
                 <div className="text-label-md text-on-surface-variant font-bold uppercase">Stormwater Level</div>
               </div>
               <div className="flex items-end justify-between">
-                <span className="text-display-sm font-bold text-on-surface tracking-tighter">4.2m</span>
-                <span className="text-error font-mono-label text-[10px] pb-2">CRITICAL</span>
+                <span className="text-display-sm font-bold text-on-surface tracking-tighter">{stormwaterLevel}</span>
+                <span className={`font-mono-label text-[10px] pb-2 ${stormwaterStatus === 'CRITICAL' ? 'text-error font-bold animate-pulse' : 'text-on-surface-variant'}`}>{stormwaterStatus}</span>
               </div>
               <div className="w-full bg-surface-container rounded-full h-1 mt-2">
-                <div className="bg-secondary h-full rounded-full" style={{ width: '95%' }}></div>
+                <div className={`${stormwaterColor} h-full rounded-full transition-all duration-[1s]`} style={{ width: `${stormwaterProgress}%` }}></div>
               </div>
             </div>
           </div>
@@ -179,10 +252,12 @@ export default function DisasterResponsePage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-1">
-                    <span className="font-label-md text-on-surface">Substation #12 Failure</span>
-                    <span className="text-[10px] font-mono-label text-on-surface-variant">2m ago</span>
+                    <span className="font-label-md text-on-surface">Substation strain alert</span>
+                    <span className="text-[10px] font-mono-label text-on-surface-variant">Just now</span>
                   </div>
-                  <p className="text-body-sm text-on-surface-variant leading-snug">Flood water breached perimeter wall. Backup systems offline.</p>
+                  <p className="text-body-sm text-on-surface-variant leading-snug">
+                    {disasterEvent !== 'None' ? `Breached thresholds: Alert is [${disasterEvent}].` : "Strain triggers backup operations."}
+                  </p>
                   <div className="mt-2 flex gap-2">
                     <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant text-[10px] rounded font-bold">HSR Layout</span>
                     <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant text-[10px] rounded font-bold">Priority 1</span>
@@ -199,7 +274,7 @@ export default function DisasterResponsePage() {
                     <span className="font-label-md text-on-surface">Bottleneck Detected</span>
                     <span className="text-[10px] font-mono-label text-on-surface-variant">14m ago</span>
                   </div>
-                  <p className="text-body-sm text-on-surface-variant leading-snug">ORR traffic moving at &lt; 4km/h. Emergency lanes impacted.</p>
+                  <p className="text-body-sm text-on-surface-variant leading-snug">ORR traffic moving at under 8km/h. Emergency routing active.</p>
                 </div>
               </div>
             </div>

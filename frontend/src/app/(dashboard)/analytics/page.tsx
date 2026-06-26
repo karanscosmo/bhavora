@@ -1,61 +1,50 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Legend, BarChart, Bar
 } from 'recharts';
 
 export default function AnalyticsPage() {
-  const [results, setResults] = useState<any>(null);
+  const store = useSimulationStore();
+  const [results, setResults] = useState<any>(store);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('simulationResults');
-      if (stored) {
-        setResults(JSON.parse(stored));
-      } else {
-        setResults({
-          metrics: {
-            energyDemand: 24,
-            carbonEmissions: -18,
-            trafficCongestion: -12,
-            waterDemand: 4,
-            jobsCreated: 14,
-            infrastructureStress: 68
-          }
-        });
-      }
-    }
-  }, []);
+    setResults(store);
+  }, [store]);
 
-  // 1. Demographic shifts data
+  const popGrowth = store.popGrowth;
+  const metrics = store.metrics;
+
+  // 1. Demographic shifts data (Reacts to popGrowth)
   const demographicData = [
     { year: '2025', Baseline: 13.6, Simulated: 13.6 },
-    { year: '2027', Baseline: 14.1, Simulated: 14.3 },
-    { year: '2030', Baseline: 14.8, Simulated: 15.2 },
-    { year: '2032', Baseline: 15.3, Simulated: 16.0 },
-    { year: '2035', Baseline: 16.2, Simulated: 17.4 }
+    { year: '2027', Baseline: 14.1, Simulated: Number((14.1 * (1 + (popGrowth * 0.005))).toFixed(1)) },
+    { year: '2030', Baseline: 14.8, Simulated: Number((14.8 * (1 + (popGrowth * 0.01))).toFixed(1)) },
+    { year: '2032', Baseline: 15.3, Simulated: Number((15.3 * (1 + (popGrowth * 0.015))).toFixed(1)) },
+    { year: '2035', Baseline: 16.2, Simulated: Number((16.2 * (1 + (popGrowth * 0.02))).toFixed(1)) }
   ];
 
-  // 2. Energy Load Peak curves
+  // 2. Energy Load Peak curves (Reacts to energyDemand)
   const energyLoadData = [
-    { hour: '00:00', Baseline: 2.1, Simulated: 2.4 },
-    { hour: '04:00', Baseline: 1.8, Simulated: 2.0 },
-    { hour: '08:00', Baseline: 3.5, Simulated: 4.2 },
-    { hour: '12:00', Baseline: 4.2, Simulated: 5.6 },
-    { hour: '16:00', Baseline: 3.8, Simulated: 4.9 },
-    { hour: '20:00', Baseline: 4.5, Simulated: 6.2 },
-    { hour: '23:00', Baseline: 2.8, Simulated: 3.4 }
+    { hour: '00:00', Baseline: 2.1, Simulated: Number((2.1 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
+    { hour: '04:00', Baseline: 1.8, Simulated: Number((1.8 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
+    { hour: '08:00', Baseline: 3.5, Simulated: Number((3.5 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
+    { hour: '12:00', Baseline: 4.2, Simulated: Number((4.2 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
+    { hour: '16:00', Baseline: 3.8, Simulated: Number((3.8 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
+    { hour: '20:00', Baseline: 4.5, Simulated: Number((4.5 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
+    { hour: '23:00', Baseline: 2.8, Simulated: Number((2.8 * (1 + metrics.energyDemand / 100)).toFixed(1)) }
   ];
 
-  // 3. Traffic Congestion comparison across districts
+  // 3. Traffic Congestion comparison across districts (Reacts to trafficCongestion)
   const trafficData = [
-    { district: 'Whitefield', Baseline: 94, Simulated: Math.max(10, 94 + (results?.metrics?.trafficCongestion || -12)) },
-    { district: 'ECity', Baseline: 62, Simulated: Math.max(10, 62 + (results?.metrics?.trafficCongestion || -12)) },
-    { district: 'Koramangala', Baseline: 92, Simulated: Math.max(10, 92 + (results?.metrics?.trafficCongestion || -12)) },
-    { district: 'Hebbal', Baseline: 65, Simulated: Math.max(10, 65 + (results?.metrics?.trafficCongestion || -12)) },
-    { district: 'Indiranagar', Baseline: 88, Simulated: Math.max(10, 88 + (results?.metrics?.trafficCongestion || -12)) }
+    { district: 'Whitefield', Baseline: 94, Simulated: Math.max(10, Math.round(94 + metrics.trafficCongestion)) },
+    { district: 'ECity', Baseline: 62, Simulated: Math.max(10, Math.round(62 + metrics.trafficCongestion)) },
+    { district: 'Koramangala', Baseline: 92, Simulated: Math.max(10, Math.round(92 + metrics.trafficCongestion)) },
+    { district: 'Hebbal', Baseline: 65, Simulated: Math.max(10, Math.round(65 + metrics.trafficCongestion)) },
+    { district: 'Indiranagar', Baseline: 88, Simulated: Math.max(10, Math.round(88 + metrics.trafficCongestion)) }
   ];
 
   return (

@@ -1,22 +1,43 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function DecisionTwinPage() {
   const router = useRouter();
+  const store = useSimulationStore();
 
   // Inputs
-  const [evAdoption, setEvAdoption] = useState(45);
-  const [popGrowth, setPopGrowth] = useState(12);
-  const [indExpansion, setIndExpansion] = useState(4);
-  const [metroExpansion, setMetroExpansion] = useState(2);
-  const [renewableGrowth, setRenewableGrowth] = useState(25);
-  const [climateEvent, setClimateEvent] = useState("None");
-  const [disasterEvent, setDisasterEvent] = useState("None");
+  const [evAdoption, setEvAdoption] = useState(store.evAdoption);
+  const [popGrowth, setPopGrowth] = useState(store.popGrowth);
+  const [indExpansion, setIndExpansion] = useState(store.indExpansion);
+  const [metroExpansion, setMetroExpansion] = useState(store.metroExpansion);
+  const [renewableGrowth, setRenewableGrowth] = useState(store.renewableGrowth);
+  const [climateEvent, setClimateEvent] = useState(store.climateEvent);
+  const [disasterEvent, setDisasterEvent] = useState(store.disasterEvent);
 
   const [activeArchetype, setActiveArchetype] = useState<string | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
+
+  // Sync state if store updates (e.g. loaded scenario or demo mode)
+  useEffect(() => {
+    setEvAdoption(store.evAdoption);
+    setPopGrowth(store.popGrowth);
+    setIndExpansion(store.indExpansion);
+    setMetroExpansion(store.metroExpansion);
+    setRenewableGrowth(store.renewableGrowth);
+    setClimateEvent(store.climateEvent);
+    setDisasterEvent(store.disasterEvent);
+  }, [
+    store.evAdoption,
+    store.popGrowth,
+    store.indExpansion,
+    store.metroExpansion,
+    store.renewableGrowth,
+    store.climateEvent,
+    store.disasterEvent
+  ]);
 
   const applyArchetype = (type: string) => {
     setActiveArchetype(type);
@@ -43,79 +64,39 @@ export default function DecisionTwinPage() {
   const handleSimulate = async () => {
     setIsSimulating(true);
     try {
-      const payload = {
-        evAdoption: parseFloat(evAdoption.toString()),
-        populationGrowth: parseFloat(popGrowth.toString()),
-        industrialExpansion: parseFloat(indExpansion.toString()),
-        metroExpansion: parseFloat(metroExpansion.toString()),
-        renewableEnergyGrowth: parseFloat(renewableGrowth.toString()),
+      // Formulate custom scenario name based on primary inputs
+      const scenarioName = `Scenario-EV-${evAdoption}-Pop-${popGrowth}`;
+      
+      // Update store inputs first, then execute simulation
+      store.setInputs({
+        evAdoption,
+        popGrowth,
+        indExpansion,
+        metroExpansion,
+        renewableGrowth,
         climateEvent,
         disasterEvent
-      };
-
-      // Vercel deployment has rewrites from /api/* to python backend
-      const res = await fetch('/api/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
       });
       
-      if (!res.ok) {
-        throw new Error("Backend response error");
-      }
-
-      const data = await res.json();
+      const results = await store.runSimulation({
+        evAdoption,
+        popGrowth,
+        indExpansion,
+        metroExpansion,
+        renewableGrowth,
+        climateEvent,
+        disasterEvent,
+        name: scenarioName
+      });
       
-      // Store in session storage to pass to results page
+      // Also update sessionStorage for absolute backwards-compatibility
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('simulationResults', JSON.stringify(data));
+        sessionStorage.setItem('simulationResults', JSON.stringify(results));
       }
       
       router.push('/simulation-results');
     } catch (e) {
-      console.error("Simulation call failed, falling back to local weighted calculation...", e);
-      
-      // Local fallback calculation logic (identical to backend)
-      const baseEnergy = 4.2;
-      const energy_impact = (evAdoption * 0.15) + (popGrowth * 0.4) + (indExpansion * 0.6) - (renewableGrowth * 0.2);
-      const carbon_impact = (indExpansion * 0.8) + (popGrowth * 0.3) - (evAdoption * 0.4) - (renewableGrowth * 0.5);
-      const traffic_impact = (popGrowth * 0.5) - (metroExpansion * 0.6) - (evAdoption * 0.05);
-      const water_impact = (popGrowth * 0.4) + (indExpansion * 0.3);
-      const employment_impact = (indExpansion * 0.5) + (metroExpansion * 0.2);
-      const infra_stress = 30 + (energy_impact * 2) + (traffic_impact * 1.5) + (water_impact * 2);
-
-      const recommendations: string[] = [];
-      if (energy_impact > 15) {
-        recommendations.push("High energy demand projected. Recommend building 11 new substations in North Bengaluru by 2028.");
-      } else {
-        recommendations.push("Power grid levels stable. Focus solar storage additions near industrial nodes.");
-      }
-      if (water_impact > 8) {
-        recommendations.push("Water stress predicted in Eastern Bengaluru. Recommend STP infrastructure expansions.");
-      }
-
-      const localData = {
-        metrics: {
-          energyDemand: round(energy_impact, 1),
-          carbonEmissions: round(carbon_impact, 1),
-          trafficCongestion: round(traffic_impact, 1),
-          waterDemand: round(water_impact, 1),
-          jobsCreated: round(employment_impact, 1),
-          infrastructureStress: Math.min(100, Math.max(0, round(infra_stress, 1)))
-        },
-        recommendations: recommendations.length > 0 ? recommendations : ["Current infrastructure is equipped to handle the projected growth."],
-        timeline: [
-          { year: 2025, energy: baseEnergy + (energy_impact * 0.1), traffic: 100 + (traffic_impact * 0.1) },
-          { year: 2027, energy: baseEnergy + (energy_impact * 0.3), traffic: 100 + (traffic_impact * 0.3) },
-          { year: 2030, energy: baseEnergy + (energy_impact * 0.6), traffic: 100 + (traffic_impact * 0.6) },
-          { year: 2035, energy: baseEnergy + energy_impact, traffic: 100 + traffic_impact },
-        ]
-      };
-
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('simulationResults', JSON.stringify(localData));
-      }
-      router.push('/simulation-results');
+      console.error("Simulation call failed", e);
     } finally {
       setIsSimulating(false);
     }

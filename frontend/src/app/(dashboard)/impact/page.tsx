@@ -1,30 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function ImpactPage() {
-  const [results, setResults] = useState<any>(null);
+  const store = useSimulationStore();
+  const [results, setResults] = useState<any>(store);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('simulationResults');
-      if (stored) {
-        setResults(JSON.parse(stored));
-      } else {
-        // Default scenario: Green growth archetype fallback
-        setResults({
-          metrics: {
-            energyDemand: 24,
-            carbonEmissions: -18,
-            trafficCongestion: -12,
-            waterDemand: 4,
-            jobsCreated: 14,
-            infrastructureStress: 68
-          }
-        });
-      }
-    }
-  }, []);
+    setResults(store);
+  }, [store]);
 
   const metrics = [
     {

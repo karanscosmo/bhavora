@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 interface District {
   id: string;
@@ -17,6 +18,9 @@ interface District {
 }
 
 export default function CitiesPage() {
+  const store = useSimulationStore();
+  const { metrics, popGrowth } = store;
+
   const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>({
     traffic: true,
     metro: true,
@@ -32,76 +36,69 @@ export default function CitiesPage() {
     setActiveLayers(prev => ({ ...prev, [layer]: !prev[layer] }));
   };
 
-  const districts: District[] = [
-    {
-      id: "whitefield",
-      name: "Whitefield",
-      population: "1.2M",
-      traffic: 94,
-      energy: "Stable",
-      risk: "8.4/10",
-      x: "70%",
-      y: "40%",
-      status: "High Risk",
-      statusColor: "text-error",
-      statusBg: "bg-error-container"
-    },
-    {
-      id: "electronic_city",
-      name: "Electronic City",
-      population: "0.8M",
-      traffic: 62,
-      energy: "100% Health",
-      risk: "3.1/10",
-      x: "60%",
-      y: "72%",
-      status: "Optimal",
-      statusColor: "text-tertiary",
-      statusBg: "bg-tertiary-container"
-    },
-    {
-      id: "indiranagar",
-      name: "Indiranagar",
-      population: "0.45M",
-      traffic: 78,
-      energy: "92% Health",
-      risk: "5.2/10",
-      x: "45%",
-      y: "45%",
-      status: "Normal",
-      statusColor: "text-primary",
-      statusBg: "bg-primary-fixed/20"
-    },
-    {
-      id: "hebbal",
-      name: "Hebbal",
-      population: "0.6M",
-      traffic: 54,
-      energy: "96% Health",
-      risk: "4.8/10",
-      x: "42%",
-      y: "22%",
-      status: "Normal",
-      statusColor: "text-primary",
-      statusBg: "bg-primary-fixed/20"
-    },
-    {
-      id: "koramangala",
-      name: "Koramangala",
-      population: "0.55M",
-      traffic: 92,
-      energy: "Critical Load",
-      risk: "7.9/10",
-      x: "52%",
-      y: "56%",
-      status: "High Risk",
-      statusColor: "text-error",
-      statusBg: "bg-error-container"
-    }
+  // Dynamically compute district details based on store state
+  const rawDistricts = [
+    { id: "whitefield", name: "Whitefield", basePop: 1.2, baseTraffic: 94, baseEnergy: "Stable", baseRisk: 8.4, x: "70%", y: "40%" },
+    { id: "electronic_city", name: "Electronic City", basePop: 0.8, baseTraffic: 62, baseEnergy: "100% Health", baseRisk: 3.1, x: "60%", y: "72%" },
+    { id: "indiranagar", name: "Indiranagar", basePop: 0.45, baseTraffic: 78, baseEnergy: "92% Health", baseRisk: 5.2, x: "45%", y: "45%" },
+    { id: "hebbal", name: "Hebbal", basePop: 0.6, baseTraffic: 54, baseEnergy: "96% Health", baseRisk: 4.8, x: "42%", y: "22%" },
+    { id: "koramangala", name: "Koramangala", basePop: 0.55, baseTraffic: 92, baseEnergy: "Critical Load", baseRisk: 7.9, x: "52%", y: "56%" }
   ];
 
+  const districts: District[] = rawDistricts.map(d => {
+    const population = (d.basePop * (1 + popGrowth / 100)).toFixed(2) + "M";
+    const traffic = Math.min(100, Math.max(10, Math.round(d.baseTraffic + metrics.trafficCongestion)));
+    
+    let energy = d.baseEnergy;
+    if (metrics.energyDemand > 15) {
+      if (d.id === 'whitefield' || d.id === 'koramangala') energy = "Critical Load";
+      else if (d.id === 'electronic_city') energy = "Peak Draw";
+    }
+
+    const calculatedRisk = Math.min(10, Math.max(0, d.baseRisk + (metrics.infrastructureStress - 68) * 0.05));
+    const risk = calculatedRisk.toFixed(1) + "/10";
+
+    let status: 'High Risk' | 'Optimal' | 'Normal' = 'Normal';
+    let statusColor = "text-primary";
+    let statusBg = "bg-primary-fixed/20";
+
+    if (traffic > 85 || calculatedRisk > 7.5) {
+      status = 'High Risk';
+      statusColor = "text-error";
+      statusBg = "bg-error-container";
+    } else if (traffic < 65 && calculatedRisk < 5.0) {
+      status = 'Optimal';
+      statusColor = "text-tertiary";
+      statusBg = "bg-tertiary-container";
+    }
+
+    return {
+      id: d.id,
+      name: d.name,
+      population,
+      traffic,
+      energy,
+      risk,
+      x: d.x,
+      y: d.y,
+      status,
+      statusColor,
+      statusBg
+    };
+  });
+
+  // If a district is selected, find its updated version
+  const currentSelectedDistrict = selectedDistrict 
+    ? districts.find(d => d.id === selectedDistrict.id) || selectedDistrict 
+    : null;
+
+  // Global City Index Values
+  const cityHealthIndex = Math.min(100, Math.max(0, Math.round(100 - metrics.infrastructureStress + 36)));
+  const urbanResilience = Math.min(100, Math.max(0, Math.round(100 - metrics.infrastructureStress * 0.4)));
+  const carbonDeltaStr = (metrics.carbonEmissions > 0 ? "+" : "") + metrics.carbonEmissions + "%";
+
   return (
-    <div className="absolute inset-0 overflow-hidden flex select-none">
+    <div className="absolute inset-0 overflow-hidden flex select-none animate-fade-in">
       {/* Interactive Map (Left Panel) */}
       <div className="flex-1 relative bg-[#e5eeff] overflow-hidden">
         {/* Map Grid and Base Image */}
@@ -174,35 +171,35 @@ export default function CitiesPage() {
         ))}
 
         {/* District Details Floating Overlay (When Clicked) */}
-        {selectedDistrict && (
+        {currentSelectedDistrict && (
           <div className="absolute top-24 left-6 w-72 bg-white/95 backdrop-blur-xl border border-outline-variant/30 p-5 rounded-2xl shadow-2xl z-30 animate-scale-in">
             <div className="flex justify-between items-start mb-3">
-              <h4 className="font-headline-sm text-on-surface">{selectedDistrict.name}</h4>
-              <span className={`px-2.5 py-0.5 ${selectedDistrict.statusBg} ${selectedDistrict.statusColor} text-[10px] font-bold rounded-full uppercase`}>
-                {selectedDistrict.status}
+              <h4 className="font-headline-sm text-on-surface">{currentSelectedDistrict.name}</h4>
+              <span className={`px-2.5 py-0.5 ${currentSelectedDistrict.statusBg} ${currentSelectedDistrict.statusColor} text-[10px] font-bold rounded-full uppercase`}>
+                {currentSelectedDistrict.status}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Population</p>
-                <p className="text-sm font-bold text-on-surface">{selectedDistrict.population}</p>
+                <p className="text-sm font-bold text-on-surface">{currentSelectedDistrict.population}</p>
               </div>
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Traffic Load</p>
-                <p className={`text-sm font-bold ${selectedDistrict.traffic > 80 ? 'text-error' : 'text-on-surface'}`}>{selectedDistrict.traffic}%</p>
+                <p className={`text-sm font-bold ${currentSelectedDistrict.traffic > 80 ? 'text-error' : 'text-on-surface'}`}>{currentSelectedDistrict.traffic}%</p>
               </div>
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Energy Grid</p>
-                <p className="text-sm font-bold text-on-surface">{selectedDistrict.energy}</p>
+                <p className="text-sm font-bold text-on-surface">{currentSelectedDistrict.energy}</p>
               </div>
               <div>
                 <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Risk Score</p>
-                <p className="text-sm font-bold text-on-surface">{selectedDistrict.risk}</p>
+                <p className="text-sm font-bold text-on-surface">{currentSelectedDistrict.risk}</p>
               </div>
             </div>
             <button 
               onClick={() => setSelectedDistrict(null)}
-              className="mt-4 w-full bg-surface-container hover:bg-surface-container-high py-2 rounded-lg text-xs font-semibold text-on-surface transition-colors"
+              className="mt-4 w-full bg-surface-container hover:bg-surface-container-high py-2 rounded-lg text-xs font-semibold text-on-surface transition-colors cursor-pointer"
             >
               Close Details
             </button>
@@ -217,25 +214,25 @@ export default function CitiesPage() {
                 <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error"></span></span>
                 <span className="text-xs font-bold text-on-surface">City Health Index</span>
               </div>
-              <span className="text-mono-label bg-surface-container text-primary font-bold px-2 py-0.5 rounded text-[11px]">68/100</span>
+              <span className="text-mono-label bg-surface-container text-primary font-bold px-2 py-0.5 rounded text-[11px]">{cityHealthIndex}/100</span>
             </div>
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-[11px] mb-1">
                   <span className="text-on-surface-variant">Urban Resilience</span>
-                  <span className="text-on-surface font-bold">72%</span>
+                  <span className="text-on-surface font-bold">{urbanResilience}%</span>
                 </div>
                 <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '72%' }}></div>
+                  <div className="h-full bg-primary transition-all duration-[1s]" style={{ width: `${urbanResilience}%` }}></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-on-surface-variant">Carbon Footprint</span>
-                  <span className="text-on-surface font-bold">+12%</span>
+                  <span className="text-on-surface-variant">Carbon Footprint Change</span>
+                  <span className={`font-bold ${metrics.carbonEmissions > 0 ? 'text-error' : 'text-emerald-600'}`}>{carbonDeltaStr}</span>
                 </div>
                 <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-error" style={{ width: '88%' }}></div>
+                  <div className={`h-full ${metrics.carbonEmissions > 0 ? 'bg-error' : 'bg-emerald-500'} transition-all duration-[1s]`} style={{ width: `${Math.min(100, Math.max(10, Math.round(50 + metrics.carbonEmissions * 2)))}%` }}></div>
                 </div>
               </div>
               <div className="flex items-center justify-between bg-surface-container-low p-2 rounded-xl border border-outline-variant/10 text-[10px]">
@@ -243,7 +240,7 @@ export default function CitiesPage() {
                   <span className="material-symbols-outlined text-primary text-[16px]">trending_up</span>
                   <span>Projected growth in Hebbal Corridor</span>
                 </div>
-                <span className="font-bold text-primary">+4.2%</span>
+                <span className="font-bold text-primary">+{popGrowth}%</span>
               </div>
             </div>
           </div>

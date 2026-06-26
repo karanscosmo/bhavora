@@ -1,17 +1,44 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function ReportsPage() {
+  const store = useSimulationStore();
+  const { metrics, evAdoption, popGrowth, renewableGrowth, metroExpansion, indExpansion, climateEvent, disasterEvent } = store;
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = () => {
     setIsExporting(true);
-    setTimeout(() => setIsExporting(false), 3000);
+    setTimeout(() => {
+      setIsExporting(false);
+      window.print();
+    }, 1500);
   };
 
+  // Dynamic calculations for report indices
+  const trafficIndexValue = Math.min(100, Math.max(10, Math.round(78 + metrics.trafficCongestion)));
+  const trafficDeltaLabel = metrics.trafficCongestion > 0 
+    ? `↑ ${metrics.trafficCongestion.toFixed(1)}%` 
+    : `↓ ${Math.abs(metrics.trafficCongestion).toFixed(1)}%`;
+  const energyIndexValue = Math.min(100, Math.max(10, Math.round(65 + metrics.energyDemand)));
+  const energyDeltaLabel = metrics.energyDemand > 0 
+    ? `↑ ${metrics.energyDemand.toFixed(1)}%` 
+    : `↓ ${Math.abs(metrics.energyDemand).toFixed(1)}%`;
+  const energyLoadGw = (4.2 * (1 + metrics.energyDemand / 100)).toFixed(1);
+
+  // Dynamic SVG path calculations for population curve
+  const y1 = Math.min(220, Math.max(20, 180 - popGrowth * 1.5));
+  const y2 = Math.min(220, Math.max(20, 140 - popGrowth * 3.0));
+  const y3 = Math.min(220, Math.max(20, 80 - popGrowth * 4.5));
+  const y4 = Math.min(220, Math.max(20, 40 - popGrowth * 6.0));
+  const svgPath = `M0 220 L200 ${y1} L400 ${y2} L600 ${y3} L800 ${y4}`;
+  const areaGradientPath = `${svgPath} L800 220 Z`;
+
+  const popGrowthEst2030 = (13.6 * (1 + popGrowth * 0.01)).toFixed(1);
+
   return (
-    <div className="max-w-[1440px] mx-auto space-y-8">
+    <div className="max-w-[1440px] mx-auto space-y-8 animate-fade-in">
       {/* Page Header */}
       <div className="flex items-end justify-between">
         <div>
@@ -24,11 +51,11 @@ export default function ReportsPage() {
           <p className="text-on-surface-variant mt-1">Projecting 15-year urban evolution patterns for the Bengaluru Metropolitan Area.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-surface border border-outline-variant/30 rounded-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+          <button className="px-4 py-2 bg-surface border border-outline-variant/30 rounded-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors cursor-pointer">
             <span className="material-symbols-outlined text-[20px]">share</span>
             <span className="text-sm font-semibold">Share Analysis</span>
           </button>
-          <button onClick={handleExport} className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm">
+          <button onClick={handleExport} className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm cursor-pointer">
             <span className="material-symbols-outlined text-[20px]">download</span>
             <span className="text-sm font-semibold">Export Report</span>
           </button>
@@ -63,14 +90,14 @@ export default function ReportsPage() {
                   <stop offset="100%" stopColor="#004ac6" stopOpacity="0"></stop>
                 </linearGradient>
               </defs>
-              <path d="M0 220 L200 180 L400 140 L600 80 L800 40 L800 220 Z" fill="url(#areaGradient)"></path>
+              <path d={areaGradientPath} fill="url(#areaGradient)" className="transition-all duration-1000"></path>
               {/* Main Curve */}
-              <path className="animate-[dash_3s_ease-in-out_forwards]" style={{ strokeDasharray: 1000, strokeDashoffset: 1000 }} d="M0 220 L200 180 L400 140 L600 80 L800 40" fill="none" stroke="#004ac6" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4"></path>
+              <path d={svgPath} fill="none" stroke="#004ac6" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" className="transition-all duration-1000"></path>
               {/* Forecast Points */}
-              <circle cx="200" cy="180" fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8"></circle>
-              <circle cx="400" cy="140" fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8"></circle>
-              <circle cx="600" cy="80" fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8"></circle>
-              <circle cx="800" cy="40" fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8"></circle>
+              <circle cx="200" cy={y1} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
+              <circle cx="400" cy={y2} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
+              <circle cx="600" cy={y3} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
+              <circle cx="800" cy={y4} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
               {/* Year Labels */}
               <text fill="#64748b" fontSize="10" fontWeight="600" x="0" y="240">2024 (Now)</text>
               <text fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle" x="200" y="240">2026</text>
@@ -82,7 +109,7 @@ export default function ReportsPage() {
               <div className="font-bold mb-1">Target: 2030</div>
               <div className="flex justify-between gap-4">
                 <span className="text-white/80">Population:</span>
-                <span className="font-mono-label font-bold text-white">16.8M (+22%)</span>
+                <span className="font-mono-label font-bold text-white">{popGrowthEst2030}M (+{popGrowth}%)</span>
               </div>
             </div>
           </div>
@@ -95,29 +122,29 @@ export default function ReportsPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Traffic Congestion Index</h3>
-                <p className="text-headline-sm font-bold text-on-surface mt-1">84.2<span className="text-sm font-medium text-error ml-2">↑ 12%</span></p>
+                <p className="text-headline-sm font-bold text-on-surface mt-1">{trafficIndexValue}<span className={`text-sm font-medium ml-2 ${metrics.trafficCongestion > 0 ? 'text-error' : 'text-emerald-600'}`}>{trafficDeltaLabel}</span></p>
               </div>
               <span className="material-symbols-outlined text-error">traffic</span>
             </div>
             <div className="w-full bg-surface-container rounded-full h-1.5 mb-2 overflow-hidden">
-              <div className="bg-error h-1.5 rounded-full" style={{ width: '84%' }}></div>
+              <div className="bg-error h-1.5 rounded-full transition-all duration-[1s]" style={{ width: `${trafficIndexValue}%` }}></div>
             </div>
-            <p className="text-body-sm text-on-surface-variant italic">Critical bottlenecks identified at Silk Board junction by Q4 2026.</p>
+            <p className="text-body-sm text-on-surface-variant italic">Peak bottlenecks observed in East/South corridors with current transit load profiles.</p>
           </div>
 
-          {/* Energy Demand Forecast */}
+          {/* Energy Grid Load Forecast */}
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-6 rounded-2xl shadow-sm border-l-4 border-l-secondary">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Grid Load (Forecasted)</h3>
-                <p className="text-headline-sm font-bold text-on-surface mt-1">12.4 GW<span className="text-sm font-medium text-secondary ml-2">↑ 34%</span></p>
+                <p className="text-headline-sm font-bold text-on-surface mt-1">{energyLoadGw} GW<span className={`text-sm font-medium ml-2 ${metrics.energyDemand > 0 ? 'text-error' : 'text-emerald-600'}`}>{energyDeltaLabel}</span></p>
               </div>
               <span className="material-symbols-outlined text-secondary">bolt</span>
             </div>
             <div className="w-full bg-surface-container rounded-full h-1.5 mb-2 overflow-hidden">
-              <div className="bg-secondary h-1.5 rounded-full" style={{ width: '65%' }}></div>
+              <div className="bg-secondary h-1.5 rounded-full transition-all duration-[1s]" style={{ width: `${energyIndexValue}%` }}></div>
             </div>
-            <p className="text-body-sm text-on-surface-variant italic">Solar-to-grid integration needs 200% capacity increase by 2030.</p>
+            <p className="text-body-sm text-on-surface-variant italic">Demand surges require additional solar/grid capacity allocation before 2030.</p>
           </div>
         </div>
 
@@ -176,14 +203,16 @@ export default function ReportsPage() {
               <section className="space-y-4">
                 <h4 className="font-headline-sm text-on-surface">1.0 Primary Forecast Hypothesis</h4>
                 <p className="text-body-lg text-on-surface-variant leading-relaxed">
-                  Our predictive modeling indicates a significant shift in urban density toward the North-East corridor (Whitefield-Hosakote belt). By 2030, current infrastructure will face a <strong>stress factor of 2.4x</strong> if the proposed Metro Phase 3 extensions are not commissioned by 2028.
+                  Based on target inputs (EV={evAdoption}%, Population Growth=+{popGrowth}%, Renewables Grid Mix={renewableGrowth}%, Metro Expansion={metroExpansion} lines), our predictive modeling indicates a significant shift in urban density. By 2035, the infrastructure stress index is projected to reach <span className="font-bold text-primary">{metrics.infrastructureStress}/100</span>. Additional zoning modifications must be scheduled.
                 </p>
               </section>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
                   <p className="text-xs font-bold text-on-surface-variant mb-1">IMPACT SCORE</p>
-                  <p className="text-2xl font-bold text-error">High Criticality</p>
+                  <p className={`text-2xl font-bold ${metrics.infrastructureStress > 75 ? 'text-error' : 'text-primary'}`}>
+                    {metrics.infrastructureStress > 75 ? 'High Criticality' : 'Manageable Stress'}
+                  </p>
                   <p className="text-xs text-on-surface-variant mt-2">Requires immediate budgetary reallocation.</p>
                 </div>
                 <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
@@ -198,14 +227,36 @@ export default function ReportsPage() {
                 <ul className="space-y-4">
                   <li className="flex items-start gap-4">
                     <div className="mt-1 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
-                    <p className="text-on-surface-variant"><span className="font-bold text-on-surface">Decentralized Power Grid:</span> Implement micro-grids in high-growth tech zones to alleviate transmission loss by 14%.</p>
+                    <p className="text-on-surface-variant">
+                      <span className="font-bold text-on-surface">Grid Capacity Planning:</span> 
+                      {metrics.energyDemand > 15 
+                        ? "Energy demand surges. Add 11 new power substations near North Bengaluru corridors." 
+                        : "Grid stable. Align localized storage capacity in industrial expansion sectors."}
+                    </p>
                   </li>
                   <li className="flex items-start gap-4">
                     <div className="mt-1 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                    <p className="text-on-surface-variant"><span className="font-bold text-on-surface">Water Reclamation Mandates:</span> 100% recycling policy for all new high-rise residential projects starting 2026.</p>
+                    <p className="text-on-surface-variant">
+                      <span className="font-bold text-on-surface">Water Security Mandates:</span> 
+                      {metrics.waterDemand > 10
+                        ? "Water stress is critical. Accelerate Cauvery Stage V phase allocations immediately."
+                        : "Reserves within threshold margins. Focus water reclamation networks on new housing complexes."}
+                    </p>
                   </li>
                 </ul>
               </section>
+
+              {(climateEvent !== "None" || disasterEvent !== "None") && (
+                <div className="bg-error-container text-on-error-container p-6 rounded-2xl border border-error/20">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="material-symbols-outlined text-error">warning</span>
+                    <h5 className="font-bold text-error">Active Hazard Annex</h5>
+                  </div>
+                  <p className="text-sm">
+                    Simulated under emergency conditions: Climate Hazard [<strong>{climateEvent}</strong>] and Grid Alert [<strong>{disasterEvent}</strong>]. Stress vectors indicate elevated operational vulnerability near central junctions.
+                  </p>
+                </div>
+              )}
 
               <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-3 mb-2">
@@ -213,7 +264,7 @@ export default function ReportsPage() {
                   <h5 className="font-bold text-primary">Analyst's Note</h5>
                 </div>
                 <p className="text-sm text-on-primary-container/80">
-                  The simulation assumes a steady-state GDP growth of 6.5%. Any macro-economic volatility beyond ±1.5% may require a scenario re-calibration.
+                  The simulation assumes a steady-state GDP growth pattern. If industrial park expansions exceed {indExpansion} zones, recalculation is mandatory.
                 </p>
               </div>
 

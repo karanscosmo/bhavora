@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 interface SavedScenario {
   id: string;
@@ -30,51 +31,11 @@ interface SavedScenario {
 
 export default function ScenariosPage() {
   const router = useRouter();
-  const [scenarios, setScenarios] = useState<SavedScenario[]>([]);
+  const store = useSimulationStore();
+  const scenarios = store.savedScenarios;
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [compareResult, setCompareResult] = useState<any | null>(null);
-
-  // Preset Configurations
-  const presets: SavedScenario[] = [
-    {
-      id: "preset-ev-2035",
-      name: "EV Revolution 2035",
-      creator: "Bugs2Bucks Plan",
-      date: "2026-06-26 18:20",
-      version: "v3.0.4",
-      inputs: { evAdoption: 80, popGrowth: 12, indExpansion: 4, metroExpansion: 2, renewableGrowth: 60, climateEvent: "None", disasterEvent: "None" },
-      metrics: { energyDemand: 24.2, carbonEmissions: -18.4, trafficCongestion: -12.2, waterDemand: 4.8, jobsCreated: 14.0, infrastructureStress: 68.0 }
-    },
-    {
-      id: "preset-tech-boom",
-      name: "North Corridor Tech Boom",
-      creator: "BBMP Dev Cluster",
-      date: "2026-06-25 10:14",
-      version: "v2.8.1",
-      inputs: { evAdoption: 30, popGrowth: 25, indExpansion: 12, metroExpansion: 4, renewableGrowth: 35, climateEvent: "None", disasterEvent: "None" },
-      metrics: { energyDemand: 38.5, carbonEmissions: 22.0, trafficCongestion: 18.2, waterDemand: 18.6, jobsCreated: 32.4, infrastructureStress: 84.5 }
-    },
-    {
-      id: "preset-extreme-monsoon",
-      name: "Extreme Monsoon Resilience",
-      creator: "Urban Disaster Cell",
-      date: "2026-06-24 16:45",
-      version: "v3.0.0",
-      inputs: { evAdoption: 45, popGrowth: 12, indExpansion: 4, metroExpansion: 2, renewableGrowth: 25, climateEvent: "100-Year Flood", disasterEvent: "Substation Failure" },
-      metrics: { energyDemand: 14.8, carbonEmissions: -4.2, trafficCongestion: 32.5, waterDemand: 6.2, jobsCreated: 8.5, infrastructureStress: 92.2 }
-    }
-  ];
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('bhavoraCustomScenarios');
-      if (stored) {
-        setScenarios([...presets, ...JSON.parse(stored)]);
-      } else {
-        setScenarios(presets);
-      }
-    }
-  }, []);
 
   const handleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -83,6 +44,9 @@ export default function ScenariosPage() {
   };
 
   const handleLoad = (scenario: SavedScenario) => {
+    store.loadScenario(scenario);
+    
+    // session storage fallback for older components
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('simulationResults', JSON.stringify({
         metrics: scenario.metrics,
@@ -96,6 +60,7 @@ export default function ScenariosPage() {
         ]
       }));
     }
+    
     router.push('/simulation-results');
   };
 
@@ -216,14 +181,21 @@ export default function ScenariosPage() {
                 <span className="px-2.5 py-1 bg-surface-container rounded-lg text-[10px] font-mono text-on-surface-variant font-medium">Grid Mix: {scen.inputs.renewableGrowth}%</span>
               </div>
 
-              {/* Load Action Button */}
+              {/* Load & Delete Actions */}
               <div className="flex items-center gap-2 w-full md:w-auto shrink-0 border-t border-outline-variant/10 pt-4 md:border-t-0 md:pt-0">
                 <button 
                   onClick={() => handleLoad(scen)}
-                  className="w-full md:w-auto px-4 py-2 border border-outline-variant/40 hover:bg-surface-container hover:border-outline-variant/80 rounded-xl text-xs font-bold text-on-surface transition-all flex items-center justify-center gap-1.5"
+                  className="w-full md:w-auto px-4 py-2 border border-outline-variant/40 hover:bg-surface-container hover:border-outline-variant/80 rounded-xl text-xs font-bold text-on-surface transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">file_open</span>
                   Load Results
+                </button>
+                <button 
+                  onClick={() => store.deleteScenario(scen.id)}
+                  className="p-2 border border-outline-variant/40 hover:bg-error-container hover:text-error hover:border-error/40 rounded-xl text-on-surface-variant transition-all flex items-center justify-center cursor-pointer"
+                  title="Delete Scenario"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
                 </button>
               </div>
             </div>

@@ -1,10 +1,26 @@
 "use client";
 
 import React from 'react';
+import { useSimulationStore } from '@/store/useSimulationStore';
 
 export default function InsightsPage() {
+  const store = useSimulationStore();
+  const { metrics, popGrowth, recommendations } = store;
+
+  // Compute dynamic stats
+  const powerRad = (12.4 * (1 + metrics.energyDemand / 100)).toFixed(1);
+  const powerGrowth = (28.5 * (1 + popGrowth / 100)).toFixed(1);
+  const powerCapex = Math.round(840 * (1 + metrics.energyDemand / 200));
+
+  const waterDemandIncrease = Math.max(1, Math.round(12 * (1 + metrics.waterDemand / 100)));
+  const waterProgress = Math.min(100, Math.max(10, Math.round(88 + metrics.waterDemand)));
+
+  const trafficMitigationText = metrics.trafficCongestion < 0 
+    ? `Reduces ORR congestion by ${Math.abs(metrics.trafficCongestion).toFixed(1)}%` 
+    : `Increases ORR congestion by ${metrics.trafficCongestion.toFixed(1)}%`;
+
   return (
-    <div className="max-w-[1440px] mx-auto p-8">
+    <div className="max-w-[1440px] mx-auto p-8 animate-fade-in">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
         <div className="space-y-1">
@@ -16,10 +32,10 @@ export default function InsightsPage() {
           <p className="text-on-surface-variant text-body-lg">Predictive analytics for urban infrastructure expansion and optimization.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2">
+          <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2 cursor-pointer">
             <span className="material-symbols-outlined text-[18px]">filter_list</span> Filter
           </button>
-          <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2">
+          <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2 cursor-pointer">
             <span className="material-symbols-outlined text-[18px]">calendar_today</span> 2024 - 2028
           </button>
         </div>
@@ -51,34 +67,38 @@ export default function InsightsPage() {
             <div className="flex-1 space-y-6 relative z-10">
               <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl">
                 <p className="text-headline-lg font-display-sm text-on-surface leading-tight">
-                  North Bengaluru will require <span className="text-primary underline decoration-2 underline-offset-4">4 new substations</span> by 2026.
+                  {metrics.energyDemand > 15 ? (
+                    <span>North Bengaluru requires <span className="text-primary underline decoration-2 underline-offset-4">11 new substations</span> before 2028.</span>
+                  ) : (
+                    <span>North Bengaluru will require <span className="text-primary underline decoration-2 underline-offset-4">4 new substations</span> by 2026.</span>
+                  )}
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/10">
                   <p className="font-label-md text-on-surface-variant mb-1">Impact Radius</p>
-                  <p className="font-bold text-headline-sm">12.4 KM</p>
+                  <p className="font-bold text-headline-sm">{powerRad} KM</p>
                 </div>
                 <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/10">
                   <p className="font-label-md text-on-surface-variant mb-1">Growth Index</p>
-                  <p className="font-bold text-headline-sm">+28.5%</p>
+                  <p className="font-bold text-headline-sm">+{powerGrowth}%</p>
                 </div>
                 <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/10">
                   <p className="font-label-md text-on-surface-variant mb-1">Est. CapEx</p>
-                  <p className="font-bold text-headline-sm">₹840 Cr</p>
+                  <p className="font-bold text-headline-sm">₹{powerCapex} Cr</p>
                 </div>
               </div>
             </div>
             <div className="mt-8 pt-6 border-t border-outline-variant/30 flex items-center justify-between relative z-10">
               <div className="flex gap-4">
-                <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm">
+                <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm cursor-pointer">
                   <span className="material-symbols-outlined text-[18px]">link</span> Source Data
                 </button>
-                <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm">
+                <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm cursor-pointer">
                   <span className="material-symbols-outlined text-[18px]">history</span> History
                 </button>
               </div>
-              <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95">
+              <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer">
                 Take Action <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
               </button>
             </div>
@@ -99,32 +119,34 @@ export default function InsightsPage() {
             </div>
             <div className="flex-1">
               <p className="text-body-lg text-on-surface-variant mb-4">
-                Water demand expected to rise <span className="text-secondary font-bold">12%</span> in Hebbal district over the next 18 months.
+                Water demand expected to rise <span className="text-secondary font-bold">{waterDemandIncrease}%</span> in eastern districts over the next 18 months.
               </p>
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center text-body-sm">
                   <span className="text-on-surface-variant">Supply Threshold</span>
-                  <span className="font-mono-label text-error">CRITICAL (88%)</span>
+                  <span className={`font-mono-label ${waterProgress > 80 ? 'text-error font-bold' : 'text-primary'}`}>
+                    {waterProgress > 80 ? `CRITICAL (${waterProgress}%)` : `STABLE (${waterProgress}%)`}
+                  </span>
                 </div>
                 <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-                  <div className="bg-secondary h-full" style={{ width: '88%' }}></div>
+                  <div className="bg-secondary h-full transition-all duration-[1s]" style={{ width: `${waterProgress}%` }}></div>
                 </div>
               </div>
               <div className="bg-surface-container/50 p-4 rounded-xl border border-outline-variant/30 mb-6">
                 <p className="text-body-sm font-medium text-on-surface mb-2">Recommended Mitigation:</p>
                 <ul className="space-y-2">
-                  <li className="flex gap-2 text-body-sm text-on-surface-variant">
+                  <li className="flex gap-2 text-body-sm text-on-surface-variant font-semibold">
                     <span className="text-secondary text-[16px] material-symbols-outlined">check_circle</span>
-                    STP Pipeline diversion
+                    {metrics.waterDemand > 10 ? "Accelerate Cauvery Stage V phase" : "STP Pipeline diversion"}
                   </li>
-                  <li className="flex gap-2 text-body-sm text-on-surface-variant">
+                  <li className="flex gap-2 text-body-sm text-on-surface-variant font-semibold">
                     <span className="text-secondary text-[16px] material-symbols-outlined">check_circle</span>
                     Smart meter deployment
                   </li>
                 </ul>
               </div>
             </div>
-            <button className="w-full border-2 border-secondary text-secondary py-2.5 rounded-lg font-bold hover:bg-secondary/5 transition-all">
+            <button className="w-full border-2 border-secondary text-secondary py-2.5 rounded-lg font-bold hover:bg-secondary/5 transition-all cursor-pointer">
               Review Supply Plan
             </button>
           </div>
@@ -146,7 +168,7 @@ export default function InsightsPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-headline-sm font-display-sm text-on-surface">
-                    Reduces ORR congestion by <span className="text-primary">18%</span>.
+                    {trafficMitigationText}
                   </p>
                   <p className="text-body-sm text-on-surface-variant">Based on AI mobility simulations with 1.2M daily datapoints.</p>
                 </div>
@@ -172,13 +194,13 @@ export default function InsightsPage() {
               </div>
               <span className="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-mono-label font-bold">UPDATED 2M AGO</span>
             </div>
-            <p className="text-body-md text-on-surface-variant italic">"Current zoning laws in SE Bengaluru are insufficient for predicted 2027 residential density."</p>
+            <p className="text-body-md text-on-surface-variant italic">"Current zoning laws in SE Bengaluru are insufficient for predicted 2027 residential density under +{popGrowth}% growth scenario."</p>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-on-surface-variant">database</span>
                 <span className="text-body-sm font-medium">Census API + Mobile Pings</span>
               </div>
-              <button className="text-primary font-bold text-body-sm hover:underline">Re-zone Scenarios</button>
+              <button className="text-primary font-bold text-body-sm hover:underline cursor-pointer">Re-zone Scenarios</button>
             </div>
           </div>
 
@@ -205,6 +227,24 @@ export default function InsightsPage() {
           </div>
         </div>
       </div>
+
+      {/* Dynamic recommendations from the active simulation runs */}
+      {recommendations.length > 0 && (
+        <div className="mt-8 bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
+          <h3 className="font-bold text-on-surface text-base mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">dynamic_feed</span>
+            Active Simulation Recommendations Briefs
+          </h3>
+          <div className="space-y-3">
+            {recommendations.map((rec, idx) => (
+              <div key={idx} className="p-3.5 bg-primary/5 rounded-xl border border-primary/10 text-xs font-semibold text-primary leading-relaxed flex items-start gap-2 animate-scale-in">
+                <span className="material-symbols-outlined text-sm mt-0.5">info</span>
+                <span>{rec}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Footer Stats */}
       <div className="mt-12 flex flex-wrap items-center justify-between border-t border-outline-variant/30 pt-8 gap-6">
