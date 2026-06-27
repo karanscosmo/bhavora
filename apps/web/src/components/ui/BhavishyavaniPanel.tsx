@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Bot, Send, X, Target, Building2, AlertTriangle, Leaf, Zap, ChevronRight, Activity, Maximize2, Minimize2 } from 'lucide-react';
+import { Bot, Send, X, Target, Building2, AlertTriangle, Leaf, Zap, ChevronRight, Activity, Maximize2, Minimize2, Mic, MicOff, Volume2 } from 'lucide-react';
 import { useAgentStore, useUIStore, AgentId } from '@/stores';
 import { findBestResponse } from '@/lib/ai/responses';
 
@@ -32,7 +32,11 @@ export function BhavishyavaniPanel() {
   const [currentAgent, setCurrentAgent] = useState<AgentId>((activeAgentId as AgentId) || 'executive');
   const [input, setInput] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
   
   const history = conversations[currentAgent] || [];
   const isTyping = isLoading;
@@ -40,6 +44,52 @@ export function BhavishyavaniPanel() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, isTyping, isBhavishyavaniOpen, isFullScreen]);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        handleSend(transcript);
+        setIsListening(false);
+      };
+      
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, [currentAgent]); // Need currentAgent in closure for handleSend
+
+  const speak = (text: string) => {
+    if (!voiceEnabled || typeof window === 'undefined' || !window.speechSynthesis) return;
+    // Remove markdown asterisks and URLs for speech
+    const cleanText = text.replace(/\*\*/g, '').replace(/https?:\/\/[^\s]+/g, 'link');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.05;
+    utterance.pitch = 0.95;
+    window.speechSynthesis.cancel(); // clear queue
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleListen = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      recognitionRef.current?.start();
+      setIsListening(true);
+    }
+  };
 
   if (!isBhavishyavaniOpen) return null;
 
@@ -49,7 +99,7 @@ export function BhavishyavaniPanel() {
     addMessage(currentAgent, { id: msgId, role: 'user', content: text, timestamp: new Date() });
     setInput('');
     setLoading(true);
-    // Vary response time to feel natural
+    
     const delay = 800 + Math.random() * 700;
     setTimeout(() => {
       const aiResp = findBestResponse(text, currentAgent);
@@ -61,6 +111,7 @@ export function BhavishyavaniPanel() {
         timestamp: new Date(),
         actions: aiResp.actions,
       });
+      speak(aiResp.content);
       setLoading(false);
     }, delay);
   };
@@ -90,6 +141,16 @@ export function BhavishyavaniPanel() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => {
+                setVoiceEnabled(!voiceEnabled);
+                if (voiceEnabled) window.speechSynthesis?.cancel();
+              }} 
+              className={`p-1.5 transition-colors rounded hover:bg-[var(--slate-200)] ${voiceEnabled ? 'text-[#2563EB]' : 'text-[var(--text-muted)]'}`}
+              title={voiceEnabled ? "Mute Voice Responses" : "Enable Voice Responses"}
+            >
+              <Volume2 size={16} />
+            </button>
             <button onClick={() => setIsFullScreen(!isFullScreen)} className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors rounded hover:bg-[var(--slate-200)]">
               {isFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>
@@ -192,24 +253,35 @@ export function BhavishyavaniPanel() {
 
         {/* Input Area */}
         <div className="p-4 border-t border-[var(--border-subtle)] bg-white shrink-0">
-          <div className={`relative flex items-center ${isFullScreen ? 'max-w-4xl mx-auto' : ''}`}>
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend(input)}
-              placeholder={`Ask Bhavishyavani about ${AGENTS.find(a => a.id === currentAgent)?.name}...`}
-              className="w-full bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] rounded-lg pl-4 pr-12 py-3.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all"
-            />
-            <button 
-              onClick={() => handleSend(input)}
-              disabled={!input.trim() || isTyping}
-              className={`absolute right-2 p-2 rounded-md transition-colors ${
-                input.trim() && !isTyping ? 'bg-[#2563EB] text-white' : 'text-[var(--text-muted)] bg-transparent'
+          <div className={`relative flex items-center gap-2 ${isFullScreen ? 'max-w-4xl mx-auto' : ''}`}>
+            <button
+              onClick={toggleListen}
+              className={`p-2 rounded-full transition-colors shrink-0 ${
+                isListening ? 'bg-[#EF4444] text-white animate-pulse' : 'bg-[var(--bg-surface-2)] text-[var(--text-muted)] hover:text-[#2563EB] hover:bg-[#EFF6FF]'
               }`}
+              title="Voice Command"
             >
-              <Send size={16} />
+              {isListening ? <Mic size={18} /> : <MicOff size={18} />}
             </button>
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend(input)}
+                placeholder={isListening ? "Listening for directive..." : `Ask Bhavishyavani about ${AGENTS.find(a => a.id === currentAgent)?.name}...`}
+                className="w-full bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] rounded-lg pl-4 pr-12 py-3.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all"
+              />
+              <button 
+                onClick={() => handleSend(input)}
+                disabled={!input.trim() || isTyping}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md transition-colors ${
+                  input.trim() && !isTyping ? 'bg-[#2563EB] text-white' : 'text-[var(--text-muted)] bg-transparent'
+                }`}
+              >
+                <Send size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
