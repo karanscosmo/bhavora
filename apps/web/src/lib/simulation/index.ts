@@ -66,6 +66,14 @@ export interface DistrictImpact {
   investmentPriority: 'High' | 'Medium' | 'Low';
 }
 
+export interface SafetyMetrics {
+  accidentsPerYear: MetricResult & { unit: 'accidents' };
+  emergencyResponseTime: MetricResult & { unit: 'mins' };
+  pedestrianSafetyScore: MetricResult & { unit: '/100' };
+  intersectionRiskScore: MetricResult & { unit: '/100' };
+  violationProbability: MetricResult & { unit: '%' };
+}
+
 export interface SimulationResult {
   traffic: MetricResult & { unit: '%congestion' };
   co2: MetricResult & { unit: 'ktCO2/yr' };
@@ -75,6 +83,7 @@ export interface SimulationResult {
   aqi: MetricResult & { unit: 'AQI' };
   modalSplit: MetricResult & { unit: '%transit' };
   cityHealth: MetricResult & { unit: '/100' };
+  safety: SafetyMetrics;
   cascadingEffects: CascadeNode[];
   blindSpots: BlindSpot[];
   districts: DistrictImpact[];
@@ -701,6 +710,86 @@ export function computeDistricts(policy: PolicyInput): DistrictImpact[] {
 }
 
 // =====================================================================
+// MODEL 9: SAFETY IMPACT FORECAST
+// =====================================================================
+
+export function computeSafetyImpact(policy: PolicyInput): SafetyMetrics {
+  // Base metrics
+  const baseAccidents = 4850;
+  const baseResponseTime = 14.5;
+  const basePedestrianScore = 42;
+  const baseIntersectionRisk = 68;
+  const baseViolationProb = 22;
+
+  // Modifiers based on policy
+  const roadCapEffect = (policy.roadCapacity - 40) / 100; // Positive road cap decreases accidents slightly if well designed, but induces demand
+  const metroEffect = (policy.metroExpansion - 30) / 100; // Less cars = safer
+  
+  // Accidents
+  const accidentDelta = Math.round(baseAccidents * (-metroEffect * 0.4 + roadCapEffect * 0.1));
+  const newAccidents = Math.max(1000, baseAccidents + accidentDelta);
+
+  // Response Time
+  const responseDelta = Number((-metroEffect * 3.5 - roadCapEffect * 1.5).toFixed(1));
+  const newResponseTime = Number(Math.max(5, baseResponseTime + responseDelta).toFixed(1));
+
+  // Pedestrian Safety (Green space and Metro improve it)
+  const pedDelta = Math.round(((policy.greenSpaceAllocation - 20) / 100 * 40) + (metroEffect * 20));
+  const newPedScore = Math.min(100, Math.max(10, basePedestrianScore + pedDelta));
+
+  // Intersection Risk
+  const riskDelta = Math.round(-metroEffect * 25 - roadCapEffect * 10);
+  const newRiskScore = Math.min(100, Math.max(10, baseIntersectionRisk + riskDelta));
+
+  // Violation Prob
+  const violDelta = Math.round(-metroEffect * 5);
+  const newViolProb = Math.min(100, Math.max(5, baseViolationProb + violDelta));
+
+  return {
+    accidentsPerYear: {
+      before: baseAccidents,
+      after: newAccidents,
+      delta: accidentDelta,
+      unit: 'accidents',
+      confidence: 0.82,
+      trend: accidentDelta < 0 ? 'down' : accidentDelta > 0 ? 'up' : 'stable'
+    },
+    emergencyResponseTime: {
+      before: baseResponseTime,
+      after: newResponseTime,
+      delta: responseDelta,
+      unit: 'mins',
+      confidence: 0.88,
+      trend: responseDelta < 0 ? 'down' : responseDelta > 0 ? 'up' : 'stable'
+    },
+    pedestrianSafetyScore: {
+      before: basePedestrianScore,
+      after: newPedScore,
+      delta: pedDelta,
+      unit: '/100',
+      confidence: 0.75,
+      trend: pedDelta > 0 ? 'up' : pedDelta < 0 ? 'down' : 'stable'
+    },
+    intersectionRiskScore: {
+      before: baseIntersectionRisk,
+      after: newRiskScore,
+      delta: riskDelta,
+      unit: '/100',
+      confidence: 0.80,
+      trend: riskDelta < 0 ? 'down' : riskDelta > 0 ? 'up' : 'stable'
+    },
+    violationProbability: {
+      before: baseViolationProb,
+      after: newViolProb,
+      delta: violDelta,
+      unit: '%',
+      confidence: 0.71,
+      trend: violDelta < 0 ? 'down' : violDelta > 0 ? 'up' : 'stable'
+    }
+  };
+}
+
+// =====================================================================
 // MAIN POLICY IMPACT CALCULATOR
 // =====================================================================
 
@@ -713,8 +802,9 @@ export function computeSimulation(policy: PolicyInput): SimulationResult {
   const aqi = computeAQIImpact(policy);
   const modalSplit = computeModalSplitImpact(policy);
   const cityHealth = computeCityHealth(traffic, co2, energy, water, gdp, aqi);
+  const safety = computeSafetyImpact(policy);
 
-  const partial = { traffic, co2, energy, water, gdp, aqi, modalSplit, cityHealth };
+  const partial = { traffic, co2, energy, water, gdp, aqi, modalSplit, cityHealth, safety };
   const cascadingEffects = buildCascadeTree(policy, partial);
   const blindSpots = computeBlindSpots(policy, partial);
   const districts = computeDistricts(policy);
