@@ -395,7 +395,7 @@ export const useDisasterStore = create<DisasterState>()((set, get) => ({
 
 interface UIState {
   isTakeActionOpen: boolean;
-  isAgentHubOpen: boolean;
+  isBhavishyavaniOpen: boolean;
   activeAgentId: string;
   isExplainOpen: boolean;
   explainContext: string | null;
@@ -403,8 +403,8 @@ interface UIState {
   selectedMapAsset: string | null;
   openTakeAction: () => void;
   closeTakeAction: () => void;
-  openAgentHub: (agentId?: string) => void;
-  closeAgentHub: () => void;
+  openBhavishyavani: (agentId?: string) => void;
+  closeBhavishyavani: () => void;
   openExplain: (context: string) => void;
   closeExplain: () => void;
   openSaveScenario: () => void;
@@ -414,7 +414,7 @@ interface UIState {
 
 export const useUIStore = create<UIState>()((set) => ({
   isTakeActionOpen: false,
-  isAgentHubOpen: false,
+  isBhavishyavaniOpen: false,
   activeAgentId: 'executive',
   isExplainOpen: false,
   explainContext: null,
@@ -423,8 +423,8 @@ export const useUIStore = create<UIState>()((set) => ({
 
   openTakeAction: () => set({ isTakeActionOpen: true }),
   closeTakeAction: () => set({ isTakeActionOpen: false }),
-  openAgentHub: (agentId) => set({ isAgentHubOpen: true, activeAgentId: agentId || 'executive' }),
-  closeAgentHub: () => set({ isAgentHubOpen: false }),
+  openBhavishyavani: (agentId) => set({ isBhavishyavaniOpen: true, activeAgentId: agentId || 'executive' }),
+  closeBhavishyavani: () => set({ isBhavishyavaniOpen: false }),
   openExplain: (context) => set({ isExplainOpen: true, explainContext: context }),
   closeExplain: () => set({ isExplainOpen: false, explainContext: null }),
   openSaveScenario: () => set({ isSaveScenarioOpen: true }),

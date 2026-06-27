@@ -66,7 +66,7 @@ const INTERVENTIONS = [
 ];
 
 export function TakeActionDrawer() {
-  const { isTakeActionOpen, closeTakeAction, openAgentHub } = useUIStore();
+  const { isTakeActionOpen, closeTakeAction, openBhavishyavani } = useUIStore();
   const { results } = useSimulationStore();
   const { saveScenario } = useScenarioStore();
   const { addNotification } = useAppStore();
@@ -186,7 +186,7 @@ export function TakeActionDrawer() {
                     </button>
                   )}
                   <button
-                    onClick={() => openAgentHub(item.agentId)}
+                    onClick={() => openBhavishyavani(item.agentId)}
                     style={{ padding: '5px 10px', background: 'transparent', border: '1px solid var(--border-normal)', borderRadius: '5px', fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer' }}
                   >
                     Ask Agent

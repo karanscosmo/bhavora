@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import { FileText, Download, Share2, Map, LayoutDashboard, Clock, ChevronRight, File } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 export default function ReportsPage() {
   const [activeSection, setActiveSection] = useState('exec');
@@ -15,6 +19,50 @@ export default function ReportsPage() {
     { year: '2028', val: 75 },
     { year: '2029', val: 60 },
   ];
+
+  const mapContainer = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!mapContainer.current) return;
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [77.6713, 12.9298], // Bellandur/ORR area
+      zoom: 11,
+      interactive: false,
+      attributionControl: false
+    });
+    
+    map.on('load', () => {
+      map.addSource('corridor-line', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [77.6225, 12.9176], // Silk Board
+              [77.6713, 12.9298], // Bellandur
+              [77.6994, 12.9591], // Marathahalli
+              [77.7499, 12.9698]  // Whitefield
+            ]
+          }
+        }
+      });
+      map.addLayer({
+        id: 'corridor-route',
+        type: 'line',
+        source: 'corridor-line',
+        paint: {
+          'line-color': '#2563EB',
+          'line-width': 4,
+          'line-opacity': 0.8,
+        }
+      });
+    });
+
+    return () => map.remove();
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-white">
@@ -94,19 +142,32 @@ export default function ReportsPage() {
               <li><strong>Infrastructure Risk:</strong> 12% projected deficit in water supply capacity around new transit hubs due to commercial zoning.</li>
             </ul>
 
-            <h3 className="text-lg font-bold mb-4 mt-8">Projected Congestion Index (ORR Segment)</h3>
-            <div className="h-[300px] w-full border border-[var(--border-subtle)] rounded-xl p-4 bg-[var(--bg-surface-1)] mb-8 shadow-sm">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                  <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid var(--border-subtle)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
-                  />
-                  <Area type="monotone" dataKey="val" stroke="#2563EB" strokeWidth={2} fillOpacity={0.1} fill="#2563EB" name="Congestion (%)" />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <h3 className="text-sm font-bold mb-3 text-[var(--text-primary)]">Projected Congestion Index</h3>
+                <div className="h-[250px] w-full border border-[var(--border-subtle)] rounded-xl p-4 bg-[var(--bg-surface-1)] shadow-sm">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                      <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid var(--border-subtle)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
+                      />
+                      <Area type="monotone" dataKey="val" stroke="#2563EB" strokeWidth={2} fillOpacity={0.1} fill="#2563EB" name="Congestion (%)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold mb-3 text-[var(--text-primary)]">Impact Corridor Area</h3>
+                <div className="h-[250px] w-full border border-[var(--border-subtle)] rounded-xl relative overflow-hidden shadow-sm">
+                  <div className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+                    ORR Transit Corridor
+                  </div>
+                  <div ref={mapContainer} className="w-full h-full" />
+                </div>
+              </div>
             </div>
 
             <h2 className="text-2xl font-bold mb-4 mt-12">2. Recommendations</h2>

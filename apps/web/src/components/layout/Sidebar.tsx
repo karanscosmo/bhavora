@@ -82,12 +82,12 @@ export function Sidebar() {
 
       {/* Footer Minimal CTA */}
       <div className="p-4 border-t border-[var(--border-subtle)]">
-        <Link href="/decision-twin" className="flex items-center justify-between p-3 rounded-lg bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] hover:border-[var(--accent-primary)] transition-colors group">
+        <Link href="/scenario-builder" className="flex items-center justify-between p-3 rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors group shadow-md mt-2">
           <div className="flex items-center gap-2">
-            <Cpu size={14} className="text-[var(--text-primary)]" />
-            <span className="text-[12px] font-semibold text-[var(--text-primary)]">Simulator</span>
+            <Cpu size={14} className="text-white" />
+            <span className="text-[12px] font-bold tracking-wide">Launch Simulator</span>
           </div>
-          <Play size={12} className="text-[var(--accent-primary)] group-hover:scale-110 transition-transform" />
+          <Play size={12} className="text-white group-hover:scale-110 transition-transform" />
         </Link>
       </div>
     </aside>

@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useSimulationStore } from '@/stores';
 import { ChevronLeft, ArrowDown, ArrowUp, Activity, Car, Wind, Droplets, Zap, TrendingUp, Home, CheckCircle2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 export default function SimulationResultsPage() {
   const simStore = useSimulationStore();
@@ -60,6 +64,47 @@ export default function SimulationResultsPage() {
     return data;
   }, [metrics]);
 
+  const mapContainer = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!mapContainer.current) return;
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [77.5946, 12.9716],
+      zoom: 10,
+      interactive: false,
+      attributionControl: false
+    });
+    
+    map.on('load', () => {
+      // Just a static demo visualization for simulation footprint
+      map.addSource('sim-footprint', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [
+            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946, 12.9716] }, properties: {} },
+            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6410, 12.9590] }, properties: {} }
+          ]
+        }
+      });
+      map.addLayer({
+        id: 'sim-points',
+        type: 'circle',
+        source: 'sim-footprint',
+        paint: {
+          'circle-radius': 25,
+          'circle-color': '#10B981',
+          'circle-opacity': 0.3,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#10B981'
+        }
+      });
+    });
+
+    return () => map.remove();
+  }, []);
+
   return (
     <div className="p-8 max-w-6xl mx-auto h-[calc(100vh-64px)] overflow-y-auto bg-[var(--bg-base)]">
       
@@ -88,7 +133,8 @@ export default function SimulationResultsPage() {
         <MetricCard title="Housing Demand" value={`+${metrics.housing}%`} icon={Home} isGood={true} />
       </div>
 
-      <div className="card p-6 mb-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="card p-6 lg:col-span-2">
         <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6">10-Year Projection Curve</h3>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -116,6 +162,14 @@ export default function SimulationResultsPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <div className="card p-2 h-[350px] relative overflow-hidden">
+        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs font-bold px-3 py-1.5 rounded-md shadow-sm">
+          Simulated Spatial Impact
+        </div>
+        <div ref={mapContainer} className="w-full h-full rounded-lg border border-[var(--border-subtle)]" />
+      </div>
+    </div>
 
       <div className="card p-6">
         <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">

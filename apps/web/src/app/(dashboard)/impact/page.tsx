@@ -4,6 +4,10 @@ import React, { useMemo } from 'react';
 import { useSimulationStore } from '@/stores';
 import { IndianRupee, TrendingDown, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 export default function ImpactAnalysisPage() {
   const simStore = useSimulationStore();
@@ -56,6 +60,39 @@ export default function ImpactAnalysisPage() {
       cashflow
     };
   }, [inputs]);
+
+  const mapContainer = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!mapContainer.current) return;
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [77.5946, 12.9716],
+      zoom: 10,
+      interactive: false,
+      attributionControl: false
+    });
+    
+    map.on('load', () => {
+      economics.districts.forEach(d => {
+        const coords = d.name === 'Whitefield' ? [77.7499, 12.9698] :
+                       d.name === 'Electronic City' ? [77.6713, 12.8399] :
+                       d.name === 'Koramangala' ? [77.6225, 12.9352] :
+                       d.name === 'Hebbal' ? [77.5913, 13.0354] :
+                       [77.6412, 12.9719]; // Indiranagar
+        
+        const el = document.createElement('div');
+        el.className = 'w-4 h-4 rounded-full bg-[#2563EB] shadow-md';
+        el.style.opacity = (d.impact / 100).toString();
+        
+        new mapboxgl.Marker(el)
+          .setLngLat(coords as [number, number])
+          .addTo(map);
+      });
+    });
+
+    return () => map.remove();
+  }, [economics]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto h-[calc(100vh-64px)] overflow-y-auto bg-[var(--bg-base)]">
@@ -147,30 +184,41 @@ export default function ImpactAnalysisPage() {
         </div>
       </div>
 
-      <div className="card overflow-hidden">
-        <div className="p-5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-2)]">
-          <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <MapPin size={16} className="text-[#2563EB]" />
-            District Heatmap (Investment Impact)
-          </h3>
-        </div>
-        <div className="divide-y divide-[var(--border-subtle)]">
-          {economics.districts.map((d, i) => (
-            <div key={d.name} className="p-4 flex items-center justify-between hover:bg-[var(--bg-surface-2)] transition-colors">
-              <div className="flex items-center gap-4 w-1/3">
-                <span className="text-xs font-bold text-[var(--text-muted)] w-4">{i + 1}</span>
-                <span className="text-sm font-semibold text-[var(--text-primary)]">{d.name}</span>
-              </div>
-              <div className="flex-1 px-8">
-                <div className="h-2 w-full bg-[var(--bg-surface-3)] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#2563EB]" style={{ width: `${d.impact}%` }}></div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+        <div className="card overflow-hidden">
+          <div className="p-5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-2)]">
+            <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <MapPin size={16} className="text-[#2563EB]" />
+              District Heatmap (Investment Impact)
+            </h3>
+          </div>
+          <div className="divide-y divide-[var(--border-subtle)]">
+            {economics.districts.map((d, i) => (
+              <div key={d.name} className="p-4 flex items-center justify-between hover:bg-[var(--bg-surface-2)] transition-colors">
+                <div className="flex items-center gap-4 w-1/3">
+                  <span className="text-xs font-bold text-[var(--text-muted)] w-4">{i + 1}</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">{d.name}</span>
+                </div>
+                <div className="flex-1 px-8">
+                  <div className="h-2 w-full bg-[var(--bg-surface-3)] rounded-full overflow-hidden">
+                    <div className="h-full bg-[#2563EB]" style={{ width: `${d.impact}%` }}></div>
+                  </div>
+                </div>
+                <div className="w-1/4 text-right">
+                  <span className="text-sm font-bold font-mono text-[var(--text-primary)]">{d.impact} pts</span>
                 </div>
               </div>
-              <div className="w-1/4 text-right">
-                <span className="text-sm font-bold font-mono text-[var(--text-primary)]">{d.impact} pts</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        <div className="card p-2 h-[350px] relative overflow-hidden">
+           <div className="absolute top-4 left-4 z-10">
+             <div className="bg-white/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs font-bold px-3 py-1.5 rounded-md shadow-sm">
+               Investment Geospatial Heatmap
+             </div>
+           </div>
+           <div ref={mapContainer} className="w-full h-full rounded-lg border border-[var(--border-subtle)]" />
         </div>
       </div>
 

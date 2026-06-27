@@ -2,8 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Legend, ComposedChart, Bar } from 'recharts';
-import { Filter, Download, Activity, TrendingUp } from 'lucide-react';
+import { Filter, Download, Activity, TrendingUp, MapPin } from 'lucide-react';
 import { useCityDataStore } from '@/stores';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 export default function AnalyticsPage() {
   const cityData = useCityDataStore();
@@ -36,6 +40,47 @@ export default function AnalyticsPage() {
     { district: 'Jayanagar', density: 16000, congestion: 55, aqi: 105 },
     { district: 'Malleswaram', density: 13500, congestion: 48, aqi: 95 },
   ];
+
+  const mapContainer = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!mapContainer.current) return;
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [77.5946, 12.9716],
+      zoom: 10,
+      interactive: false,
+      attributionControl: false
+    });
+    
+    map.on('load', () => {
+      scatterData.forEach(d => {
+        const coords = d.district === 'Whitefield' ? [77.7499, 12.9698] :
+                       d.district === 'Electronic City' ? [77.6713, 12.8399] :
+                       d.district === 'Koramangala' ? [77.6225, 12.9352] :
+                       d.district === 'Hebbal' ? [77.5913, 13.0354] :
+                       d.district === 'Indiranagar' ? [77.6412, 12.9719] :
+                       d.district === 'Jayanagar' ? [77.5838, 12.9299] :
+                       [77.5562, 13.0031]; // Malleswaram
+        
+        const el = document.createElement('div');
+        el.className = 'rounded-full border-2 border-white shadow-md flex items-center justify-center text-[10px] font-bold text-white';
+        // Size proportional to density
+        const size = Math.max(12, (d.density / 16000) * 24);
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+        // Color proportional to AQI (red = high AQI)
+        el.style.backgroundColor = d.aqi > 150 ? '#EF4444' : d.aqi > 110 ? '#F59E0B' : '#10B981';
+        el.style.opacity = '0.8';
+        
+        new mapboxgl.Marker(el)
+          .setLngLat(coords as [number, number])
+          .addTo(map);
+      });
+    });
+
+    return () => map.remove();
+  }, [scatterData]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto h-[calc(100vh-64px)] overflow-y-auto bg-[var(--bg-base)]">
@@ -96,7 +141,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Scatter Plot: Density vs Congestion vs AQI */}
         <div className="card p-6">
           <h3 className="text-sm font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
@@ -144,6 +189,15 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Geospatial Analytics Map */}
+        <div className="card p-2 h-full min-h-[300px] relative overflow-hidden">
+          <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs font-bold px-3 py-1.5 rounded-md shadow-sm flex items-center gap-2">
+            <MapPin size={14} className="text-[#EF4444]" /> AQI Spatial Distribution
+          </div>
+          <div ref={mapContainer} className="w-full h-full rounded-lg border border-[var(--border-subtle)]" />
+        </div>
+
       </div>
 
     </div>
