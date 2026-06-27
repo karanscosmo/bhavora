@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Layers, Map as MapIcon, Compass, Maximize, Train, Bus, Zap, Hospital, Droplets, Car, Activity } from 'lucide-react';
+import { Layers, Map as MapIcon, Compass, Maximize, Train, Bus, Zap, Hospital, Droplets, Car, Activity, Clock } from 'lucide-react';
 import { BENGALURU_METRO_GEOJSON } from '@/lib/gis/data';
 
 
@@ -20,6 +20,7 @@ export default function CitiesPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
   
+  const [year, setYear] = useState(2024);
   const [activeStyle, setActiveStyle] = useState<'light' | 'satellite' | 'hybrid'>('hybrid');
   const [layers, setLayers] = useState({
     metro: true,
@@ -146,10 +147,53 @@ export default function CitiesPage() {
   useEffect(() => {
     if (map.current && map.current.isStyleLoaded()) {
       map.current.setStyle(MAP_STYLES[activeStyle]);
-      // Note: In a production app, switching styles requires re-adding custom layers and sources
-      // once the new style loads. For this demo, we'll keep it simple.
     }
   }, [activeStyle]);
+
+  useEffect(() => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
+    
+    // Digital Twin 2.0 - Temporal Timeline Integration
+    // Simulated ORR-Airport Blue Line that activates after 2026
+    const isFuture = year >= 2026;
+    
+    if (isFuture && !map.current.getSource('metro-blue')) {
+      map.current.addSource('metro-blue', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [77.6410, 12.9590], // Indiranagar area
+              [77.6740, 12.9340], // ORR Start
+              [77.6970, 12.9370], // Bellandur
+              [77.6990, 12.9810], // KR Puram
+              [77.6180, 13.0640], // Hebbal
+              [77.7080, 13.1980], // KIAL
+            ]
+          }
+        }
+      });
+      
+      map.current.addLayer({
+        id: 'metro-blue-layer',
+        type: 'line',
+        source: 'metro-blue',
+        paint: {
+          'line-color': '#3B82F6',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 6],
+          'line-dasharray': [2, 2],
+          'line-opacity': 0.9
+        }
+      });
+    } else if (!isFuture && map.current.getLayer('metro-blue-layer')) {
+      map.current.removeLayer('metro-blue-layer');
+      map.current.removeSource('metro-blue');
+    }
+    
+  }, [year]);
 
   const updateLayers = (state: typeof layers) => {
     if (!map.current || !map.current.isStyleLoaded()) return;
@@ -234,6 +278,26 @@ export default function CitiesPage() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Timeline Slider (Digital Twin 2.0) */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[var(--slate-900)]/90 backdrop-blur border border-[var(--slate-700)] rounded-xl shadow-2xl p-4 w-[600px] flex items-center gap-6 z-10 text-white">
+        <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-[#2563EB]/20 border border-[#2563EB]/50 rounded-lg">
+          <Clock size={18} className="text-[#3B82F6]"/>
+          <span className="font-mono font-bold text-xl">{year}</span>
+        </div>
+        <div className="flex-1 relative flex items-center group/slider">
+          <div className="absolute inset-x-0 h-1.5 bg-[var(--slate-700)] rounded-full" />
+          <div className="absolute left-0 h-1.5 rounded-full bg-[#3B82F6] transition-all duration-300" style={{ width: `${((year - 2024) / 6) * 100}%` }} />
+          <input 
+            type="range" min={2024} max={2030} step={1} value={year} 
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer"
+          />
+        </div>
+        <div className="flex-shrink-0 text-[10px] text-[var(--slate-400)] font-bold uppercase tracking-wider text-right leading-tight">
+          Temporal<br/>Projection
         </div>
       </div>
     </div>
