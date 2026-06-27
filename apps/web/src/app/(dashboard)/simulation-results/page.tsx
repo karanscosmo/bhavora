@@ -12,57 +12,32 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function SimulationResultsPage() {
   const simStore = useSimulationStore();
-  const inputs = simStore.activePolicy;
+  const { results, timeline } = simStore;
 
-  // DETERMINISTIC CALCULATION ENGINE
+  // Link UI metrics directly to the sophisticated simulation engine results
   const metrics = useMemo(() => {
-    // Metro expansion reduces traffic and CO2
-    const trafficDelta = -1 * (inputs.metroExpansion * 0.2 + inputs.roadCapacity * 0.1 - inputs.industrialZoning * 0.15);
-    const co2Delta = -1 * (inputs.evAdoptionRate * 0.3 + inputs.renewableShare * 0.4 + inputs.greenSpaceAllocation * 0.1 - inputs.industrialZoning * 0.2);
-    const aqiDelta = co2Delta * 0.8 - (inputs.industrialZoning * 0.3); // Negative is good
-    
-    // Industrial zoning boosts GDP but hurts environment
-    const gdpDelta = (inputs.industrialZoning * 0.4 + inputs.roadCapacity * 0.2 + inputs.metroExpansion * 0.1);
-    
-    // Water demand increases with industry, decreases with water infrastructure
-    const waterDemand = (inputs.industrialZoning * 0.2) - (inputs.waterInfrastructure * 0.5);
-    
-    // Energy demand increases with industry and EV, decreases with renewable
-    const energyDemand = (inputs.industrialZoning * 0.3 + inputs.evAdoptionRate * 0.2) - (inputs.renewableShare * 0.1);
-
-    // Housing demand increases with GDP and Metro
-    const housingDemand = (gdpDelta * 0.5 + inputs.metroExpansion * 0.3);
-
     return {
-      traffic: trafficDelta.toFixed(1),
-      co2: co2Delta.toFixed(1),
-      aqi: aqiDelta.toFixed(1),
-      gdp: gdpDelta.toFixed(1),
-      water: waterDemand.toFixed(1),
-      energy: energyDemand.toFixed(1),
-      housing: housingDemand.toFixed(1),
+      traffic: results.traffic.delta.toFixed(1),
+      co2: ((results.co2.delta / results.co2.before) * 100).toFixed(1), // Show % variance
+      aqi: results.aqi.delta.toFixed(1),
+      gdp: results.gdp.delta.toFixed(1),
+      water: ((results.water.delta / results.water.before) * 100).toFixed(1), // Show % variance
+      energy: ((results.energy.delta / results.energy.before) * 100).toFixed(1), // Show % variance
+      housing: (results.gdp.delta * 0.8).toFixed(1), // Proxy housing demand to GDP growth
     };
-  }, [inputs]);
+  }, [results]);
 
-  // Generate deterministic chart data based on outputs
+  // Generate chart data by mapping directly from the simulation timeline projection
   const chartData = useMemo(() => {
-    const data = [];
-    const baseTraffic = 100;
-    const trafficTarget = 100 + Number(metrics.traffic);
-    const baseAQI = 150;
-    const aqiTarget = 150 + Number(metrics.aqi);
-
-    for (let i = 0; i <= 5; i++) {
-      const year = 2025 + i * 2;
-      const progress = i / 5;
-      data.push({
-        year: year.toString(),
-        Traffic: Math.round(baseTraffic + (trafficTarget - baseTraffic) * progress),
-        AQI: Math.round(baseAQI + (aqiTarget - baseAQI) * progress),
-      });
-    }
-    return data;
-  }, [metrics]);
+    return timeline
+      // Plot roughly every 5 years for a smooth but concise area chart
+      .filter((t, i) => i % 5 === 0 || i === timeline.length - 1)
+      .map(t => ({
+        year: t.year.toString(),
+        Traffic: t.trafficIndex,
+        AQI: t.aqi,
+      }));
+  }, [timeline]);
 
   const mapContainer = React.useRef<HTMLDivElement>(null);
   const mapInstanceRef = React.useRef<any>(null);

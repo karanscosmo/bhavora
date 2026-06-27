@@ -132,10 +132,11 @@ export default function DecisionTwinPage() {
   }, [activePolicy]);
 
   // Derived miniature chart data from deterministic results
+  // Converting to percentage variance to baseline so they render on the same axis scale visibly
   const chartData = [
-    { name: 'Emissions', value: Math.abs(results.co2.delta), color: results.co2.delta < 0 ? '#10B981' : '#EF4444' },
-    { name: 'Congestion', value: Math.abs(results.traffic.delta), color: results.traffic.delta < 0 ? '#10B981' : '#EF4444' },
-    { name: 'GDP', value: Math.abs(results.gdp.delta), color: results.gdp.delta > 0 ? '#10B981' : '#EF4444' },
+    { name: 'Emissions', value: (Math.abs(results.co2.delta) / results.co2.before) * 100, color: results.co2.delta < 0 ? '#10B981' : '#EF4444' },
+    { name: 'Congestion', value: (Math.abs(results.traffic.delta) / results.traffic.before) * 100, color: results.traffic.delta < 0 ? '#10B981' : '#EF4444' },
+    { name: 'GDP', value: (Math.abs(results.gdp.delta) / results.gdp.before) * 100, color: results.gdp.delta > 0 ? '#10B981' : '#EF4444' },
   ];
 
   // Pseudo-economics calculation for UI

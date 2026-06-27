@@ -13,33 +13,36 @@ export default function AnalyticsPage() {
   const cityData = useCityDataStore();
   const [timeframe, setTimeframe] = useState<'30D' | '90D' | '1Y'>('30D');
 
-  // Generate realistic-looking data
   const trendsData = useMemo(() => {
     const data = [];
-    const baseCongestion = 65;
-    const baseAQI = 120;
-    const basePower = 3.5;
+    const { traffic, aqi, energy } = cityData.historicalData;
+    const count = traffic.length;
     
-    for(let i=0; i<30; i++) {
+    for(let i=0; i<count; i++) {
       data.push({
-        day: `Day ${i+1}`,
-        congestion: baseCongestion + Math.sin(i/3)*10 + Math.random()*5,
-        aqi: baseAQI + Math.cos(i/4)*20 + Math.random()*10,
-        power: basePower + Math.sin(i/2)*0.5 + Math.random()*0.2
+        day: `Hour ${i+1}`,
+        congestion: traffic[i],
+        aqi: aqi[i],
+        power: energy[i]
       });
     }
     return data;
-  }, []);
+  }, [cityData.historicalData]);
 
-  const scatterData = [
-    { district: 'Whitefield', density: 12000, congestion: 85, aqi: 160 },
-    { district: 'Electronic City', density: 9500, congestion: 72, aqi: 140 },
-    { district: 'Koramangala', density: 15000, congestion: 68, aqi: 125 },
-    { district: 'Indiranagar', density: 14000, congestion: 60, aqi: 110 },
-    { district: 'Hebbal', density: 8000, congestion: 92, aqi: 175 },
-    { district: 'Jayanagar', density: 16000, congestion: 55, aqi: 105 },
-    { district: 'Malleswaram', density: 13500, congestion: 48, aqi: 95 },
-  ];
+  const scatterData = useMemo(() => {
+    const aqiMult = cityData.metrics.aqi / 142;
+    const congMult = cityData.metrics.congestionIndex / 67;
+
+    return [
+      { district: 'Whitefield', density: 12000, congestion: Math.min(100, Math.round(85 * congMult)), aqi: Math.round(160 * aqiMult) },
+      { district: 'Electronic City', density: 9500, congestion: Math.min(100, Math.round(72 * congMult)), aqi: Math.round(140 * aqiMult) },
+      { district: 'Koramangala', density: 15000, congestion: Math.min(100, Math.round(68 * congMult)), aqi: Math.round(125 * aqiMult) },
+      { district: 'Indiranagar', density: 14000, congestion: Math.min(100, Math.round(60 * congMult)), aqi: Math.round(110 * aqiMult) },
+      { district: 'Hebbal', density: 8000, congestion: Math.min(100, Math.round(92 * congMult)), aqi: Math.round(175 * aqiMult) },
+      { district: 'Jayanagar', density: 16000, congestion: Math.min(100, Math.round(55 * congMult)), aqi: Math.round(105 * aqiMult) },
+      { district: 'Malleswaram', density: 13500, congestion: Math.min(100, Math.round(48 * congMult)), aqi: Math.round(95 * aqiMult) },
+    ];
+  }, [cityData.metrics]);
 
   const mapContainer = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
