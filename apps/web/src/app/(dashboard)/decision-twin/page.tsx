@@ -61,6 +61,7 @@ export default function DecisionTwinPage() {
   const { results, activePolicy } = simStore;
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -71,41 +72,39 @@ export default function DecisionTwinPage() {
       mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
       map.current = new mapboxgl.Map({
-      container: mapContainer.current!,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [77.5946, 12.9716],
-      zoom: 11,
-      pitch: 45
-    });
-
-    map.current.on('load', () => {
-      map.current?.addSource('infrastructure', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: [
-            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946, 12.9716] }, properties: { type: 'metro' } },
-            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6225, 12.9176] }, properties: { type: 'road' } },
-            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6410, 12.9590] }, properties: { type: 'water' } },
-            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.5147, 13.0285] }, properties: { type: 'industrial' } },
-          ]
-        }
+        container: mapContainer.current!,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [77.5946, 12.9716],
+        zoom: 11,
+        pitch: 45
       });
 
-      map.current?.addLayer({
-        id: 'infra-points',
-        type: 'circle',
-        source: 'infrastructure',
-        paint: {
-          'circle-radius': 10,
-          'circle-color': '#2563EB',
-          'circle-opacity': 0.6,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#FFFFFF'
-        }
-      });
-    });
+      map.current.on('load', () => {
+        if (!map.current) return;
+        map.current.addSource('infra-footprint', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] }
+        });
 
+        map.current.addLayer({
+          id: 'infra-heatmap',
+          type: 'heatmap',
+          source: 'infra-footprint',
+          paint: {
+            'heatmap-weight': ['get', 'intensity'],
+            'heatmap-intensity': 1,
+            'heatmap-color': [
+              'interpolate', ['linear'], ['heatmap-density'],
+              0, 'rgba(37, 99, 235, 0)',
+              0.5, 'rgba(37, 99, 235, 0.5)',
+              1, 'rgba(37, 99, 235, 1)'
+            ],
+            'heatmap-radius': 35,
+            'heatmap-opacity': 0.7
+          }
+        });
+        setMapLoaded(true);
+      });
     });
 
     return () => {
@@ -114,22 +113,53 @@ export default function DecisionTwinPage() {
     };
   }, []);
 
+  // Update map dynamically based on active policy / results
   useEffect(() => {
-    if (!map.current || !map.current.isStyleLoaded()) return;
+    if (!mapLoaded || !map.current) return;
+    
+    // Create variance based on overall investments and policy inputs
+    const investment = activePolicy.metroExpansion + activePolicy.roadCapacity + activePolicy.waterInfrastructure;
+    const zoning = activePolicy.industrialZoning + activePolicy.greenSpaceAllocation;
+    const impactScale = (investment + zoning) / 100; // arbitrary scaling factor
+    
+    // Change color based on green ratio
+    const greenRatio = (activePolicy.greenSpaceAllocation + activePolicy.renewableShare) / 200;
+    map.current.setPaintProperty('infra-heatmap', 'heatmap-color', [
+      'interpolate', ['linear'], ['heatmap-density'],
+      0, greenRatio > 0.5 ? 'rgba(16, 185, 129, 0)' : 'rgba(37, 99, 235, 0)',
+      0.5, greenRatio > 0.5 ? 'rgba(16, 185, 129, 0.5)' : 'rgba(37, 99, 235, 0.5)',
+      1, greenRatio > 0.5 ? 'rgba(16, 185, 129, 1)' : 'rgba(37, 99, 235, 1)'
+    ]);
 
-    const layerId = 'infra-points';
-    if (map.current.getLayer(layerId)) {
-      const totalInvestment = Object.values(activePolicy).reduce((a, b) => (a as number) + (b as number), 0);
-      const baseRadius = 10 + (totalInvestment / 70);
+    const features = [];
+    const center = [77.5946, 12.9716];
+    const numPoints = Math.min(300, Math.max(50, Math.round(impactScale * 80)));
+    
+    // Seeded random for stable visualization during slider drags
+    let s = Math.round(impactScale * 100) || 1;
+    const random = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+    
+    for (let i = 0; i < numPoints; i++) {
+      const r = random();
+      const r2 = random();
+      // Gaussian-ish distribution around center
+      const radius = 0.15 * Math.sqrt(-2.0 * Math.log(Math.max(0.001, r)));
+      const theta = 2.0 * Math.PI * r2;
+      const lng = center[0] + radius * Math.cos(theta);
+      const lat = center[1] + radius * Math.sin(theta) * 0.8; // squish latitude for perspective
       
-      map.current.setPaintProperty(layerId, 'circle-radius', baseRadius);
-      
-      const greenIntensity = activePolicy.renewableShare;
-      map.current.setPaintProperty(layerId, 'circle-color', 
-        greenIntensity > 50 ? '#10B981' : '#2563EB'
-      );
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+        properties: { intensity: 0.3 + random() * 0.7 }
+      });
     }
-  }, [activePolicy]);
+
+    const source = map.current.getSource('infra-footprint');
+    if (source) {
+      (source as any).setData({ type: 'FeatureCollection', features });
+    }
+  }, [activePolicy, mapLoaded]);
 
   // Derived miniature chart data from deterministic results
   // Converting to percentage variance to baseline so they render on the same axis scale visibly
