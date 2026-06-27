@@ -158,10 +158,9 @@ export default function CitiesPage() {
 
       map.on('load', () => {
         setMapLoaded(true);
-
         if (!map) return;
 
-        // 1. Traffic Congestion Heatmap (Red/Orange points)
+        // 1. Traffic Congestion Heatmap (Simulated based on real density areas)
         map.addSource('traffic-heat', {
           type: 'geojson',
           data: {
@@ -196,183 +195,44 @@ export default function CitiesPage() {
           }
         });
 
-        // 2. Metro Lines (Blue corridors)
-        map.addSource('metro-lines', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'LineString',
-                  coordinates: [
-                    [77.5913, 13.0358], // Hebbal
-                    [77.5946, 12.9716], // Majestic/Center
-                    [77.6245, 12.9352], // Koramangala
-                    [77.6729, 12.8501]  // ECity
-                  ]
+        // 2. Real GIS Datasets
+        const datasets = [
+          { name: 'metro_stations', id: 'layer-metro', color: '#3b82f6', radius: 5, strokeWidth: 1.5 },
+          { name: 'hospitals', id: 'layer-hospitals', color: '#ef4444', radius: 4, strokeWidth: 1 },
+          { name: 'substations', id: 'layer-power', color: '#f59e0b', radius: 8, strokeWidth: 2 },
+          { name: 'lakes', id: 'layer-water', color: '#0ea5e9', radius: 6, strokeWidth: 0 }
+        ];
+
+        datasets.forEach(ds => {
+          fetch(`/data/${ds.name}.geojson`)
+            .then(res => res.json())
+            .then(data => {
+              if (!map) return;
+              map.addSource(ds.name, { type: 'geojson', data });
+              map.addLayer({
+                id: ds.id,
+                type: 'circle',
+                source: ds.name,
+                layout: { visibility: ds.id === 'layer-metro' ? 'visible' : 'none' }, // only metro visible by default like before
+                paint: {
+                  'circle-radius': ds.radius,
+                  'circle-color': ds.color,
+                  'circle-stroke-width': ds.strokeWidth,
+                  'circle-stroke-color': ds.id === 'layer-power' ? '#000' : '#fff'
                 }
-              },
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'LineString',
-                  coordinates: [
-                    [77.5000, 12.9716], // West
-                    [77.5946, 12.9716], // Majestic
-                    [77.6412, 12.9784], // Indiranagar
-                    [77.7499, 12.9698]  // Whitefield
-                  ]
-                }
-              }
-            ]
-          }
+              });
+            })
+            .catch(err => console.error(`Failed to load GIS data ${ds.name}:`, err));
         });
 
-        map.addLayer({
-          id: 'layer-metro',
-          type: 'line',
-          source: 'metro-lines',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round',
-            visibility: 'visible'
-          },
-          paint: {
-            'line-color': '#004ac6',
-            'line-width': 6,
-            'line-opacity': 0.7,
-            'line-dasharray': [2, 1]
-          }
-        });
-
-        // 3. Water Distribution (Cyan polygon fills)
-        map.addSource('water-reservoirs', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [[
-                    [77.6697, 12.9256], [77.6750, 12.9200], [77.6800, 12.9300], [77.6697, 12.9256] // Bellandur Lake area approx
-                  ]]
-                }
-              },
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [[
-                    [77.5800, 13.0500], [77.5900, 13.0450], [77.5950, 13.0550], [77.5800, 13.0500] // Hebbal Lake area approx
-                  ]]
-                }
-              }
-            ]
-          }
-        });
-
-        map.addLayer({
-          id: 'layer-water',
-          type: 'fill',
-          source: 'water-reservoirs',
-          layout: { visibility: 'none' },
-          paint: {
-            'fill-color': '#0ea5e9',
-            'fill-opacity': 0.5
-          }
-        });
-
-        // 4. Power Grid Substation Nodes (Amber circles)
-        map.addSource('power-grid', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.65, 12.95] }, properties: {} },
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.70, 12.98] }, properties: {} },
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.60, 12.90] }, properties: {} },
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.55, 13.00] }, properties: {} }
-            ]
-          }
-        });
-
-        map.addLayer({
-          id: 'layer-power',
-          type: 'circle',
-          source: 'power-grid',
-          layout: { visibility: 'none' },
-          paint: {
-            'circle-radius': 15,
-            'circle-color': '#f59e0b',
-            'circle-opacity': 0.6,
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#d97706'
-          }
-        });
-
-        // 5. EV Charging Network (Violet points)
-        map.addSource('ev-network', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: Array.from({ length: 30 }).map(() => ({
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                // Randomly scatter points around center
-                coordinates: [77.5946 + (Math.random() - 0.5) * 0.2, 12.9716 + (Math.random() - 0.5) * 0.2]
-              },
-              properties: {}
-            }))
-          }
-        });
-
-        map.addLayer({
-          id: 'layer-ev',
-          type: 'circle',
-          source: 'ev-network',
-          layout: { visibility: 'none' },
-          paint: {
-            'circle-radius': 6,
-            'circle-color': '#7c3aed',
-            'circle-opacity': 0.8
-          }
-        });
-
-        // 6. Industrial Zones (Purple areas)
+        // 6. Industrial Zones (Purple areas - kept approx polygon for now)
         map.addSource('industrial-zones', {
           type: 'geojson',
           data: {
             type: 'FeatureCollection',
             features: [
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [[
-                    [77.65, 12.83], [77.69, 12.83], [77.69, 12.87], [77.65, 12.87], [77.65, 12.83] // ECity approx area
-                  ]]
-                }
-              },
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [[
-                    [77.48, 13.01], [77.52, 13.01], [77.52, 13.05], [77.48, 13.05], [77.48, 13.01] // Peenya approx area
-                  ]]
-                }
-              }
+              { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.65, 12.83], [77.69, 12.83], [77.69, 12.87], [77.65, 12.87], [77.65, 12.83]]] } },
+              { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.48, 13.01], [77.52, 13.01], [77.52, 13.05], [77.48, 13.05], [77.48, 13.01]]] } }
             ]
           }
         });
@@ -382,10 +242,7 @@ export default function CitiesPage() {
           type: 'fill',
           source: 'industrial-zones',
           layout: { visibility: 'none' },
-          paint: {
-            'fill-color': '#9333ea',
-            'fill-opacity': 0.4
-          }
+          paint: { 'fill-color': '#9333ea', 'fill-opacity': 0.4 }
         });
       });
     });

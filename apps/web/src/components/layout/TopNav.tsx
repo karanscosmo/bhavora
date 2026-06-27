@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { Search, Bell, User, Settings, LogOut, TriangleAlert, Info, AlertCircle } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 
 export function TopNav() {
@@ -143,7 +144,7 @@ export function TopNav() {
     <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm select-none">
       <div className="flex items-center gap-8">
         <Link href="/">
-          <h1 className="font-display-sm text-display-sm font-bold tracking-tight text-primary hover:opacity-90 transition-opacity">BHAVORA</h1>
+          <BrandLogo className="hover:opacity-90 transition-opacity" />
         </Link>
         
         {/* Functional Search Bar */}

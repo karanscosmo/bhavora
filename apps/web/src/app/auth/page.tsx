@@ -84,7 +84,7 @@ export default function AuthPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Field (Sign Up and Sign In Mock name helper) */}
+          {/* Name Field (Sign Up and Sign In Live name helper) */}
           {(mode === 'signup' || mode === 'signin') && (
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-white/40 tracking-wider">Account Full Name</label>

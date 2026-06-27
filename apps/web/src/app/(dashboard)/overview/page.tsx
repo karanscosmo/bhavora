@@ -56,48 +56,49 @@ export default function OverviewPage() {
       map.on('load', () => {
         if (!map) return;
         
-        // Add a simple heatmap layer for traffic
-        map.addSource('traffic-heat', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: Array.from({ length: 50 }).map(() => ({
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                coordinates: [
-                  77.5946 + (Math.random() - 0.5) * 0.2,
-                  12.9716 + (Math.random() - 0.5) * 0.2
-                ]
-              },
-              properties: {
-                weight: Math.random()
-              }
-            })) as any
-          }
-        });
+        // Load Real GIS Data (Metro Stations as transit density heatmap)
+        fetch('/data/metro_stations.geojson')
+          .then(r => r.json())
+          .then(data => {
+            if (!map) return;
+            map.addSource('traffic-heat', { type: 'geojson', data });
 
-        map.addLayer({
-          id: 'traffic-heat-layer',
-          type: 'heatmap',
-          source: 'traffic-heat',
-          maxzoom: 15,
-          paint: {
-            'heatmap-weight': ['get', 'weight'],
-            'heatmap-intensity': 1,
-            'heatmap-color': [
-              'interpolate',
-              ['linear'],
-              ['heatmap-density'],
-              0, 'rgba(0,0,0,0)',
-              0.2, 'rgba(255,165,0,0.5)',
-              0.6, 'rgba(255,69,0,0.8)',
-              1, 'rgba(255,0,0,1)'
-            ],
-            'heatmap-radius': 15,
-            'heatmap-opacity': 0.8
-          }
-        });
+            map.addLayer({
+              id: 'traffic-heat-layer',
+              type: 'heatmap',
+              source: 'traffic-heat',
+              maxzoom: 15,
+              paint: {
+                'heatmap-intensity': 1,
+                'heatmap-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['heatmap-density'],
+                  0, 'rgba(0,0,0,0)',
+                  0.2, 'rgba(255,165,0,0.5)',
+                  0.6, 'rgba(255,69,0,0.8)',
+                  1, 'rgba(255,0,0,1)'
+                ],
+                'heatmap-radius': 25,
+                'heatmap-opacity': 0.8
+              }
+            });
+            
+            // Draw points on top of heatmap when zoomed in
+            map.addLayer({
+              id: 'metro-points',
+              type: 'circle',
+              source: 'traffic-heat',
+              minzoom: 12,
+              paint: {
+                'circle-radius': 4,
+                'circle-color': '#fff',
+                'circle-stroke-width': 1,
+                'circle-stroke-color': '#000'
+              }
+            });
+          })
+          .catch(err => console.error('Failed to load GIS data:', err));
       });
     });
 

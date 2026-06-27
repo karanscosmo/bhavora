@@ -1,7 +1,8 @@
 import React from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNav } from '@/components/layout/TopNav';
-import { AICopilot } from '@/components/ui/AICopilot';
+import { OperationsAgent } from '@/components/ui/OperationsAgent';
+import { BackgroundParticles } from '@/components/ui/BackgroundParticles';
 
 export default function DashboardLayout({
   children,
@@ -9,12 +10,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-background text-on-surface min-h-screen">
+    <div className="bg-transparent text-on-surface min-h-screen relative">
+      <BackgroundParticles />
       <TopNav />
       <Sidebar />
       <main className="ml-64 mt-16 min-h-[calc(100vh-64px)] relative">
         {children}
-        <AICopilot />
+        <OperationsAgent />
       </main>
     </div>
   );

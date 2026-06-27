@@ -1,0 +1,124 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6237622,
+          12.9362606
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5752904,
+          13.0119654
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6214406,
+          12.8988404
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.620203,
+          12.8998321
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.613361,
+          12.8928529
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6945339,
+          12.9414316
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5948785,
+          13.095548
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5622186,
+          12.8866386
+        ]
+      },
+      "properties": {
+        "power": "substation"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6454392,
+          12.9813158
+        ]
+      },
+      "properties": {
+        "building": "commercial",
+        "power": "substation",
+        "substation": "minor_distribution"
+      }
+    }
+  ]
+}

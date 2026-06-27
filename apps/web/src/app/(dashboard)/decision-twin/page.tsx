@@ -126,7 +126,7 @@ export default function DecisionTwinPage() {
     }
   }, [evAdoption, popGrowth, indExpansion, metroExpansion, renewableGrowth]);
 
-  // Sync state if store updates (e.g. loaded scenario or demo mode)
+  // Sync state if store updates (e.g. loaded scenario or Simulation Engine)
   useEffect(() => {
     setTimeout(() => {
       setEvAdoption(store.evAdoption);

@@ -215,7 +215,7 @@ export const useSimulationStore = create<SimulationStore>()(
         }));
       },
 
-      runSimulation: async (customInputs) => {
+            runSimulation: async (customInputs) => {
         set({ isSimulating: true });
         
         // Grab either parameters passed or current store state
@@ -227,85 +227,89 @@ export const useSimulationStore = create<SimulationStore>()(
         const climate = customInputs?.climateEvent ?? get().climateEvent;
         const disaster = customInputs?.disasterEvent ?? get().disasterEvent;
 
-        // Formulate API payload
-        const payload = {
-          evAdoption: parseFloat(ev.toString()),
-          populationGrowth: parseFloat(pop.toString()),
-          industrialExpansion: parseFloat(ind.toString()),
-          metroExpansion: parseFloat(metro.toString()),
-          renewableEnergyGrowth: parseFloat(renew.toString()),
-          climateEvent: climate,
-          disasterEvent: disaster
-        };
+        // --- NEW DEPENDENCY-BASED SIMULATION ENGINE ---
+        // 1. Base Demands from raw growth
+        const popFactor = pop;
+        const indFactor = ind;
+        const metroFactor = metro;
+        const evFactor = ev;
+        const renewFactor = renew;
 
-        let resultData;
-        try {
-          const res = await fetch('/api/simulate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (!res.ok) throw new Error("API failed");
-          resultData = await res.json();
-        } catch (e) {
-          console.warn("FastAPI simulation failure, resolving locally with deterministic equations...", e);
-          
-          // Deterministic Calculations
-          const baseEnergy = 4.2;
-          const energy_impact = (ev * 0.15) + (pop * 0.4) + (ind * 0.6) - (renew * 0.2);
-          const carbon_impact = (ind * 0.8) + (pop * 0.3) - (ev * 0.4) - (renew * 0.5);
-          const traffic_impact = (pop * 0.5) - (metro * 0.6) - (ev * 0.05);
-          const water_impact = (pop * 0.4) + (ind * 0.3);
-          const employment_impact = (ind * 0.5) + (metro * 0.2);
-          let infra_stress = 30 + (energy_impact * 2) + (traffic_impact * 1.5) + (water_impact * 2);
+        let water_impact = (popFactor * 1.2) + (indFactor * 1.8);
+        let base_traffic = (popFactor * 1.5) + (indFactor * 0.8);
 
-          if (climate === "100-Year Flood") {
-            infra_stress += 20;
-          }
-          if (disaster === "Substation Failure") {
-            infra_stress += 15;
-          }
+        // 2. Metro directly relieves traffic, EV relieves slight congestion
+        let traffic_impact = base_traffic - (metroFactor * 3.0) - (evFactor * 0.1);
 
-          const roundVal = (v: number, dec: number) => {
-            return Number(Math.round(Number(v + 'e' + dec)) + 'e-' + dec);
-          };
+        // 3. Energy demand
+        let energy_impact = (popFactor * 0.8) + (indFactor * 2.5) + (evFactor * 0.9) - (renewFactor * 0.4);
 
-          const localMetrics = {
-            energyDemand: roundVal(energy_impact, 1),
-            carbonEmissions: roundVal(carbon_impact, 1),
-            trafficCongestion: roundVal(traffic_impact, 1),
-            waterDemand: roundVal(water_impact, 1),
-            jobsCreated: roundVal(employment_impact, 1),
-            infrastructureStress: Math.min(100, Math.max(0, roundVal(infra_stress, 1)))
-          };
+        // 4. Carbon
+        let carbon_impact = (indFactor * 1.5) + (traffic_impact * 0.6) - (evFactor * 0.8) - (renewFactor * 1.2);
 
-          const recs: string[] = [];
-          if (localMetrics.energyDemand > 15) {
-            recs.push("High energy demand projected. Recommend building 11 new substations in North Bengaluru by 2028.");
-          }
-          if (localMetrics.waterDemand > 10) {
-            recs.push("Water stress risk expected in eastern zones by 2032. Accelerate Cauvery Stage V phase.");
-          }
-          if (localMetrics.trafficCongestion < 0) {
-            recs.push(`Metro expansion is effectively reducing congestion by ${Math.abs(localMetrics.trafficCongestion)}%. Consider accelerating Phase 3.`);
-          }
-          if (recs.length === 0) {
-            recs.push("Current infrastructure is equipped to handle the projected growth. Focus on maintenance.");
-          }
+        // 5. Employment
+        let employment_impact = (indFactor * 2.0) + (metroFactor * 1.5) + (renewFactor * 0.8);
 
-          resultData = {
-            metrics: localMetrics,
-            recommendations: recs,
-            timeline: [
-              { year: 2025, energy: baseEnergy + (localMetrics.energyDemand * 0.1), traffic: 100 + (localMetrics.trafficCongestion * 0.1) },
-              { year: 2027, energy: baseEnergy + (localMetrics.energyDemand * 0.3), traffic: 100 + (localMetrics.trafficCongestion * 0.3) },
-              { year: 2030, energy: baseEnergy + (localMetrics.energyDemand * 0.6), traffic: 100 + (localMetrics.trafficCongestion * 0.6) },
-              { year: 2035, energy: baseEnergy + localMetrics.energyDemand, traffic: 100 + localMetrics.trafficCongestion }
-            ]
-          };
+        // 6. Infrastructure Stress
+        let infra_stress = 35 + (energy_impact * 1.2) + (water_impact * 1.5) + (traffic_impact * 0.8);
+
+        if (climate === "100-Year Flood") {
+          infra_stress += 25;
+          traffic_impact += 30; 
+          water_impact -= 5;
+        } else if (climate === "Severe Drought") {
+          water_impact += 40; 
+          carbon_impact += 5; 
         }
 
-        // Generate scenario name and log details
+        if (disaster === "Substation Failure") {
+          infra_stress += 15;
+          energy_impact -= 10;
+          traffic_impact += 15;
+        } else if (disaster === "Cyber Attack (Grid)") {
+          infra_stress += 35;
+          energy_impact = 0; 
+        }
+
+        const roundVal = (v: number, dec: number) => {
+          return Number(Math.round(Number(v + 'e' + dec)) + 'e-' + dec);
+        };
+
+        const localMetrics = {
+          energyDemand: roundVal(energy_impact, 1),
+          carbonEmissions: roundVal(carbon_impact, 1),
+          trafficCongestion: roundVal(traffic_impact, 1),
+          waterDemand: roundVal(water_impact, 1),
+          jobsCreated: roundVal(employment_impact, 1),
+          infrastructureStress: Math.min(100, Math.max(0, roundVal(infra_stress, 1)))
+        };
+
+        const recs: string[] = [];
+        if (localMetrics.energyDemand > 15) {
+          recs.push("High energy demand projected. Recommend building 11 new substations in North Bengaluru by 2028.");
+        }
+        if (localMetrics.waterDemand > 10) {
+          recs.push("Water stress risk expected in eastern zones by 2032. Accelerate Cauvery Stage V phase.");
+        }
+        if (localMetrics.trafficCongestion < 0) {
+          recs.push(`Metro expansion is effectively reducing congestion by ${Math.abs(localMetrics.trafficCongestion)}%. Consider accelerating Phase 3.`);
+        }
+        if (recs.length === 0) {
+          recs.push("Current infrastructure is equipped to handle the projected growth. Focus on maintenance.");
+        }
+
+        const baseEnergy = 4.2;
+        const resultData = {
+          metrics: localMetrics,
+          recommendations: recs,
+          timeline: [
+            { year: 2025, energy: baseEnergy + (localMetrics.energyDemand * 0.1), traffic: 100 + (localMetrics.trafficCongestion * 0.1) },
+            { year: 2027, energy: baseEnergy + (localMetrics.energyDemand * 0.3), traffic: 100 + (localMetrics.trafficCongestion * 0.3) },
+            { year: 2030, energy: baseEnergy + (localMetrics.energyDemand * 0.6), traffic: 100 + (localMetrics.trafficCongestion * 0.6) },
+            { year: 2035, energy: baseEnergy + localMetrics.energyDemand, traffic: 100 + localMetrics.trafficCongestion }
+          ]
+        };
+
         const now = new Date();
         const dateStr = now.toISOString().replace('T', ' ').slice(0, 16);
         const randId = Math.random().toString(36).substring(2, 9);
@@ -333,7 +337,6 @@ export const useSimulationStore = create<SimulationStore>()(
           metrics: resultData.metrics,
           recommendations: resultData.recommendations,
           timeline: resultData.timeline,
-          // Prepend new scenario to library
           savedScenarios: [newScenario, ...state.savedScenarios]
         }));
 

@@ -1,0 +1,3504 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6047511,
+          12.8700925
+        ]
+      },
+      "properties": {
+        "name": "Hulimavu Lake",
+        "name:kn": "ಹುಳಿಮಾವು ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7104269,
+          12.9178716
+        ]
+      },
+      "properties": {
+        "name": "Carmelaram Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6634671,
+          12.9130792
+        ]
+      },
+      "properties": {
+        "alt_name": "Ambalipura Melina Kere",
+        "name": "Ambalipura Upper Lake",
+        "name:kn": "ಅಂಬಲಿಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5956618,
+          12.9303518
+        ]
+      },
+      "properties": {
+        "name": "Byrasandra Lake",
+        "name:kn": "ಬೈರಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6071398,
+          13.044916
+        ]
+      },
+      "properties": {
+        "name": "Nagawara Lake",
+        "name:kn": "ನಾಗವಾರ ಕೆರೆ",
+        "natural": "water",
+        "note": "Rejuvenation and desilting ongoing as of 2026 April",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7228874,
+          12.9871728
+        ]
+      },
+      "properties": {
+        "alt_name": "Giddanna Kere",
+        "name": "Hoodi Lake",
+        "name:kn": "ಸೀತಾರಾಮಪಾಳ್ಯ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5755623,
+          12.8883029
+        ]
+      },
+      "properties": {
+        "name": "Chunchagatta Lake",
+        "name:kn": "ಚುಂಚಘಟ್ಟ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7229607,
+          13.0656501
+        ]
+      },
+      "properties": {
+        "landuse": "reservoir",
+        "name": "Bidarahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5510534,
+          12.9026491
+        ]
+      },
+      "properties": {
+        "alt_name": "Dorai Kere",
+        "name": "Dore Kere",
+        "name:kn": "ದೊರೆ ಕೆರೆ",
+        "natural": "water",
+        "note": "Fine jogging track created by BBMP around the lake.Open from 5:AM to 9:AM and 4:PM to 7:PM",
+        "opening_hours": "Mo-Su 05:00-09:00,16:00-20:00",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4946388,
+          12.9649919
+        ]
+      },
+      "properties": {
+        "name": "Mallathahalli Lake",
+        "name:kn": "ಮಲ್ಲತ್ತಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5345406,
+          12.926961
+        ]
+      },
+      "properties": {
+        "name": "Hosakerahalli Lake",
+        "name:kn": "ಹೊಸಕೆರೆಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5874633,
+          13.09101
+        ]
+      },
+      "properties": {
+        "fishing": "permit",
+        "leisure": "park",
+        "name": "Allalasandra Lake",
+        "name:kn": "ಅಲ್ಲಾಳಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5211566,
+          13.1312472
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6888978,
+          13.1396925
+        ]
+      },
+      "properties": {
+        "name": "Gummanahalli Lake",
+        "natural": "water",
+        "source": "Landsat",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5926318,
+          13.1409325
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Gantiganahalli Kere",
+        "name:kn": "ಗಂಟಿಗನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "source": "Landsat",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5779641,
+          13.1379707
+        ]
+      },
+      "properties": {
+        "alt_name": "Harohalli BBMP Lake",
+        "name": "Gantiganahalli Lake",
+        "name:kn": "ಗಂಟಿಗಾನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "source": "Landsat",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5352826,
+          13.0818715
+        ]
+      },
+      "properties": {
+        "name": "Singapura Kere",
+        "name:kn": "ಸಿಂಗಾಪುರ ಕೆರೆ",
+        "natural": "water",
+        "official_name": "Bhagavan Buddha Dr. B.R Ambedkar Lake",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5364962,
+          13.1344783
+        ]
+      },
+      "properties": {
+        "name": "Mylappanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6182384,
+          13.1098769
+        ]
+      },
+      "properties": {
+        "name": "Kogilu Lake",
+        "name:en": "Kogilu Lake",
+        "name:kn": "ಕೋಗಿಲು ಕೆರೆ",
+        "natural": "water",
+        "source": "Landsat",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7664989,
+          13.0744013
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "landuse": "basin",
+        "name": "Hosakote lake",
+        "name:kn": "ಹೊಸಕೋಟೆ ಕೆರೆ",
+        "natural": "water",
+        "source": "Landsat",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5981723,
+          13.0614411
+        ]
+      },
+      "properties": {
+        "name": "Amruthalli Lake",
+        "name:kn": "ಅಮೃತಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7123123,
+          13.1321736
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.65129,
+          13.1234509
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "salt": "no",
+        "tidal": "no",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6284244,
+          13.0926689
+        ]
+      },
+      "properties": {
+        "name": "Thirumenahalli Lake",
+        "name:kn": "ತಿರುಮೇನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6290699,
+          13.08473
+        ]
+      },
+      "properties": {
+        "name": "Chokkanahalli Lake",
+        "name:kn": "ಚೊಕ್ಕನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6870884,
+          13.0270202
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7485007,
+          13.0988135
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6672338,
+          13.0240779
+        ]
+      },
+      "properties": {
+        "name": "Horamavu Lake",
+        "name:kn": "ಹೊರಮಾವು ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7032109,
+          13.0017881
+        ]
+      },
+      "properties": {
+        "name": "Devasandra lake",
+        "name:kn": "ದೇವಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.743701,
+          12.9644158
+        ]
+      },
+      "properties": {
+        "alt_name": "Shilavanthana Kere",
+        "alt_name:en": "Shilavanthana Lake",
+        "name": "Sheelavathana Kere",
+        "name:kn": "ಶೀಲವಂತ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4737705,
+          13.0184866
+        ]
+      },
+      "properties": {
+        "name": "Gangondanahalli Lake",
+        "name:kn": "ಗಂಗೋಡನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6680258,
+          12.9048414
+        ]
+      },
+      "properties": {
+        "name": "Kasavanahalli Lake",
+        "name:kn": "ಕಸವನಹಳ್ಳಿ ಲೇಕ್ಕೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6957012,
+          12.9909295
+        ]
+      },
+      "properties": {
+        "loc_name": "Garudacharpalya Lake",
+        "name": "Garudacharpalya Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6439367,
+          12.8686126
+        ]
+      },
+      "properties": {
+        "name": "Basapura Lake",
+        "name:kn": "ಬಸಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6418588,
+          12.8786017
+        ]
+      },
+      "properties": {
+        "name": "Begur Kere",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.649784,
+          12.8693558
+        ]
+      },
+      "properties": {
+        "name": "Basapura Lake",
+        "name:kn": "ಬಸಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5798778,
+          12.8740569
+        ]
+      },
+      "properties": {
+        "name": "Krishna Nagara Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5663069,
+          12.864951
+        ]
+      },
+      "properties": {
+        "name": "Avalahalli Lake",
+        "name:kn": "ಅವಲಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5562262,
+          12.8912736
+        ]
+      },
+      "properties": {
+        "name": "Vasanthapura Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6770034,
+          12.8704288
+        ]
+      },
+      "properties": {
+        "name": "Rayasandra Lake",
+        "name:kn": "ರಾಯಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7379939,
+          12.9798577
+        ]
+      },
+      "properties": {
+        "name": "Pattandur Agrahara Kunte",
+        "name:kn": "ಪಟ್ಟಂದೂರು ಅಗ್ರಹಾರ ಕುಂಟೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4911964,
+          12.8506401
+        ]
+      },
+      "properties": {
+        "name": "Agara Lake",
+        "natural": "water",
+        "note": "Proposed water adventure sports project: https://newskarnataka.com/bengaluru/water-adventure-sports-to-debut-at-agara-lake-by-early-2026/12112025",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6912848,
+          12.8756438
+        ]
+      },
+      "properties": {
+        "name": "Gattahalli Lake",
+        "name:kn": "ಗಟ್ಟಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "source": "local knowledge",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7366169,
+          12.9743834
+        ]
+      },
+      "properties": {
+        "boat": "no",
+        "name": "Nallurahalli Lake",
+        "name:kn": "ನಲ್ಲೂರಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6158169,
+          13.1402494
+        ]
+      },
+      "properties": {
+        "intermittent": "no",
+        "name": "Hunasemaranahalli Lake",
+        "name:kn": "ಹುಣಸಮಾರನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6652895,
+          12.8852745
+        ]
+      },
+      "properties": {
+        "intermittent": "no",
+        "name": "Hosakere",
+        "name:kn": "ಹೊಸಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7167522,
+          13.0003489
+        ]
+      },
+      "properties": {
+        "name": "Hoodi Lake",
+        "name:kn": "ಹೂಡಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5238416,
+          13.0684136
+        ]
+      },
+      "properties": {
+        "name": "Kammagondanahalli Lake",
+        "name:kn": "ಕಮ್ಮಗೊಂಡನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6828454,
+          12.9962977
+        ]
+      },
+      "properties": {
+        "name": "B Narayanapura Lake",
+        "name:kn": "ನಾರಾಯಣಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7130537,
+          13.0102614
+        ]
+      },
+      "properties": {
+        "name": "Basavanapura Kere",
+        "name:kn": "ಬಸವನಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6857807,
+          12.9924645
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4862356,
+          13.0109313
+        ]
+      },
+      "properties": {
+        "name": "Andrahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4726033,
+          12.9578914
+        ]
+      },
+      "properties": {
+        "name": "Manganahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4700732,
+          12.9571149
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7406899,
+          12.9168321
+        ]
+      },
+      "properties": {
+        "name": "Gunjuru Lake",
+        "name:kn": "ಗುಂಜೂರು ಕೆರೆ",
+        "natural": "water",
+        "seasonal": "yes",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.674175,
+          12.8460004
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6329731,
+          12.8531636
+        ]
+      },
+      "properties": {
+        "name": "Vittasandra Lake",
+        "name:kn": "ವಿಟ್ಟಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5415511,
+          12.9080468
+        ]
+      },
+      "properties": {
+        "name": "Uttarahalli Lake",
+        "name:kn": "ಉತ್ತರಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4928781,
+          12.9081852
+        ]
+      },
+      "properties": {
+        "name": "Mylasandra Tank",
+        "name:kn": "ಮೈಲಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4837,
+          12.8924138
+        ]
+      },
+      "properties": {
+        "name": "Konasandra Lake",
+        "name:kn": "ಕೋನಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6262829,
+          13.0178512
+        ]
+      },
+      "properties": {
+        "name": "Kacharakanahalli Lake",
+        "name:kn": "ಕಾಚರಕನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6708484,
+          12.8409321
+        ]
+      },
+      "properties": {
+        "name": "Virasandra",
+        "name:kn": "ವೀರಸಂದ್ರ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7266635,
+          12.9730693
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6360531,
+          12.9839514
+        ]
+      },
+      "properties": {
+        "name": "Kadiranpalaya Kere",
+        "name:kn": "ಕದಿರನ ಪಾಳ್ಯ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7534785,
+          13.0547461
+        ]
+      },
+      "properties": {
+        "name": "Nimbekaipura Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7617888,
+          13.048211
+        ]
+      },
+      "properties": {
+        "name": "Katamanallur Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6033705,
+          12.8558851
+        ]
+      },
+      "properties": {
+        "alt_name": "Doddkammanahalli Kere",
+        "name": "Doddkammanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6649622,
+          12.9170281
+        ]
+      },
+      "properties": {
+        "alt_name": "Ambalipura Kelagina Kere",
+        "name": "Ambalipura Lower Lake",
+        "name:kn": "ಅಂಬಲಿಪುರ ಕೆಳಗಿನ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.637468,
+          12.896306
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7572538,
+          13.0125885
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6138653,
+          12.8665943
+        ]
+      },
+      "properties": {
+        "name": "Yelenahalli Lake",
+        "name:kn": "ಎಲೆನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5287642,
+          12.9150655
+        ]
+      },
+      "properties": {
+        "boat": "no",
+        "name": "Bheemanakatte Lake",
+        "name:kn": "ಭೀಮನಕಟ್ಟೆ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7394107,
+          12.8394684
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "landuse": "reservoir",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6237862,
+          12.8581735
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6799451,
+          12.9183262
+        ]
+      },
+      "properties": {
+        "intermittent": "no",
+        "name": "Saul Kere",
+        "name:kn": "ಸಾಲ್ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6579957,
+          13.0768076
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5684554,
+          12.8913891
+        ]
+      },
+      "properties": {
+        "name": "Konanakunte Lake",
+        "name:kn": "ಕೋಣನಕುಂಟೆ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5540109,
+          13.1184635
+        ]
+      },
+      "properties": {
+        "name": "Ramagondanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7166575,
+          13.0893329
+        ]
+      },
+      "properties": {
+        "disused:landuse": "quarry",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7232825,
+          13.0722687
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6310053,
+          12.8326701
+        ]
+      },
+      "properties": {
+        "description": "lake restored near electronic city. Flora and fauna found. Nearly 28 Acres of lake water.",
+        "intermittent": "no",
+        "name": "Bingipura Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5386313,
+          13.0855251
+        ]
+      },
+      "properties": {
+        "name": "Singapura Kere",
+        "name:kn": "ಸಿಂಗಾಪುರ ಕೆರೆ",
+        "natural": "water",
+        "official_name": "Bhagavan Buddha Dr. B.R Ambedkar Lake",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5113961,
+          13.091867
+        ]
+      },
+      "properties": {
+        "name": "Ganigarahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5236335,
+          12.8450596
+        ]
+      },
+      "properties": {
+        "name": "Kuppareddi Kere",
+        "name:kn": "ಕುಪ್ಪರೆಡ್ಡಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5547124,
+          13.0761276
+        ]
+      },
+      "properties": {
+        "name": "Vidyaranyapura Kere",
+        "name:kn": "ವಿದ್ಯಾರಣ್ಯಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.499369,
+          13.0587526
+        ]
+      },
+      "properties": {
+        "name": "Bagalagunte Lake",
+        "name:kn": "ಬಾಗಲಗುಂಟೆ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7022284,
+          12.8910911
+        ]
+      },
+      "properties": {
+        "intermittent": "no",
+        "name": "Hadosiddapura Lake",
+        "name:kn": "ಹಾಡೋಸಿದ್ದಾಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6840902,
+          12.996735
+        ]
+      },
+      "properties": {
+        "name": "Narayanapura Kere",
+        "name:kn": "ನಾರಾಯಣಪುರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6606671,
+          12.8655643
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6719427,
+          12.8575199
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Komapana Agrahara Lake",
+        "natural": "water",
+        "source": "Bing",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7456746,
+          13.0668377
+        ]
+      },
+      "properties": {
+        "name": "Prestige Tranquility Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4953789,
+          13.0428379
+        ]
+      },
+      "properties": {
+        "alt_name": "Chikkabidarakallu Lake",
+        "intermittent": "yes",
+        "name": "Doddabidirakallu Kere",
+        "name:kn": "ದೊಡ್ಡಬಿದರಕಲ್ಲು ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6736632,
+          12.8476699
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7717219,
+          12.9306956
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "seasonal": "yes",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5534347,
+          12.8393949
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4710678,
+          12.9469069
+        ]
+      },
+      "properties": {
+        "name": "Ramasandra Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4580872,
+          12.951071
+        ]
+      },
+      "properties": {
+        "name": "Sulikere/ Herekere Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4826532,
+          13.0866103
+        ]
+      },
+      "properties": {
+        "intermittent": "no",
+        "name": "Acharya Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.553079,
+          12.9152445
+        ]
+      },
+      "properties": {
+        "description": "Dried",
+        "intermittent": "yes",
+        "name": "Chikkalasandra lake",
+        "name:kn": "ಚಿಕ್ಕಲಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "salt": "no",
+        "tidal": "no",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.504767,
+          13.0267969
+        ]
+      },
+      "properties": {
+        "name": "Shivapura Old Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5090543,
+          12.9651131
+        ]
+      },
+      "properties": {
+        "name": "Nagarbhavi Lake",
+        "name:kn": "ನಾಗರಭಾವಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.643039,
+          13.0757414
+        ]
+      },
+      "properties": {
+        "name": "Nagaraesh Nagenahalli Lake",
+        "name:kn": "ನಾಗೇನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6688283,
+          12.8785161
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6712639,
+          12.8970813
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "note": "Abandoned Quarry",
+        "was:landuse": "quarry",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6990565,
+          12.9232996
+        ]
+      },
+      "properties": {
+        "name": "Bhoganahalli Lake",
+        "name:kn": "ಭೋಗನಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7459339,
+          12.9762617
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Pattandur Agrahara Lake",
+        "name:kn": "ಪಟ್ಟಂದೂರು ಅಗ್ರಹಾರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7558066,
+          13.0474522
+        ]
+      },
+      "properties": {
+        "name": "Konadasapura lake",
+        "natural": "water",
+        "salt": "no",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6909499,
+          12.9719713
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6866208,
+          12.9709731
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7641505,
+          12.9199296
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7641244,
+          12.9196272
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.50711,
+          13.1088791
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6167549,
+          12.8597916
+        ]
+      },
+      "properties": {
+        "name": "Subedharana Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5205907,
+          13.1029431
+        ]
+      },
+      "properties": {
+        "fishing": "no",
+        "intermittent": "yes",
+        "name": "Medi Agrahara Lake",
+        "natural": "water",
+        "note": "Filled only during monsoon.",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7129631,
+          12.9043298
+        ]
+      },
+      "properties": {
+        "name": "Chikkabelanduru Kere",
+        "name:kn": "ಚಿಕ್ಕಬೇಳಂದೂರು ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7178031,
+          12.8459047
+        ]
+      },
+      "properties": {
+        "name": "Shingena Agrahara Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6895397,
+          12.8543469
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6915776,
+          12.8989945
+        ]
+      },
+      "properties": {
+        "fixme": "Get exact shape of lake",
+        "intermittent": "no",
+        "name": "Halanayakanahalli Lake",
+        "name:kn": "ಹಳನಾಯಕನಹಳ್ಳಿ ಸರೋವರ",
+        "natural": "water",
+        "note": "This lake is actually somehow not visible at all from the satellite data on OSM, but when you visit the place it is clearly visible, and about the 3/4th the size of Agara lake.",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7669061,
+          12.845287
+        ]
+      },
+      "properties": {
+        "name": "Hosahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5849675,
+          12.8636273
+        ]
+      },
+      "properties": {
+        "alt_name": "IDBI Layout Lake",
+        "name": "Subrayana Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.637645,
+          12.9873844
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6430738,
+          13.1044224
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7216088,
+          12.9188014
+        ]
+      },
+      "properties": {
+        "name": "Gunjuru Palya Lake",
+        "name:kn": "ಗುಂಜೂರುಪಾಳ್ಯ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6261826,
+          13.1393596
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7300257,
+          12.8799502
+        ]
+      },
+      "properties": {
+        "name": "Sulakunte Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7214533,
+          12.8890963
+        ]
+      },
+      "properties": {
+        "name": "Kodathi Kere",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7409478,
+          12.9078381
+        ]
+      },
+      "properties": {
+        "name": "Hegondanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7456512,
+          12.8999545
+        ]
+      },
+      "properties": {
+        "name": "Hagondahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6648471,
+          13.1177064
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "source": "Landsat",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.748959,
+          12.8747247
+        ]
+      },
+      "properties": {
+        "name": "Dommasandra Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7619305,
+          12.886283
+        ]
+      },
+      "properties": {
+        "name": "Thiagalara Chowdenahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7450111,
+          13.0778486
+        ]
+      },
+      "properties": {
+        "name": "Manduru Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7825674,
+          13.0011812
+        ]
+      },
+      "properties": {
+        "name": "Koralur Lake",
+        "name:kn": "ಕೊರಳೂರು ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7556354,
+          13.021743
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6516932,
+          12.8337691
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Shikaripalya Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6514681,
+          12.8349178
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Shikaripalya Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4679577,
+          12.8878988
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4684137,
+          12.9772801
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5384069,
+          12.8629465
+        ]
+      },
+      "properties": {
+        "alt_name": "Jogi Lake",
+        "name": "Jogi Kere",
+        "name:kn": "ಜೋಗಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4812333,
+          12.975342
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5345382,
+          13.0996704
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5411364,
+          13.0947225
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5439669,
+          12.8682663
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.692582,
+          13.1148768
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4919527,
+          12.8806013
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5679934,
+          13.1400778
+        ]
+      },
+      "properties": {
+        "name": "Singanayakanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7802702,
+          12.9096596
+        ]
+      },
+      "properties": {
+        "name": "Neriga Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6236394,
+          13.0774496
+        ]
+      },
+      "properties": {
+        "name": "Sampigehalli Lake",
+        "name:kn": "��ಂಪಿಗೆಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4667305,
+          13.1320729
+        ]
+      },
+      "properties": {
+        "name": "Biijaji Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5556606,
+          12.8707279
+        ]
+      },
+      "properties": {
+        "name": "Thippasandra Lake",
+        "name:kn": "ತಿಪ್ಪಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6288581,
+          12.8380145
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6103053,
+          12.8375071
+        ]
+      },
+      "properties": {
+        "name": "Hommadevanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6170215,
+          12.8367775
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6141941,
+          12.849131
+        ]
+      },
+      "properties": {
+        "name": "Mylasandra Chikka Kere",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6231155,
+          12.8453891
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6224717,
+          12.8495967
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6168991,
+          12.8534059
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.777415,
+          13.1194195
+        ]
+      },
+      "properties": {
+        "landuse": "basin",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5547969,
+          13.091867
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Chikkabettahalli Lake",
+        "name:kn": "ಚಿಕ್ಕಬೆಟ್ಟಹಳ್ಳಿ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.52897,
+          13.1297113
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7800812,
+          12.8719887
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Sarjapur Doddakere Lake",
+        "natural": "water",
+        "seasonal": "yes",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6420955,
+          13.0768852
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5770593,
+          12.8584353
+        ]
+      },
+      "properties": {
+        "magic_wand": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6078531,
+          12.8629599
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Chandrasekhar Layout Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7172781,
+          12.9322426
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5593728,
+          13.1411703
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7760966,
+          13.0974765
+        ]
+      },
+      "properties": {
+        "landuse": "basin",
+        "magic_wand": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6833338,
+          13.0878006
+        ]
+      },
+      "properties": {
+        "name": "Yerappanahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6256667,
+          13.0168411
+        ]
+      },
+      "properties": {
+        "landuse": "residential",
+        "residential": "slum",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5195082,
+          12.8417261
+        ]
+      },
+      "properties": {
+        "name": "Thathaguni Agara Kere",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5442421,
+          13.1402372
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5334921,
+          12.848365
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5625123,
+          12.8348579
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5303713,
+          13.0853764
+        ]
+      },
+      "properties": {
+        "fishing": "no",
+        "name": "Lakshmipura Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5271313,
+          13.0995019
+        ]
+      },
+      "properties": {
+        "fishing": "no",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5258097,
+          13.1034913
+        ]
+      },
+      "properties": {
+        "fishing": "no",
+        "name": "Bylakere Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6597289,
+          12.9982541
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6666638,
+          13.0991819
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6694519,
+          13.1029398
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6683711,
+          13.1036373
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4601487,
+          12.9570001
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7441013,
+          12.9291174
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4989319,
+          12.893566
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7577865,
+          12.8748672
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Yamare Lake",
+        "natural": "water",
+        "seasonal": "yes",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7694834,
+          12.8698434
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Sompura Lake",
+        "natural": "water",
+        "seasonal": "yes",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6445222,
+          12.8505878
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7405734,
+          13.0433209
+        ]
+      },
+      "properties": {
+        "name": "Cheemasandra Lake",
+        "name:kn": "ಚೀಮಸಂದ್ರ ಕೆರೆ",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5266983,
+          13.1146658
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Byalakere Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.53301,
+          13.1108599
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Byalakere Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.469327,
+          13.0713555
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4724625,
+          13.0792314
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5140387,
+          12.8718743
+        ]
+      },
+      "properties": {
+        "alt_name": "Lingadeeranahalli Kere",
+        "name": "Lingadeeranahalli Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5073404,
+          12.8809352
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.695295,
+          13.0818976
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6663259,
+          12.8601115
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Beratena Agrahara Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7815079,
+          13.1428106
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5024336,
+          13.1181198
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5006418,
+          12.9840658
+        ]
+      },
+      "properties": {
+        "name": "Srigandakaval Lake",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6616307,
+          13.0063453
+        ]
+      },
+      "properties": {
+        "alt_name": "Kasturi Nagar Lake",
+        "fixme": "Accurate boundaries post-rejuventation completion",
+        "name": "B Channasandra Lake",
+        "natural": "water",
+        "note": "Rejuvenated in early 2025",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4940328,
+          13.0985667
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5500213,
+          13.1178665
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6919886,
+          13.0438983
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6910156,
+          13.0441876
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6918075,
+          13.0502289
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6654877,
+          13.0230953
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5932977,
+          13.1173339
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7380401,
+          12.8589688
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7297065,
+          12.8981951
+        ]
+      },
+      "properties": {
+        "name": "Devara Kere",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7345973,
+          12.8889901
+        ]
+      },
+      "properties": {
+        "name": "Sulikunte Chikka Kere",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7760316,
+          12.8418407
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake",
+        "water_source": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.775783,
+          12.8421264
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake",
+        "water_source": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5066518,
+          12.9036267
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "name": "Idle Lake",
+        "natural": "water",
+        "salt": "no",
+        "tidal": "no",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7402556,
+          12.8512337
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7249562,
+          12.8571227
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7268124,
+          12.8683694
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7808749,
+          12.8888819
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7739978,
+          12.8858647
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7569121,
+          12.9046843
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7094424,
+          12.8658251
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5520731,
+          13.0910533
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6793828,
+          13.1117003
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6822984,
+          13.1099709
+        ]
+      },
+      "properties": {
+        "intermittent": "yes",
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6684234,
+          13.0994562
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7462465,
+          12.8993471
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7745815,
+          12.9204541
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4683436,
+          13.0327983
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.744075,
+          12.9006214
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5386429,
+          13.1353351
+        ]
+      },
+      "properties": {
+        "natural": "water",
+        "water": "lake"
+      }
+    }
+  ]
+}

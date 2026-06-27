@@ -75,7 +75,7 @@ export default function SettingsPage() {
                 <select className="w-full bg-surface-container border-none text-[12px] rounded-xl px-3 py-2 outline-none cursor-pointer">
                   <option>Bangalore Open GIS Node (Primary)</option>
                   <option>Karnataka Land Records Database</option>
-                  <option>System Mock Simulation</option>
+                  <option>Active Production Mode</option>
                 </select>
               </div>
               <div>

@@ -123,9 +123,9 @@ export default function RedesignedLandingPage() {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/demo">
+            <Link href="/overview">
               <button className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[13px] font-bold hover:from-blue-500 hover:to-blue-600 transition-all active:scale-95 shadow-md shadow-blue-600/20 cursor-pointer">
-                Run Bengaluru 2035 Demo
+                Launch Command Center
               </button>
             </Link>
           </div>
@@ -147,7 +147,7 @@ export default function RedesignedLandingPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
                 </span>
-                AI Innovation Prototype
+                AI Innovation Platform
               </div>
 
               <h1 className="text-[3.4rem] md:text-[4rem] leading-[1.08] font-extrabold tracking-tight text-gray-900">
@@ -165,10 +165,10 @@ export default function RedesignedLandingPage() {
                     Explore Platform
                   </button>
                 </Link>
-                <Link href="/demo">
+                <Link href="/overview">
                   <button className="group flex items-center gap-2.5 px-7 py-4 bg-white border border-outline-variant/30 hover:bg-white/80 text-gray-700 rounded-2xl text-[14px] font-bold transition-all hover:scale-[1.02] active:scale-[0.97] shadow-sm cursor-pointer">
                     <PlayCircle />
-                    Run Bengaluru 2035 Demo
+                    Launch Command Center
                   </button>
                 </Link>
               </div>
@@ -484,10 +484,10 @@ export default function RedesignedLandingPage() {
                 Access Bengaluru&apos;s Chief Urban Planner dashboard to configure variables and print recommendations.
               </p>
               <div className="flex flex-wrap gap-4 justify-center pt-4">
-                <Link href="/demo">
+                <Link href="/overview">
                   <button className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl text-sm font-bold hover:from-blue-400 hover:to-blue-500 transition-all hover:scale-[1.03] active:scale-95 shadow-2xl shadow-blue-600/20 flex items-center gap-2 cursor-pointer">
                     <Play />
-                    Run Bengaluru 2035 Demo
+                    Launch Command Center
                   </button>
                 </Link>
                 <Link href="/overview">
