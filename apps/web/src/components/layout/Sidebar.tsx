@@ -2,10 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/ui/Logo';
 import { BrandHeader } from '@/components/ui/BrandHeader';
-import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play } from 'lucide-react';
+import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play, LogOut } from 'lucide-react';
 
 const NAV_GROUPS = [
   {
@@ -44,6 +44,14 @@ const NAV_GROUPS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('bhavoraUser');
+    }
+    router.push('/auth/login');
+  };
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-[var(--bg-surface-1)] border-r border-[var(--border-subtle)] flex flex-col z-40">
@@ -81,7 +89,7 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Minimal CTA */}
-      <div className="p-4 border-t border-[var(--border-subtle)]">
+      <div className="p-4 border-t border-[var(--border-subtle)] flex flex-col gap-2">
         <Link href="/scenario-builder" className="flex items-center justify-between p-3 rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors group shadow-md mt-2">
           <div className="flex items-center gap-2">
             <Cpu size={14} className="text-white" />
@@ -89,6 +97,13 @@ export function Sidebar() {
           </div>
           <Play size={12} className="text-white group-hover:scale-110 transition-transform" />
         </Link>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 p-3 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)] hover:text-[#EF4444] transition-colors w-full text-left"
+        >
+          <LogOut size={14} />
+          <span className="text-[12px] font-bold tracking-wide">Log Out</span>
+        </button>
       </div>
     </aside>
   );

@@ -527,6 +527,7 @@ interface AgentState {
   isLoading: boolean;
   addMessage: (agentId: AgentId, message: AgentMessage) => void;
   clearConversation: (agentId: AgentId) => void;
+  clearAllConversations: () => void;
   setLoading: (v: boolean) => void;
 }
 
@@ -546,6 +547,10 @@ export const useAgentStore = create<AgentState>()(
       clearConversation: (agentId) => set(state => ({
         conversations: { ...state.conversations, [agentId]: [] },
       })),
+
+      clearAllConversations: () => set({
+        conversations: { urban: [], disaster: [], sustainability: [], infrastructure: [], executive: [] },
+      }),
 
       setLoading: (v) => set({ isLoading: v }),
     }),

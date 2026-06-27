@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogoIcon } from '@/components/ui/Logo';
-import { useAppStore } from '@/stores';
+import { useAppStore, useAgentStore } from '@/stores';
 
 export default function LoginPage() {
   const router = useRouter();
   const { addNotification } = useAppStore();
+  const { clearAllConversations } = useAgentStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +37,7 @@ export default function LoginPage() {
       };
       
       localStorage.setItem('bhavoraUser', JSON.stringify(loggedUser));
+      clearAllConversations();
       addNotification({ title: 'Authentication Successful', message: `Welcome back, ${loggedUser.name}`, severity: 'success' });
       
       router.push('/overview');
