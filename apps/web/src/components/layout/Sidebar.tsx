@@ -46,7 +46,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-[var(--bg-surface-1)] border-r border-[var(--border-subtle)] flex flex-col z-40">
+    <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-[var(--bg-surface-1)] border-r border-[var(--border-subtle)] flex flex-col z-40">
       <BrandHeader />
 
       {/* Nav Groups */}

@@ -19,7 +19,7 @@ export default function DashboardLayout({
   return (
     <div className="bg-[var(--bg-base)] min-h-screen relative flex overflow-hidden">
       {/* Sidebar - fixed left full height */}
-      <div className="hidden lg:block w-[256px] shrink-0">
+      <div className="hidden lg:block w-[280px] shrink-0">
         <Sidebar />
       </div>
 
