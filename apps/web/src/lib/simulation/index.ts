@@ -709,5 +709,18 @@ export function seededRand(seed: number): () => number {
 
 export function generateSeededMetrics(seed: number, count: number, base: number, variance: number): number[] {
   const rand = seededRand(seed);
-  return Array.from({ length: count }, () => parseFloat((base + (rand() - 0.5) * 2 * variance).toFixed(1)));
+  const result = [];
+  let current = base;
+  
+  for (let i = 0; i < count; i++) {
+    // Random walk with mean reversion to prevent wandering off too far
+    const step = (rand() - 0.5) * 2 * (variance * 0.3); // smaller step size
+    current = current + step + (base - current) * 0.1; 
+    
+    // Add a diurnal (sine) pattern to simulate time-of-day cycles
+    const diurnal = Math.sin((i / count) * Math.PI * 2 - Math.PI / 2) * (variance * 0.7);
+    
+    result.push(parseFloat((current + diurnal).toFixed(1)));
+  }
+  return result;
 }

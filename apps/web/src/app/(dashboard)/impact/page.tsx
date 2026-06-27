@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { useSimulationStore } from '@/stores';
 import { IndianRupee, TrendingDown, Clock, MapPin, ArrowRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -166,28 +166,39 @@ export default function ImpactAnalysisPage() {
                   contentStyle={{ backgroundColor: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                   formatter={(val: any) => [`₹${val} Cr`, 'Net Cashflow']}
                 />
-                <Area type="step" dataKey="Cashflow" stroke="#2563EB" strokeWidth={2} fillOpacity={1} fill="url(#colorCash)" />
+                <Area type="monotone" dataKey="Cashflow" stroke="#2563EB" strokeWidth={2} fillOpacity={1} fill="url(#colorCash)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Allocation Bar */}
+        {/* Allocation Donut */}
         <div className="card p-6">
           <h3 className="text-sm font-bold text-[var(--text-primary)] mb-6">Funding Allocation</h3>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={economics.allocation} layout="vertical" margin={{ top: 0, right: 0, left: 40, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" horizontal={false} />
-                <XAxis type="number" hide />
-                <YAxis dataKey="category" type="category" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+              <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <Pie
+                  data={economics.allocation}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                  nameKey="category"
+                  stroke="none"
+                >
+                  {economics.allocation.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B'][index % 3]} />
+                  ))}
+                </Pie>
                 <Tooltip 
-                  cursor={{ fill: 'var(--bg-surface-2)' }}
-                  contentStyle={{ backgroundColor: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                   formatter={(val: any) => [`₹${val} Cr`, 'Allocation']}
                 />
-                <Bar dataKey="value" fill="#2563EB" radius={[0, 4, 4, 0]} barSize={24} />
-              </BarChart>
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }} />
+              </PieChart>
             </ResponsiveContainer>
           </div>
         </div>

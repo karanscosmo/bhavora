@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Legend, ComposedChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Legend, ComposedChart, Bar, AreaChart, Area } from 'recharts';
 import { Filter, Download, Activity, TrendingUp, MapPin } from 'lucide-react';
 import { useCityDataStore } from '@/stores';
 import type { Map as MapboxMap } from 'mapbox-gl';
@@ -185,16 +185,21 @@ export default function AnalyticsPage() {
           </h3>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={trendsData.slice(0, 14)} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+              <AreaChart data={trendsData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                <defs>
+                  <linearGradient id="colorPower" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
                 <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} domain={['dataMin - 0.5', 'dataMax + 0.5']} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}
                 />
-                <Bar dataKey="power" fill="#93C5FD" radius={[4, 4, 0, 0]} name="Actual Load (GW)" />
-                <Line type="monotone" dataKey="power" stroke="#2563EB" strokeWidth={2} dot={false} name="Forecast Trend" />
-              </ComposedChart>
+                <Area type="monotone" dataKey="power" stroke="#2563EB" strokeWidth={2} fillOpacity={1} fill="url(#colorPower)" name="Power Load (GW)" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
