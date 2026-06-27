@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LogoIcon } from '@/components/ui/Logo';
+import { BrandHeader } from '@/components/ui/BrandHeader';
 import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -46,14 +47,7 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-[var(--bg-surface-1)] border-r border-[var(--border-subtle)] flex flex-col z-40">
-      {/* Logo */}
-      <div className="h-14 flex items-center gap-3 px-4 border-b border-[var(--border-subtle)] flex-shrink-0">
-        <LogoIcon size={24} className="text-[var(--accent-primary)]" />
-        <div className="flex flex-col justify-center">
-          <div className="text-[14px] font-bold text-[var(--text-primary)] tracking-tight leading-none mb-[2px]">Bhavora OS</div>
-          <div className="text-[9px] text-[var(--text-muted)] font-semibold tracking-wider uppercase leading-none">Command Center</div>
-        </div>
-      </div>
+      <BrandHeader />
 
       {/* Nav Groups */}
       <nav className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
