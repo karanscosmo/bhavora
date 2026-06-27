@@ -65,54 +65,114 @@ export default function SimulationResultsPage() {
   }, [metrics]);
 
   const mapContainer = React.useRef<HTMLDivElement>(null);
+  const mapInstanceRef = React.useRef<any>(null);
+  const [mapLoaded, setMapLoaded] = React.useState(false);
+
   React.useEffect(() => {
     if (!mapContainer.current) return;
-    let mapInstance: any = null;
     let isActive = true;
     import('mapbox-gl').then(m => {
       if (!isActive || !mapContainer.current) return;
       const mapboxgl = m.default;
       mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
       const map = new mapboxgl.Map({
-      container: mapContainer.current!,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [77.5946, 12.9716],
-      zoom: 10,
-      interactive: false,
-      attributionControl: false
-    });
-      mapInstance = map;
+        container: mapContainer.current!,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [77.5946, 12.9716],
+        zoom: 10.5,
+        interactive: false,
+        attributionControl: false
+      });
+      mapInstanceRef.current = map;
     
-    map.on('load', () => {
-      // Just a static demo visualization for simulation footprint
-      map.addSource('sim-footprint', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: [
-            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946, 12.9716] }, properties: {} },
-            { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6410, 12.9590] }, properties: {} }
-          ]
-        }
-      });
-      map.addLayer({
-        id: 'sim-points',
-        type: 'circle',
-        source: 'sim-footprint',
-        paint: {
-          'circle-radius': 25,
-          'circle-color': '#10B981',
-          'circle-opacity': 0.3,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#10B981'
-        }
+      map.on('load', () => {
+        if (!isActive) return;
+        map.addSource('sim-footprint', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] }
+        });
+        
+        map.addLayer({
+          id: 'sim-heatmap',
+          type: 'heatmap',
+          source: 'sim-footprint',
+          paint: {
+            'heatmap-weight': ['get', 'intensity'],
+            'heatmap-intensity': 1,
+            'heatmap-color': [
+              'interpolate', ['linear'], ['heatmap-density'],
+              0, 'rgba(16, 185, 129, 0)',
+              0.5, 'rgba(16, 185, 129, 0.5)',
+              1, 'rgba(16, 185, 129, 1)'
+            ],
+            'heatmap-radius': 35,
+            'heatmap-opacity': 0.8
+          }
+        });
+        setMapLoaded(true);
       });
     });
 
-    });
-
-    return () => { isActive = false; mapInstance?.remove(); };
+    return () => { isActive = false; mapInstanceRef.current?.remove(); };
   }, []);
+
+  // Update map dynamically when metrics change
+  React.useEffect(() => {
+    if (!mapLoaded || !mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+    
+    // Overall impact (negative means traffic/AQI/CO2 reduced = GOOD)
+    const impact = Number(metrics.traffic) + Number(metrics.aqi) + Number(metrics.co2);
+    const isGood = impact < 0;
+    
+    const features = [];
+    const center = [77.5946, 12.9716];
+    const numPoints = Math.min(250, Math.max(30, Math.abs(impact) * 4));
+    
+    // Seeded random for stable visualization during slider drags
+    let s = Math.abs(Math.round(impact * 10)) || 1;
+    const random = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+    
+    for (let i = 0; i < numPoints; i++) {
+      const r = random();
+      const r2 = random();
+      // Gaussian distribution around center
+      const radius = 0.12 * Math.sqrt(-2.0 * Math.log(Math.max(0.001, r)));
+      const theta = 2.0 * Math.PI * r2;
+      const lng = center[0] + radius * Math.cos(theta);
+      const lat = center[1] + radius * Math.sin(theta);
+      
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+        properties: { intensity: 0.2 + random() * 0.8 }
+      });
+    }
+
+    const source = map.getSource('sim-footprint');
+    if (source) {
+      source.setData({ type: 'FeatureCollection', features });
+    }
+
+    const color = isGood 
+      ? [
+          'interpolate', ['linear'], ['heatmap-density'],
+          0, 'rgba(16, 185, 129, 0)',
+          0.3, 'rgba(16, 185, 129, 0.5)',
+          0.7, 'rgba(5, 150, 105, 0.8)',
+          1, 'rgba(4, 120, 87, 1)'
+        ]
+      : [
+          'interpolate', ['linear'], ['heatmap-density'],
+          0, 'rgba(239, 68, 68, 0)',
+          0.3, 'rgba(239, 68, 68, 0.5)',
+          0.7, 'rgba(220, 38, 38, 0.8)',
+          1, 'rgba(185, 28, 28, 1)'
+        ];
+        
+    map.setPaintProperty('sim-heatmap', 'heatmap-color', color);
+    
+  }, [metrics, mapLoaded]);
 
   return (
     <div className="p-8 max-w-6xl mx-auto h-[calc(100vh-64px)] overflow-y-auto bg-[var(--bg-base)]">
