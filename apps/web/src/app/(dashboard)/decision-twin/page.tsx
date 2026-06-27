@@ -4,8 +4,20 @@ import React, { useState } from 'react';
 import { useSimulationStore, useUIStore } from '@/stores';
 import { Train, Zap, Route, Sun, Droplet, Leaf, Factory, Activity, Map as MapIcon, Database, ShieldAlert, HeartPulse, Gauge, Wind, CloudFog, PlugZap, Waves } from 'lucide-react';
 import { ConsequenceTree } from '@/components/ui/ConsequenceTree';
-import { CityMapTwin } from '@/components/ui/CityMapTwin';
 import { SafetyImpactForecast } from '@/components/ui/SafetyImpactForecast';
+import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
+
+const CityMapTwin = dynamic(() => import('@/components/ui/CityMapTwin').then(m => m.CityMapTwin), { 
+  ssr: false, 
+  loading: () => (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--slate-900)] text-white">
+      <Loader2 className="animate-spin mb-4" size={32} />
+      <div className="text-sm font-bold tracking-widest uppercase">Loading Bengaluru Digital Twin...</div>
+    </div>
+  ) 
+});
+
 
 const SLIDER_ICON_MAP: Record<string, React.ReactNode> = {
   train: <Train size={16} />,

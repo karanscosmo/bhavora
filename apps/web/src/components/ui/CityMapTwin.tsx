@@ -8,7 +8,7 @@ import { BENGALURU_METRO_GEOJSON } from '@/lib/gis/data';
 import { Layers } from 'lucide-react';
 
 const MAP_STYLES = {
-  dark: 'mapbox://styles/mapbox/dark-v11'
+  satellite: 'mapbox://styles/mapbox/satellite-streets-v12'
 };
 
 const BENGALURU_CENTER = [77.5946, 12.9716] as [number, number];
@@ -42,11 +42,11 @@ export function CityMapTwin({ year, setYear, interactive = true }: { year: numbe
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current!,
-        style: MAP_STYLES.dark,
+        style: MAP_STYLES.satellite,
         center: BENGALURU_CENTER,
         zoom: 11.5,
-        pitch: 55,
-        bearing: -17.6,
+        pitch: 60,
+        bearing: -20,
         antialias: true,
         interactive: interactive
       });
@@ -55,8 +55,18 @@ export function CityMapTwin({ year, setYear, interactive = true }: { year: numbe
         map.current.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
       }
 
+      console.log("Map initialized");
+
+      map.current.on('style.load', () => {
+        console.log("Style loaded");
+      });
+
       map.current.on('load', () => {
         if (!map.current) return;
+        console.log("Map loaded");
+
+        // Force a resize in case container was mounted invisibly
+        map.current.resize();
 
         // Metro Base
         map.current.addSource('metro-lines', { type: 'geojson', data: BENGALURU_METRO_GEOJSON });
@@ -70,6 +80,8 @@ export function CityMapTwin({ year, setYear, interactive = true }: { year: numbe
           filter: ['==', ['get', 'line'], 'Green'],
           paint: { 'line-color': '#16a34a', 'line-width': 4, 'line-opacity': 0.9 }
         });
+        
+        console.log("Layers mounted");
       });
     });
 
@@ -158,16 +170,85 @@ export function CityMapTwin({ year, setYear, interactive = true }: { year: numbe
         data: {
           type: 'FeatureCollection',
           features: [
-            { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[77.52, 13.02], [77.59, 12.97], [77.68, 12.92]] } }
+            { type: 'Feature', properties: { congestion: 25 + activePolicy.roadCapacity * 0.5 }, geometry: { type: 'LineString', coordinates: [[77.52, 13.02], [77.59, 12.97], [77.68, 12.92]] } },
+            { type: 'Feature', properties: { congestion: 80 - activePolicy.roadCapacity * 0.4 }, geometry: { type: 'LineString', coordinates: [[77.59, 12.97], [77.63, 12.93], [77.68, 12.95]] } }
           ]
         }
       });
       m.addLayer({
         id: 'road-corridors-layer', type: 'line', source: 'road-corridors',
-        paint: { 'line-color': '#f97316', 'line-width': 8, 'line-opacity': 0.4, 'line-blur': 2 }
+        paint: { 
+          'line-color': [
+            'interpolate', ['linear'], ['get', 'congestion'],
+            0, '#22c55e', 
+            30, '#eab308',
+            60, '#f97316',
+            90, '#ef4444'
+          ], 
+          'line-width': 6, 'line-opacity': 0.8, 'line-blur': 1 
+        }
       });
     } else if (!showRoads && m.getLayer('road-corridors-layer')) {
       m.removeLayer('road-corridors-layer'); m.removeSource('road-corridors');
+    }
+
+    // DISTRICT POLYGONS (Mocked for District visualization)
+    if (!m.getSource('districts-poly')) {
+       m.addSource('districts-poly', {
+         type: 'geojson',
+         data: {
+           type: 'FeatureCollection',
+           features: [
+             { 
+               type: 'Feature', properties: { name: 'Whitefield', risk: 40 }, 
+               geometry: { type: 'Polygon', coordinates: [[[77.72, 12.95], [77.78, 12.95], [77.78, 12.99], [77.72, 12.99], [77.72, 12.95]]] } 
+             },
+             { 
+               type: 'Feature', properties: { name: 'Electronic City', risk: 60 }, 
+               geometry: { type: 'Polygon', coordinates: [[[77.65, 12.83], [77.69, 12.83], [77.69, 12.86], [77.65, 12.86], [77.65, 12.83]]] } 
+             },
+             { 
+               type: 'Feature', properties: { name: 'Bellandur', risk: 85 }, 
+               geometry: { type: 'Polygon', coordinates: [[[77.66, 12.91], [77.69, 12.91], [77.69, 12.94], [77.66, 12.94], [77.66, 12.91]]] } 
+             }
+           ]
+         }
+       });
+       m.addLayer({
+         id: 'districts-fill', type: 'fill', source: 'districts-poly',
+         paint: {
+           'fill-color': [
+             'interpolate', ['linear'], ['get', 'risk'],
+             30, '#22c55e',
+             60, '#f59e0b',
+             90, '#ef4444'
+           ],
+           'fill-opacity': 0.2
+         }
+       }, 'road-corridors-layer');
+       m.addLayer({
+         id: 'districts-line', type: 'line', source: 'districts-poly',
+         paint: { 'line-color': '#ffffff', 'line-opacity': 0.4, 'line-width': 1 }
+       });
+    }
+
+    // GRID SUBSTATIONS
+    if (!m.getSource('grid-stations')) {
+       m.addSource('grid-stations', {
+         type: 'geojson',
+         data: {
+           type: 'FeatureCollection',
+           features: [
+             { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [77.6, 12.95] } },
+             { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [77.65, 12.92] } },
+             { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [77.58, 12.99] } }
+           ]
+         }
+       });
+       m.addLayer({
+         id: 'grid-stations-layer', type: 'circle', source: 'grid-stations',
+         paint: { 'circle-radius': 6, 'circle-color': '#fcd34d', 'circle-stroke-width': 2, 'circle-stroke-color': '#b45309' }
+       });
     }
 
     // GREEN SPACE
@@ -194,8 +275,8 @@ export function CityMapTwin({ year, setYear, interactive = true }: { year: numbe
   }, [year, activePolicy, activeLayers]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] bg-[var(--slate-900)] overflow-hidden rounded-xl">
-      <div ref={mapContainer} className="absolute inset-0" />
+    <div className="relative w-full h-full min-h-[600px] bg-[var(--slate-900)] overflow-hidden rounded-xl">
+      <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ height: '100%', width: '100%' }} />
       
       {/* Map Layers Control */}
       <div className="absolute top-4 right-4 bg-[var(--slate-900)]/90 backdrop-blur border border-[var(--slate-700)] rounded-xl p-3 text-white shadow-2xl z-10 w-48">
