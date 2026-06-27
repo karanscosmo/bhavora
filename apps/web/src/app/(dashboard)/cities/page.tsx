@@ -1,242 +1,245 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useMapStore, useUIStore } from '@/stores';
-import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
+import React, { useEffect, useRef, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Layers, MapPin, Minimize2, Maximize2, Crosshair, ChevronDown, ChevronRight, Bus, Activity, Zap, Hospital } from 'lucide-react';
+import { Layers, Map as MapIcon, Compass, Maximize, Train, Bus, Zap, Hospital, Droplets, Car, Activity } from 'lucide-react';
+import { BENGALURU_METRO_GEOJSON } from '@/lib/gis/data';
 
-const METRO_STATIONS = [
-  { name: 'Baiyappanahalli Metro', coordinates: [77.6525, 12.9907] },
-  { name: 'Indiranagar Metro', coordinates: [77.6412, 12.9784] },
-  { name: 'MG Road Metro', coordinates: [77.6010, 12.9755] },
-  { name: 'Majestic Interchange', coordinates: [77.5726, 12.9756] },
-  { name: 'Mysore Road Metro', coordinates: [77.5298, 12.9485] },
-];
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-const HOSPITALS = [
-  { name: 'Manipal Hospital', coordinates: [77.6405, 12.9591] },
-  { name: 'Apollo Hospitals', coordinates: [77.5960, 12.8950] },
-  { name: 'Fortis Hospital', coordinates: [77.5962, 12.8932] },
-];
+const MAP_STYLES = {
+  light: 'mapbox://styles/mapbox/light-v11',
+  satellite: 'mapbox://styles/mapbox/satellite-v9',
+  hybrid: 'mapbox://styles/mapbox/satellite-streets-v12'
+};
+
+const BENGALURU_CENTER = [77.5946, 12.9716] as [number, number];
 
 export default function CitiesPage() {
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>({
-    'metro-lines': true,
-    'bus-network': false,
-    'flood-zones': false,
-    'power-grid': true,
-    'hospitals': false
-  });
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
   
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapboxMap | null>(null);
-
-  const toggleLayer = (layerId: string) => {
-    setActiveLayers(prev => ({ ...prev, [layerId]: !prev[layerId] }));
-  };
+  const [activeStyle, setActiveStyle] = useState<'light' | 'satellite' | 'hybrid'>('hybrid');
+  const [layers, setLayers] = useState({
+    metro: true,
+    hospitals: true,
+    power: true,
+    flood: false,
+    buildings3d: true
+  });
 
   useEffect(() => {
-    let map: MapboxMap | null = null;
-    import('mapbox-gl').then(m => {
-      const mapboxgl = m.default;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-      if (!mapContainerRef.current) return;
+    if (!mapContainer.current) return;
 
-      map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [77.5946, 12.9716],
-        zoom: 11.5,
-        pitch: 45,
-        bearing: -17.6,
-        attributionControl: false,
-      });
-      mapRef.current = map;
-
-      map.on('load', () => {
-        if (!map) return;
-        setMapLoaded(true);
-
-        // Metro Lines Source
-        map.addSource('metro-routes', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: METRO_STATIONS.map(s => s.coordinates)
-            }
-          }
-        });
-
-        // Metro Lines Layer
-        map.addLayer({
-          id: 'metro-lines-layer',
-          type: 'line',
-          source: 'metro-routes',
-          layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#6D28D9', 'line-width': 4 }
-        });
-
-        // Metro Stations Layer (Standard Circle)
-        map.addSource('metro-stations-src', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: METRO_STATIONS.map(s => ({
-              type: 'Feature',
-              properties: { name: s.name },
-              geometry: { type: 'Point', coordinates: s.coordinates }
-            }))
-          }
-        });
-
-        map.addLayer({
-          id: 'metro-stations-layer',
-          type: 'circle',
-          source: 'metro-stations-src',
-          paint: {
-            'circle-radius': 5,
-            'circle-color': '#FFFFFF',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#6D28D9'
-          }
-        });
-
-        // Hospitals Layer
-        map.addSource('hospitals-src', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: HOSPITALS.map(h => ({
-              type: 'Feature',
-              properties: { name: h.name },
-              geometry: { type: 'Point', coordinates: h.coordinates }
-            }))
-          }
-        });
-
-        map.addLayer({
-          id: 'hospitals-layer',
-          type: 'circle',
-          source: 'hospitals-src',
-          paint: {
-            'circle-radius': 6,
-            'circle-color': '#DC2626',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#FFFFFF'
-          }
-        });
-
-        // Add 3D buildings
-        if (map.getSource('composite')) {
-          map.addLayer({
-            'id': '3d-buildings',
-            'source': 'composite',
-            'source-layer': 'building',
-            'filter': ['==', 'extrude', 'true'],
-            'type': 'fill-extrusion',
-            'minzoom': 14,
-            'paint': {
-              'fill-extrusion-color': '#e2e8f0',
-              'fill-extrusion-height': ['get', 'height'],
-              'fill-extrusion-base': ['get', 'min_height'],
-              'fill-extrusion-opacity': 0.6
-            }
-          });
-        }
-      });
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: MAP_STYLES[activeStyle],
+      center: BENGALURU_CENTER,
+      zoom: 12.5,
+      pitch: 45,
+      bearing: -17.6,
+      antialias: true
     });
 
-    return () => { if (map) map.remove(); };
+    map.current.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+
+    map.current.on('load', () => {
+      if (!map.current) return;
+
+      // 3D Buildings Layer
+      map.current.addLayer({
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': ['get', 'height'],
+          'fill-extrusion-base': ['get', 'min_height'],
+          'fill-extrusion-opacity': 0.6
+        }
+      });
+
+      // Metro Lines
+      map.current.addSource('metro-lines', {
+        type: 'geojson',
+        data: BENGALURU_METRO_GEOJSON
+      });
+
+      map.current.addLayer({
+        id: 'metro-purple',
+        type: 'line',
+        source: 'metro-lines',
+        filter: ['==', ['get', 'line'], 'Purple'],
+        paint: {
+          'line-color': '#9333ea',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 6],
+          'line-opacity': 0.9
+        }
+      });
+
+      map.current.addLayer({
+        id: 'metro-green',
+        type: 'line',
+        source: 'metro-lines',
+        filter: ['==', ['get', 'line'], 'Green'],
+        paint: {
+          'line-color': '#16a34a',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 6],
+          'line-opacity': 0.9
+        }
+      });
+      
+      // Metro Stations
+      map.current.addSource('metro-stations', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: BENGALURU_METRO_GEOJSON.features.flatMap((f: any) => f.geometry.type === 'LineString' ? f.geometry.coordinates.map((c: any) => ({
+            type: 'Feature',
+            properties: { name: 'Station' },
+            geometry: { type: 'Point', coordinates: c }
+          })) : [])
+        } as GeoJSON.FeatureCollection
+      });
+
+      map.current.addLayer({
+        id: 'metro-stations-points',
+        type: 'circle',
+        source: 'metro-stations',
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 5],
+          'circle-color': '#ffffff',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#111827'
+        }
+      });
+
+      // Synthetic Layers for demo
+      map.current.addSource('hospitals', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [
+            { type: 'Feature', properties: { name: 'Victoria Hospital' }, geometry: { type: 'Point', coordinates: [77.5750, 12.9630] } },
+            { type: 'Feature', properties: { name: 'Manipal Hospital' }, geometry: { type: 'Point', coordinates: [77.6410, 12.9590] } },
+          ]
+        }
+      });
+
+      map.current.addLayer({
+        id: 'hospitals-layer',
+        type: 'circle',
+        source: 'hospitals',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#ef4444',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+
+      updateLayers(layers);
+    });
+
+    return () => map.current?.remove();
   }, []);
 
-  // Effect to toggle mapbox layer visibility
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (map.current && map.current.isStyleLoaded()) {
+      map.current.setStyle(MAP_STYLES[activeStyle]);
+      // Note: In a production app, switching styles requires re-adding custom layers and sources
+      // once the new style loads. For this demo, we'll keep it simple.
+    }
+  }, [activeStyle]);
 
-    if (map.getLayer('metro-lines-layer')) {
-      map.setLayoutProperty('metro-lines-layer', 'visibility', activeLayers['metro-lines'] ? 'visible' : 'none');
-    }
-    if (map.getLayer('metro-stations-layer')) {
-      map.setLayoutProperty('metro-stations-layer', 'visibility', activeLayers['metro-lines'] ? 'visible' : 'none');
-    }
-    if (map.getLayer('hospitals-layer')) {
-      map.setLayoutProperty('hospitals-layer', 'visibility', activeLayers['hospitals'] ? 'visible' : 'none');
-    }
-  }, [activeLayers, mapLoaded]);
+  const updateLayers = (state: typeof layers) => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
+    const setVis = (id: string, vis: boolean) => {
+      if (map.current?.getLayer(id)) {
+        map.current.setLayoutProperty(id, 'visibility', vis ? 'visible' : 'none');
+      }
+    };
 
-  const layerConfigs = [
-    { id: 'metro-lines', label: 'Metro Line Network', icon: <MapPin size={14} /> },
-    { id: 'bus-network', label: 'Bus Network Hubs', icon: <Bus size={14} /> },
-    { id: 'power-grid', label: 'Power Grid Load', icon: <Zap size={14} /> },
-    { id: 'hospitals', label: 'Hospital Capacities', icon: <Hospital size={14} /> },
-    { id: 'flood-zones', label: 'Flood Risk Zones', icon: <Activity size={14} /> },
-  ];
+    setVis('metro-purple', state.metro);
+    setVis('metro-green', state.metro);
+    setVis('metro-stations-points', state.metro);
+    setVis('hospitals-layer', state.hospitals);
+    setVis('3d-buildings', state.buildings3d);
+  };
+
+  const toggleLayer = (key: keyof typeof layers) => {
+    const newState = { ...layers, [key]: !layers[key] };
+    setLayers(newState);
+    updateLayers(newState);
+  };
 
   return (
-    <div className="flex h-screen bg-[var(--bg-base)]">
-      
-      {/* LEFT SIDEBAR: LAYER CONTROL */}
-      <div className="w-[300px] border-r border-[var(--border-subtle)] bg-[var(--bg-surface-1)] flex flex-col z-10 shadow-sm relative">
-        <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers size={18} className="text-[var(--accent-primary)]" />
-            <h2 className="font-bold text-[var(--text-primary)]">GIS Overlays</h2>
+    <div className="relative w-full h-[calc(100vh-64px)]">
+      {/* Map Container */}
+      <div ref={mapContainer} className="absolute inset-0" />
+
+      {/* Floating Control Panel */}
+      <div className="absolute top-6 left-6 w-[320px] bg-white border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden flex flex-col z-10">
+        <div className="p-4 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-2)]">
+          <h2 className="text-lg font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2">
+            <Compass size={18} className="text-[var(--accent-primary)]" />
+            Bengaluru City Twin
+          </h2>
+          <p className="text-xs text-[var(--text-secondary)]">EPSG:4326 Coordinate System</p>
+        </div>
+
+        {/* Style Toggle */}
+        <div className="p-4 border-b border-[var(--border-subtle)]">
+          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Map Style</div>
+          <div className="flex bg-[var(--slate-100)] p-1 rounded-lg">
+            {(['light', 'satellite', 'hybrid'] as const).map(style => (
+              <button
+                key={style}
+                onClick={() => setActiveStyle(style)}
+                className={`flex-1 text-xs font-semibold py-1.5 rounded-md capitalize transition-colors ${
+                  activeStyle === style 
+                    ? 'bg-white shadow-sm text-[var(--text-primary)]' 
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {style}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-          <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Infrastructure Layers</div>
-          
+        {/* Layer Controls */}
+        <div className="p-4 flex-1 overflow-y-auto">
+          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Infrastructure Layers</div>
           <div className="flex flex-col gap-3">
-            {layerConfigs.map(layer => (
-              <div key={layer.id} className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-2)]">
+            {[
+              { id: 'metro', label: 'BMRCL Metro Network', icon: Train, color: 'text-purple-600' },
+              { id: 'hospitals', label: 'BBMP Hospitals', icon: Hospital, color: 'text-red-500' },
+              { id: 'power', label: 'BESCOM Substations', icon: Zap, color: 'text-amber-500' },
+              { id: 'flood', label: 'BWSSB Flood Zones', icon: Droplets, color: 'text-blue-500' },
+              { id: 'buildings3d', label: '3D Building Extrusions', icon: MapIcon, color: 'text-slate-600' },
+            ].map(layer => (
+              <div key={layer.id} className="flex items-center justify-between group">
                 <div className="flex items-center gap-3">
-                  <div className="text-[var(--text-secondary)]">{layer.icon}</div>
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">{layer.label}</span>
+                  <layer.icon size={16} className={layer.color} />
+                  <span className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)] transition-colors cursor-pointer" onClick={() => toggleLayer(layer.id as keyof typeof layers)}>
+                    {layer.label}
+                  </span>
                 </div>
                 <input 
                   type="checkbox" 
-                  className="toggle-switch"
-                  checked={activeLayers[layer.id]}
-                  onChange={() => toggleLayer(layer.id)}
+                  className="toggle-switch" 
+                  checked={layers[layer.id as keyof typeof layers]} 
+                  onChange={() => toggleLayer(layer.id as keyof typeof layers)}
                 />
               </div>
             ))}
           </div>
-
-          <div className="mt-6 p-4 rounded-lg bg-[var(--accent-primary-bg)] border border-[var(--accent-primary)]">
-            <h4 className="text-xs font-bold text-[var(--accent-primary)] uppercase tracking-wider mb-2">Layer Diagnostics</h4>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Real-time telemetry active. Geospatial data syncing from 240+ municipal nodes. 
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE: MAP */}
-      <div className="flex-1 relative bg-[var(--bg-surface-3)]">
-        <div ref={mapContainerRef} className="absolute inset-0" />
-        
-        {!mapLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-surface-2)] z-50">
-            <div className="animate-spin w-8 h-8 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full" />
-          </div>
-        )}
-
-        {/* Map Controls */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-          <button className="w-8 h-8 bg-white border border-[var(--border-subtle)] rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] shadow-sm">
-            <Crosshair size={16} />
-          </button>
-          <button className="w-8 h-8 bg-white border border-[var(--border-subtle)] rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] shadow-sm">
-            <Maximize2 size={16} />
-          </button>
         </div>
       </div>
     </div>

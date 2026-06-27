@@ -8,7 +8,7 @@ export function BrandHeader() {
       className="flex items-center px-[24px] bg-white border-b border-[var(--border-subtle)] flex-shrink-0"
       style={{ height: '76px' }} // 72-80px as requested
     >
-      <Link href="/overview" className="flex items-center" style={{ gap: '12px' }}>
+      <Link href="/overview" className="flex items-center flex-shrink-0" style={{ gap: '24px' }}>
         <LogoIcon size={52} className="text-[var(--accent-primary)]" />
         <div className="flex flex-col justify-center">
           <span 
@@ -34,7 +34,7 @@ export function BrandHeader() {
               marginTop: '2px'
             }}
           >
-            Urban Intelligence Operating System
+            URBAN INTELLIGENCE OS
           </span>
         </div>
       </Link>

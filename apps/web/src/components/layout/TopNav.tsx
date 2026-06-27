@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LogoLight } from '@/components/ui/Logo';
 import { useAppStore, useCityDataStore, useSimulationStore } from '@/stores';
+import { Search, AlertTriangle, Bell, User } from 'lucide-react';
 
 const SEARCH_ITEMS = [
   { name: 'Command Center Dashboard', type: 'Page', path: '/overview' },
@@ -130,7 +131,7 @@ export function TopNav() {
             borderRadius: '8px',
             padding: '7px 12px',
           }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>⌕</span>
+            <Search size={14} className="text-[var(--text-muted)]" />
             <input
               value={searchQ}
               onChange={e => { setSearchQ(e.target.value); setShowSearch(true); }}
@@ -180,10 +181,10 @@ export function TopNav() {
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '5px 10px', borderRadius: '20px',
                 background: 'var(--accent-amber-light)', border: '1px solid var(--border-normal)',
-                color: 'var(--accent-amber)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                color: 'var(--accent-warning)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
               }}
             >
-              ⚠ {alertCount} Alerts
+              <AlertTriangle size={12} /> {alertCount} Alerts
             </button>
           )}
 
@@ -197,7 +198,7 @@ export function TopNav() {
                 fontSize: '16px', transition: 'all 150ms', position: 'relative',
               }}
             >
-              🔔
+              <Bell size={20} />
               {alertCount > 0 && (
                 <span style={{
                   position: 'absolute', top: '4px', right: '4px',
