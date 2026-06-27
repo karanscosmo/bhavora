@@ -11,6 +11,8 @@ export default function RedesignedLandingPage() {
   const [activePreview, setActivePreview] = useState<'cities' | 'decision' | 'results' | 'impact' | 'ai' | 'reports'>('cities');
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxMap | null>(null);
+  const previewMapContainerRef = useRef<HTMLDivElement>(null);
+  const previewMapRef = useRef<MapboxMap | null>(null);
 
   // Mapbox Initializer
   useEffect(() => {
@@ -65,6 +67,35 @@ export default function RedesignedLandingPage() {
       if (map) map.remove();
     };
   }, []);
+
+  // Mapbox Initializer for Preview Card
+  useEffect(() => {
+    let previewMap: MapboxMap | null = null;
+
+    if (activePreview === 'cities') {
+      import('mapbox-gl').then((mapboxglModule) => {
+        const mapboxgl = mapboxglModule.default;
+        mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
+        if (!previewMapContainerRef.current) return;
+
+        previewMap = new mapboxgl.Map({
+          container: previewMapContainerRef.current,
+          style: 'mapbox://styles/mapbox/dark-v11',
+          center: [77.5946, 12.9716],
+          zoom: 10,
+          pitch: 45,
+          attributionControl: false
+        });
+
+        previewMapRef.current = previewMap;
+      });
+    }
+
+    return () => {
+      if (previewMap) previewMap.remove();
+    };
+  }, [activePreview]);
 
   return (
     <div className="bg-[#f8f9ff] text-gray-900 min-h-screen font-sans selection:bg-primary/20 scroll-smooth">
@@ -264,7 +295,7 @@ export default function RedesignedLandingPage() {
                   </Link>
                 </div>
                 <div className="rounded-2xl overflow-hidden border border-outline-variant/20 h-48 bg-[#cbdbf5] relative shadow-sm">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-cyan-900/40" />
+                  <div ref={previewMapContainerRef} className="absolute inset-0 bg-slate-900" />
                 </div>
               </div>
             )}
