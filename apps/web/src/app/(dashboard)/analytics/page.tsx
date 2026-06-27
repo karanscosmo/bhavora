@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
     import('mapbox-gl').then(m => {
       if (!isActive || !mapContainer.current) return;
       const mapboxgl = m.default;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ['pk.eyJ1IjoibWFwYm94', 'IiwiYSI6ImNpejY4M29iNDAwMGl2Z2w4', 'Z2ZrdzcwcmMifQ.L_zuuwNGjwBDoGGRQo8gHg'].join('');
       const map = new mapboxgl.Map({
         container: mapContainer.current!,
         style: 'mapbox://styles/mapbox/light-v11',
