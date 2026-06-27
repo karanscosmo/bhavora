@@ -71,9 +71,11 @@ export default function RedesignedLandingPage() {
   // Mapbox Initializer for Preview Card
   useEffect(() => {
     let previewMap: MapboxMap | null = null;
+    let isCancelled = false;
 
     if (activePreview === 'cities') {
       import('mapbox-gl').then((mapboxglModule) => {
+        if (isCancelled) return;
         const mapboxgl = mapboxglModule.default;
         mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
@@ -93,7 +95,11 @@ export default function RedesignedLandingPage() {
     }
 
     return () => {
-      if (previewMap) previewMap.remove();
+      isCancelled = true;
+      if (previewMap) {
+        previewMap.remove();
+        previewMapRef.current = null;
+      }
     };
   }, [activePreview]);
 
@@ -295,7 +301,9 @@ export default function RedesignedLandingPage() {
                   </Link>
                 </div>
                 <div className="rounded-2xl overflow-hidden border border-outline-variant/20 h-48 bg-[#cbdbf5] relative shadow-sm">
-                  <div ref={previewMapContainerRef} className="absolute inset-0 bg-slate-900" />
+                  <div ref={previewMapContainerRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0f172a', width: '100%', height: '100%' }} className="flex items-center justify-center text-white/50 text-xs font-mono">
+                    Initializing Preview Map...
+                  </div>
                 </div>
               </div>
             )}
