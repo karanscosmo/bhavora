@@ -1,13 +1,83 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { Car, ChevronRight, Cloud, Download, Droplet, Leaf, Shield, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+import type { Map as MapboxMap } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 
 export default function SimulationResultsPage() {
   const store = useSimulationStore();
   const results = store;
   
+  const mapBeforeRef = useRef<HTMLDivElement>(null);
+  const mapAfterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let map1: MapboxMap | null = null;
+    let map2: MapboxMap | null = null;
+
+    import('mapbox-gl').then((mapboxglModule) => {
+      const mapboxgl = mapboxglModule.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
+      if (mapBeforeRef.current) {
+        map1 = new mapboxgl.Map({
+          container: mapBeforeRef.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [77.5946, 12.9716],
+          zoom: 11,
+          pitch: 30,
+          attributionControl: false
+        });
+        
+        map1.on('load', () => {
+          if (!map1) return;
+          map1.addSource('traffic-heavy', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: Array.from({ length: 150 }).map(() => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946 + (Math.random() - 0.5) * 0.2, 12.9716 + (Math.random() - 0.5) * 0.2] } })) as any }
+          });
+          map1.addLayer({
+            id: 'traffic-heavy-layer',
+            type: 'heatmap',
+            source: 'traffic-heavy',
+            paint: { 'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.5, 'rgba(255,69,0,0.8)', 1, 'rgba(255,0,0,1)'], 'heatmap-radius': 20 }
+          });
+        });
+      }
+
+      if (mapAfterRef.current) {
+        map2 = new mapboxgl.Map({
+          container: mapAfterRef.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [77.5946, 12.9716],
+          zoom: 11,
+          pitch: 30,
+          attributionControl: false
+        });
+        
+        map2.on('load', () => {
+          if (!map2) return;
+          map2.addSource('traffic-light', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: Array.from({ length: 40 }).map(() => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946 + (Math.random() - 0.5) * 0.2, 12.9716 + (Math.random() - 0.5) * 0.2] } })) as any }
+          });
+          map2.addLayer({
+            id: 'traffic-light-layer',
+            type: 'heatmap',
+            source: 'traffic-light',
+            paint: { 'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.5, 'rgba(0,255,0,0.8)', 1, 'rgba(0,128,0,1)'], 'heatmap-radius': 15 }
+          });
+        });
+      }
+    });
+
+    return () => {
+      if (map1) map1.remove();
+      if (map2) map2.remove();
+    };
+  }, []);
+
   // Advanced Score Calculations
   const sustainabilityScore = Math.min(10, Math.max(0, (10 - (results?.metrics?.carbonEmissions || 0) * 0.1 - (results?.metrics?.energyDemand || 0) * 0.05))).toFixed(1);
   const resilienceScore = Math.min(10, Math.max(0, (10 - ((results?.metrics?.infrastructureStress || 68) - 68) * 0.1 - (results?.metrics?.waterDemand || 0) * 0.1))).toFixed(1);
@@ -151,7 +221,7 @@ export default function SimulationResultsPage() {
             <span className="bg-surface-container px-3 py-1 rounded-full text-label-md text-on-surface-variant">Current (2025)</span>
           </div>
           <div className="relative h-96 rounded-xl overflow-hidden bg-surface-variant/20 border border-outline-variant/30">
-            <div className="absolute inset-0 z-0 bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjJqA2zqyjwS3nX5WpOsgGzm-Z3FtlRp-Sq4BiHABV4AfXuq0w9swBBhNoF_yjmmwWBDNlXsSEbD90U3X59uhEKXgn5uGqZa_ZDXkGbFo6rWFwN_X1rbwK54xhENNFLdcA4qM_thrw--s1eqIyxlfRsH37ID_E669achFMgh_adt7Ji1iy9kI_A2mUNrZ7vTgeacuxl7MqqLq9LUc60zHai_mCDsCWIFDV3Yzp1wZtFtZnMeVUkDpzXzukVvOBLqy4emO3aeShEXc')" }}></div>
+            <div ref={mapBeforeRef} className="absolute inset-0 z-0 bg-slate-200" />
             <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-xl px-4 py-2 flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-error"></div>
               <span className="text-label-md text-on-surface">Congestion Peak</span>
@@ -164,7 +234,7 @@ export default function SimulationResultsPage() {
             <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-md font-bold">Optimized</span>
           </div>
           <div className="relative h-96 rounded-xl overflow-hidden bg-surface-variant/20 border border-outline-variant/30">
-            <div className="absolute inset-0 z-0 bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCECrqMCWrozB7nT_o7yxC7JP9ndVCum8yE5ST3mKEM9ChxJVs8wYMeHGUS-tvpAVW8GLYsVW3hDRoQRL-IZb_OpN35FWiVWAfBtORqNdIOGKVSZ7YwobswJISJQLWQlbbE-KMp9H0bEc71BatDY7wn-2ou37vSwcs9WOGgdJtohrnICL7JE5NR3orluKPDEw3L1Vq3tuMXgky_vNboaWOpeUI86eyrG5S0474Vbmm7P3qwWQjq_2lCQA5wm6CWqyNwAKWQF_8yjb0')" }}></div>
+            <div ref={mapAfterRef} className="absolute inset-0 z-0 bg-slate-200" />
             <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-xl px-4 py-2 flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-tertiary"></div>
               <span className="text-label-md text-on-surface">Optimized Flow</span>

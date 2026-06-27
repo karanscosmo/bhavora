@@ -1,13 +1,41 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { ArrowRight, Calendar, CheckCircle, Database, Droplet, Filter, History, Info, Link, Plug, Rss, Sparkles, Star, TrendingUp, Zap } from 'lucide-react';
+import type { Map as MapboxMap } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 
 export default function InsightsPage() {
   const store = useSimulationStore();
   const { metrics, popGrowth, recommendations } = store;
+  
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let map: MapboxMap | null = null;
+
+    import('mapbox-gl').then((mapboxglModule) => {
+      const mapboxgl = mapboxglModule.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
+      if (mapRef.current) {
+        map = new mapboxgl.Map({
+          container: mapRef.current,
+          style: 'mapbox://styles/mapbox/dark-v11',
+          center: [77.5946, 12.9716],
+          zoom: 11.5,
+          pitch: 60,
+          attributionControl: false
+        });
+      }
+    });
+
+    return () => {
+      if (map) map.remove();
+    };
+  }, []);
 
   // Compute dynamic stats
   const powerRad = (12.4 * (1 + metrics.energyDemand / 100)).toFixed(1);
@@ -158,7 +186,7 @@ export default function InsightsPage() {
         <div className="col-span-12 lg:col-span-6 h-[400px]">
           <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl h-full flex flex-col overflow-hidden relative shadow-sm hover:-translate-y-1 transition-all">
             <div className="absolute inset-0 bg-[#e5eeff]">
-              <div className="w-full h-full bg-cover bg-center opacity-60 mix-blend-multiply" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1_8vkxn7sDewDywUgyCtlEuQdzmI1xkpmTFW_9ztYwWjrUKGyqtfnj3fZDPfzVnZUvdkVmlwY1fE9vwvbSaoVMu_2PV6nA8X5oh9B-5xEH2wHw9CfuOT0QpKBeHtQP4kVt78qnbi2NXO9kY8hDACNS8W8oBMiirvjiR942FPiHlBB2ExmkbhfSRfJhuF_4jiYBZrP_xIGnxJ718qr1Z7XVwOr5hCZyqAft43z4wvQOUDUCqgCzDkyUG_m2nma2KZjA7xTYVx7Fs8')" }}></div>
+              <div ref={mapRef} className="w-full h-full" />
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl border border-outline-variant/30 shadow-sm">
                   <p className="font-mono-label text-primary uppercase text-[10px] mb-1">PROPOSED METRO LINE 3</p>

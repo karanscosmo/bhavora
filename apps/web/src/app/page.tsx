@@ -1,12 +1,70 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Building2, Activity, PlayCircle, Play, Server, Workflow, PieChart, LineChart, Brain, FileText } from 'lucide-react';
+import type { Map as MapboxMap } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 
 export default function RedesignedLandingPage() {
   const [activePreview, setActivePreview] = useState<'cities' | 'decision' | 'results' | 'impact' | 'ai' | 'reports'>('cities');
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
+
+  // Mapbox Initializer
+  useEffect(() => {
+    let map: MapboxMap | null = null;
+
+    import('mapbox-gl').then((mapboxglModule) => {
+      const mapboxgl = mapboxglModule.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
+      if (!mapContainerRef.current) return;
+
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [77.5946, 12.9716],
+        zoom: 11.5,
+        pitch: 60,
+        bearing: -17.6,
+        attributionControl: false
+      });
+
+      mapRef.current = map;
+      
+      map.on('style.load', () => {
+          if (!map) return;
+          map.addLayer({
+            'id': '3d-buildings',
+            'source': 'composite',
+            'source-layer': 'building',
+            'filter': ['==', 'extrude', 'true'],
+            'type': 'fill-extrusion',
+            'minzoom': 10,
+            'paint': {
+              'fill-extrusion-color': '#e2e8f0',
+              'fill-extrusion-height': [
+                'interpolate', ['linear'], ['zoom'],
+                10, 0,
+                10.05, ['get', 'height']
+              ],
+              'fill-extrusion-base': [
+                'interpolate', ['linear'], ['zoom'],
+                10, 0,
+                10.05, ['get', 'min_height']
+              ],
+              'fill-extrusion-opacity': 0.6
+            }
+          });
+      });
+    });
+
+    return () => {
+      if (map) map.remove();
+    };
+  }, []);
 
   return (
     <div className="bg-[#f8f9ff] text-gray-900 min-h-screen font-sans selection:bg-primary/20 scroll-smooth">
@@ -82,7 +140,7 @@ export default function RedesignedLandingPage() {
             {/* Right: City Visualization Motion Graphics */}
             <div className="lg:col-span-6 relative flex items-center justify-center" style={{ minHeight: '480px' }}>
               <div className="relative w-full max-w-[540px] h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/50 animate-scale-in">
-                <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB82AMsV0y5iFxw8vhyEgiPxfo_p3S-3C1uTDlelygUfB_33WAngO32N1gSxgHugfa883yqHkEBvyi8wrZo7DkUg4WSeOmwp8YQQ9dDujWWrehDElVUwAIv2OtIIyBfdqAeXn7tKswc9EMzlDKPrhIfD49k7Hr0H7KXqsk0icerXiGwiv7a_cM4rsTWFUNhydKFR4o8rRKsDwYXOLCAgv3otIZs3XHeqp1tC8r3WScYA3MhcZ5MOJO4opeJMSzW-cKzp69gM6oFZI8" alt="Bengaluru Digital Twin Mesh" />
+                <div ref={mapContainerRef} className="w-full h-full bg-slate-100 absolute inset-0" />
                 <div className="absolute inset-0 bg-gradient-to-t from-blue-500/10 via-transparent to-transparent"></div>
                 {/* Floating telemetry alerts */}
                 <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-xl rounded-full px-3 py-1.5 flex items-center gap-2 border border-white/10">
@@ -206,7 +264,7 @@ export default function RedesignedLandingPage() {
                   </Link>
                 </div>
                 <div className="rounded-2xl overflow-hidden border border-outline-variant/20 h-48 bg-[#cbdbf5] relative shadow-sm">
-                  <div className="absolute inset-0 bg-cover bg-center opacity-65" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWCLJjzLm5_6cIlTrbUeZPKB3j1yMbf6uipdGKwXlKMht67rfwpTVHYAKI6h2KSj0a2dwWoJrRD8_4r2IX1Kly5-9t7m-4EHhChkRwSjOT4pubCBKxGoqrYYpqYEdHxrYef_i7hl_bexnk6TmVzQmEKXICwaeOJM4w3pen0ytDIsH1TZAQdG0hX9zzA37AkWJmsqebSJDVyp_FunaoQsmdJnwis0K6hZXCAz2X0X75K-236MgvioH8bg2BnEEllz2FUNX-IsR9uDY')" }}></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-cyan-900/40" />
                 </div>
               </div>
             )}
