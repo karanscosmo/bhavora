@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useSimulationStore } from '@/store/useSimulationStore';
+import { useSimulationStore } from '@/stores';
 import { ArrowRight, Terminal, Send, X, Zap, Activity, Clock, Crosshair, ChevronRight } from 'lucide-react';
 
 interface Message {
@@ -27,25 +27,26 @@ export function OperationsAgent() {
   // Proactive Agent Logic
   useEffect(() => {
     // Generate an intelligent, context-aware greeting based on CURRENT store metrics
-    const { metrics, popGrowth } = store;
+    const { results, activePolicy } = store;
     
     let proactiveMessage = "SYS_INIT_SUCCESS. COMMAND NODE ONLINE. WAITING FOR DIRECTIVE...";
     let actions: { label: string; onClick: () => void }[] = [];
 
-    if (metrics.trafficCongestion > 15) {
-      proactiveMessage = `CRITICAL ALERT: SECTOR 4 CONGESTION ANOMALY DETECTED.\nProjected increase: ${Math.round(metrics.trafficCongestion)}% (Driven by ${popGrowth}% pop influx).\n\nRECOMMENDED COUNTERMEASURES:\n> Adjust ORR signal cycle timing (+8%)\n> Mobilize rapid transit reserves (4 units)\n> Expedite Metro Phase 3 funding authorization`;
+    // If traffic got significantly worse
+    if (results.traffic.delta > 5) {
+      proactiveMessage = `CRITICAL ALERT: SECTOR 4 CONGESTION ANOMALY DETECTED.\nProjected increase: +${Math.round(results.traffic.delta)}%.\n\nRECOMMENDED COUNTERMEASURES:\n> Adjust ORR signal cycle timing (+8%)\n> Mobilize rapid transit reserves (4 units)\n> Expedite Metro Phase 3 funding authorization`;
       actions = [
-        { label: "EXECUTE: METRO_EXPANSION_PROTOCOL", onClick: () => { store.setInputs({ metroExpansion: 10 }); store.runSimulation(); } }
+        { label: "EXECUTE: METRO_EXPANSION_PROTOCOL", onClick: () => { store.setPolicy({ metroExpansion: Math.min(100, activePolicy.metroExpansion + 20) }); } }
       ];
-    } else if (metrics.energyDemand > 20) {
-      proactiveMessage = `CRITICAL ALERT: GRID LOAD EXCEEDING SAFE PARAMETERS.\nSubstation Beta capacity at 94%.\n\nRECOMMENDED COUNTERMEASURES:\n> Initiate smart-grid load shedding\n> Reroute 400MW from Solar Node Alpha\n> Broadcast emergency conservation directive`;
+    } else if (activePolicy.renewableShare < 20) {
+      proactiveMessage = `CRITICAL ALERT: GRID EMISSIONS EXCEEDING SAFE PARAMETERS.\nFossil fuel dependency critically high.\n\nRECOMMENDED COUNTERMEASURES:\n> Initiate smart-grid load shedding\n> Reroute 400MW from Solar Node Alpha\n> Broadcast emergency conservation directive`;
       actions = [
-        { label: "EXECUTE: GRID_BALANCING_PROTOCOL", onClick: () => { store.setInputs({ renewableGrowth: 50 }); store.runSimulation(); } }
+        { label: "EXECUTE: GRID_BALANCING_PROTOCOL", onClick: () => { store.setPolicy({ renewableShare: 50 }); } }
       ];
-    } else if (metrics.waterDemand > 15) {
+    } else if (activePolicy.waterInfrastructure < 15) {
       proactiveMessage = `WARNING: RESOURCE DEPLETION VECTOR ACCELERATED.\nCauvery Stage V supply insufficient for projected growth phase.\n\nRECOMMENDED COUNTERMEASURES:\n> Mandate STP water reclamation\n> Throttle industrial quota (-5%)\n> Deploy automated pressure valving`;
       actions = [
-        { label: "EXECUTE: RESOURCE_CONSERVATION_PROTOCOL", onClick: () => { store.setInputs({ indExpansion: -5 }); store.runSimulation(); } }
+        { label: "EXECUTE: RESOURCE_CONSERVATION_PROTOCOL", onClick: () => { store.setPolicy({ waterInfrastructure: 30 }); } }
       ];
     }
 
@@ -61,7 +62,7 @@ export function OperationsAgent() {
       ]);
     }, 500);
     return () => clearTimeout(timer);
-  }, [store.metrics, store.popGrowth]);
+  }, [store.results, store.activePolicy]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
