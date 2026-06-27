@@ -28,9 +28,9 @@ export function ActionModal({ isOpen, onClose, onExecute, title, description, re
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-surface border border-outline-variant/30 shadow-2xl rounded-2xl z-[101] overflow-hidden"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-surface border border-[var(--border-subtle)] shadow-2xl rounded-2xl z-[101] overflow-hidden"
           >
-            <div className="p-6 border-b border-outline-variant/20 flex items-center justify-between bg-primary-fixed/20">
+             <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between bg-primary-fixed/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg">
                   <Sparkles />
@@ -53,7 +53,7 @@ export function ActionModal({ isOpen, onClose, onExecute, title, description, re
               <div className="space-y-3">
                 <h4 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Recommended Interventions</h4>
                 {recommendations.map((rec, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low">
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-xl border border-[var(--border-subtle)] bg-surface-container-low">
                     <input type="checkbox" defaultChecked className="mt-1 accent-primary w-4 h-4 cursor-pointer" />
                     <span className="text-sm text-on-surface">{rec}</span>
                   </div>
@@ -61,7 +61,7 @@ export function ActionModal({ isOpen, onClose, onExecute, title, description, re
               </div>
             </div>
 
-            <div className="p-6 border-t border-outline-variant/20 bg-surface-container flex justify-end gap-3">
+            <div className="p-6 border-t border-[var(--border-subtle)] bg-surface-container flex justify-end gap-3">
               <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-bold text-sm text-on-surface-variant hover:bg-black/5 transition-colors">
                 Cancel
               </button>

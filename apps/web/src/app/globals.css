@@ -57,6 +57,15 @@
   --color-surface-3: var(--bg-surface-3);
   --color-surface-4: var(--bg-surface-4);
   --color-surface-dim: var(--bg-surface-2);
+  --color-surface: var(--bg-surface-1);
+  --color-surface-container-low: var(--bg-surface-2);
+  --color-surface-container: var(--bg-surface-3);
+  --color-on-surface: var(--text-primary);
+  --color-on-surface-variant: var(--text-secondary);
+
+  --color-primary: var(--accent-navy);
+  --color-primary-fixed: var(--accent-navy-light);
+  --color-on-primary: #ffffff;
 
   --color-accent-navy: var(--accent-navy);
   --color-accent-navy-mid: var(--accent-navy-mid);
@@ -111,7 +120,7 @@
    ======================================== */
 @layer base {
   * {
-    @apply border-outline-variant/30;
+    border-color: var(--border-subtle);
     box-sizing: border-box;
   }
 
