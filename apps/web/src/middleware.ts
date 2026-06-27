@@ -15,6 +15,8 @@ export function middleware(request: NextRequest) {
     frame-ancestors 'none';
     upgrade-insecure-requests;
     connect-src 'self' https://api.mapbox.com https://events.mapbox.com;
+    worker-src 'self' blob:;
+    child-src 'self' blob:;
   `.replace(/\s{2,}/g, ' ').trim();
 
   const requestHeaders = new Headers(request.headers);
