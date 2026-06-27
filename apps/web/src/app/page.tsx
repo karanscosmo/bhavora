@@ -147,7 +147,7 @@ export default function RedesignedLandingPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
                 </span>
-                SIH 2025 Innovation Prototype
+                AI Innovation Prototype
               </div>
 
               <h1 className="text-[3.4rem] md:text-[4rem] leading-[1.08] font-extrabold tracking-tight text-gray-900">
@@ -507,7 +507,7 @@ export default function RedesignedLandingPage() {
           <div className="flex items-center gap-4">
             <span className="font-bold text-blue-400 text-sm">BHAVORA</span>
             <span className="text-gray-700">|</span>
-            <span className="text-gray-500 text-[12px]">© 2025 Bugs2Bucks. Built for SIH 2025.</span>
+            <span className="text-gray-500 text-[12px]">© 2025 Bhavora. All rights reserved.</span>
           </div>
           <div className="flex gap-8">
             <span className="hover:text-blue-400 cursor-pointer">Privacy Policy</span>

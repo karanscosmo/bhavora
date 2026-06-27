@@ -102,7 +102,7 @@ const defaultPresets: SavedScenario[] = [
   {
     id: "preset-ev-2035",
     name: "EV Revolution 2035",
-    creator: "Bugs2Bucks Plan",
+    creator: "System Plan",
     date: "2026-06-26 18:20",
     version: "v3.0.4",
     inputs: { evAdoption: 80, popGrowth: 12, indExpansion: 4, metroExpansion: 2, renewableGrowth: 60, climateEvent: "None", disasterEvent: "None" },
