@@ -91,7 +91,7 @@ export function TopNav() {
     }}>
       {/* Logo zone (width matches sidebar) */}
       <div style={{
-        width: '224px',
+        width: '256px',
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',

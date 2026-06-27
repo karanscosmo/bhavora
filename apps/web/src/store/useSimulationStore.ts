@@ -236,7 +236,7 @@ export const useSimulationStore = create<SimulationStore>()(
         const renewFactor = renew;
 
         let water_impact = (popFactor * 1.2) + (indFactor * 1.8);
-        let base_traffic = (popFactor * 1.5) + (indFactor * 0.8);
+        const base_traffic = (popFactor * 1.5) + (indFactor * 0.8);
 
         // 2. Metro directly relieves traffic, EV relieves slight congestion
         let traffic_impact = base_traffic - (metroFactor * 3.0) - (evFactor * 0.1);
@@ -248,7 +248,7 @@ export const useSimulationStore = create<SimulationStore>()(
         let carbon_impact = (indFactor * 1.5) + (traffic_impact * 0.6) - (evFactor * 0.8) - (renewFactor * 1.2);
 
         // 5. Employment
-        let employment_impact = (indFactor * 2.0) + (metroFactor * 1.5) + (renewFactor * 0.8);
+        const employment_impact = (indFactor * 2.0) + (metroFactor * 1.5) + (renewFactor * 0.8);
 
         // 6. Infrastructure Stress
         let infra_stress = 35 + (energy_impact * 1.2) + (water_impact * 1.5) + (traffic_impact * 0.8);

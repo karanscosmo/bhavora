@@ -1,12 +1,29 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   useAgentStore, useUIStore, useCityDataStore, useSimulationStore,
   AGENTS, AgentId, AgentMessage,
 } from '@/stores';
+import { Bot, Send, X, Brain, Activity, MapPin, AlertTriangle, Zap, Target, ArrowRight, Clock, Loader2, Building2, Leaf } from 'lucide-react';
 
-// Deterministic responses per agent
+const AGENT_ICONS: Record<AgentId, React.ReactNode> = {
+  executive: <Target size={16} />,
+  urban: <Building2 size={16} />,
+  disaster: <AlertTriangle size={16} />,
+  sustainability: <Leaf size={16} />,
+  infrastructure: <Zap size={16} />,
+};
+
+const AGENT_LUCIDE_ICONS: Record<AgentId, React.ReactNode> = {
+  executive: <Target size={32} strokeWidth={1.5} />,
+  urban: <Building2 size={32} strokeWidth={1.5} />,
+  disaster: <AlertTriangle size={32} strokeWidth={1.5} />,
+  sustainability: <Leaf size={32} strokeWidth={1.5} />,
+  infrastructure: <Zap size={32} strokeWidth={1.5} />,
+};
+
 const AGENT_RESPONSES: Record<AgentId, Record<string, string>> = {
   executive: {
     default: "Based on current city metrics — City Health 64/100, Congestion 67%, AQI 142 — I recommend three immediate priorities:\n\n**1. Metro Corridor Acceleration** — Electronic City to Hebbal line has the highest ROI based on traffic density modeling. Impact: −12% congestion on Outer Ring Road.\n\n**2. Eastern Substation Reinforcement** — Substations #7 and #11 are at 91% and 87% capacity. Risk of cascading failure by Q3 2027 if not addressed.\n\n**3. Water Infrastructure NE Corridor** — Demand-supply gap of 350 MLD projected by 2027 in Whitefield-Marathahalli belt.\n\nShall I generate a board-ready briefing on any of these?",
@@ -57,26 +74,145 @@ function getAgentResponse(agentId: AgentId, userMessage: string): string {
   return responses.default;
 }
 
-// Format markdown-ish responses
+function getActionCards(agentId: AgentId, text: string): { label: string; path: string }[] {
+  const actions: { label: string; path: string }[] = [];
+  if (text.includes('Metro') || text.includes('corridor')) {
+    actions.push({ label: 'View Metro Map', path: '/cities' });
+    actions.push({ label: 'Run Metro Simulation', path: '/simulate' });
+  }
+  if (text.includes('Substation') || text.includes('grid') || text.includes('power')) {
+    actions.push({ label: 'View Grid Status', path: '/disaster' });
+    actions.push({ label: 'Run Grid Simulation', path: '/simulate' });
+  }
+  if (text.includes('flood') || text.includes('evacuat') || text.includes('risk zone')) {
+    actions.push({ label: 'View Flood Map', path: '/disaster' });
+    actions.push({ label: 'Run Disaster Simulation', path: '/simulate' });
+  }
+  if (text.includes('EV') || text.includes('charging')) {
+    actions.push({ label: 'View EV Map', path: '/overview' });
+    actions.push({ label: 'Run EV Simulation', path: '/simulate' });
+  }
+  if (text.includes('Carbon') || text.includes('water stress') || text.includes('sustainability')) {
+    actions.push({ label: 'View Sustainability Dashboard', path: '/cities' });
+  }
+  if (text.includes('density') || text.includes('zoning')) {
+    actions.push({ label: 'View Zoning Map', path: '/overview' });
+  }
+  if (text.includes('Briefing') || text.includes('QUARTERLY')) {
+    actions.push({ label: 'Generate Full Report', path: '/simulate' });
+  }
+  return actions.slice(0, 3);
+}
+
+function getAgentGreeting(agentId: AgentId, cityData: { metrics: { cityHealthScore: number; congestionIndex: number; aqi: number; activeIncidents: number; gridLoad: number; waterDemand: number } }): string {
+  const { cityHealthScore, congestionIndex, aqi, activeIncidents, gridLoad, waterDemand } = cityData.metrics;
+  const greetings: Record<AgentId, string> = {
+    executive: `City Health ${cityHealthScore}/100 · Congestion ${congestionIndex}% · AQI ${aqi} · ${activeIncidents} active incidents`,
+    urban: `Current density load: ${congestionIndex}% congestion · ${waterDemand} MLD demand · Ready for zoning analysis`,
+    disaster: `${activeIncidents} active incidents · AQI ${aqi} · Flood risk monitoring active for monsoon season`,
+    sustainability: `Carbon trajectory tracking · Water gap ${1800 - waterDemand} MLD · Grid load ${gridLoad} GW`,
+    infrastructure: `Grid at ${gridLoad} GW · ${activeIncidents} infrastructure alerts · EV adoption analysis ready`,
+  };
+  return greetings[agentId] || 'System nominal';
+}
+
 function FormatResponse({ text }: { text: string }) {
   const lines = text.split('\n');
   return (
     <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.7 }}>
       {lines.map((line, i) => {
-        if (line.startsWith('**') && line.endsWith('**')) {
-          return <div key={i} style={{ fontWeight: 700, color: '#fff', marginTop: i > 0 ? '12px' : 0, marginBottom: '4px' }}>{line.replace(/\*\*/g, '')}</div>;
+        const trimmed = line.trim();
+        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+          return <div key={i} style={{ fontWeight: 700, color: '#fff', marginTop: i > 0 ? '12px' : 0, marginBottom: '4px', fontSize: '14px' }}>{trimmed.replace(/\*\*/g, '')}</div>;
         }
-        if (line.startsWith('• ') || line.startsWith('→ ')) {
-          return <div key={i} style={{ paddingLeft: '12px', color: 'rgba(255,255,255,0.7)' }}>{line}</div>;
+        if (trimmed.startsWith('• ') || trimmed.startsWith('→ ') || trimmed.startsWith('- ')) {
+          const prefix = trimmed.startsWith('→ ') ? '→' : '•';
+          const content = trimmed.replace(/^[•→\-]\s*/, '');
+          const emojiMatch = content.match(/^([🔴🟡🟢])/);
+          if (emojiMatch) {
+            return (
+              <div key={i} style={{ paddingLeft: '12px', display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'rgba(255,255,255,0.7)' }}>
+                <span>{emojiMatch[1]}</span>
+                <span>{content.slice(emojiMatch[1].length).trim()}</span>
+              </div>
+            );
+          }
+          return (
+            <div key={i} style={{ paddingLeft: '12px', display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'rgba(255,255,255,0.7)' }}>
+              <span style={{ color: 'rgba(255,255,255,0.4)' }}>{prefix}</span>
+              <span>{content}</span>
+            </div>
+          );
         }
-        if (line.match(/^\d\./)) {
-          return <div key={i} style={{ paddingLeft: '12px', color: 'rgba(255,255,255,0.7)' }}>{line}</div>;
+        if (trimmed.match(/^\d+\./)) {
+          const [num, ...rest] = trimmed.split('. ');
+          return (
+            <div key={i} style={{ paddingLeft: '12px', display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '6px' }}>
+              <span style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                background: 'rgba(0,212,255,0.15)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#00D4FF',
+                flexShrink: 0,
+              }}>{num}</span>
+              <span style={{ color: 'rgba(255,255,255,0.7)' }}>{rest.join('. ')}</span>
+            </div>
+          );
         }
-        if (line.includes('🔴') || line.includes('🟡') || line.includes('🟢')) {
-          return <div key={i} style={{ paddingLeft: '8px' }}>{line}</div>;
+        if (trimmed.includes('🔴') || trimmed.includes('🟡') || trimmed.includes('🟢')) {
+          const emoji = trimmed.match(/[🔴🟡🟢]/)?.[0] || '';
+          const rest = trimmed.replace(/[🔴🟡🟢]/, '').trim();
+          const colors: Record<string, string> = { '🔴': '#EF4444', '🟡': '#F59E0B', '🟢': '#10B981' };
+          return (
+            <div key={i} style={{ paddingLeft: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors[emoji] || 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
+              <span>{rest}</span>
+            </div>
+          );
         }
-        if (line.startsWith('*') && line.endsWith('*')) {
-          return <div key={i} style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', marginTop: '8px' }}>{line.replace(/\*/g, '')}</div>;
+        if (trimmed.startsWith('*') && trimmed.endsWith('*')) {
+          return <div key={i} style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', marginTop: '8px' }}>{trimmed.replace(/\*/g, '')}</div>;
+        }
+        if (trimmed.startsWith('```')) {
+          const codeContent: string[] = [];
+          let j = i + 1;
+          while (j < lines.length && !lines[j].trim().startsWith('```')) {
+            codeContent.push(lines[j]);
+            j++;
+          }
+          return (
+            <div key={i} style={{
+              background: 'rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '6px',
+              padding: '10px',
+              fontFamily: 'var(--font-jetbrains, monospace)',
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.7)',
+              whiteSpace: 'pre-wrap',
+              marginTop: '8px',
+              marginBottom: '8px',
+            }}>
+              {codeContent.join('\n')}
+            </div>
+          );
+        }
+        if (trimmed.includes('|') && trimmed.includes('—')) {
+          const parts = trimmed.split(/[—–-]/).map(s => s.trim());
+          if (parts.length >= 2) {
+            return (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                <span>{parts[0]}</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)' }}>{parts.slice(1).join(' — ')}</span>
+              </div>
+            );
+          }
         }
         if (line === '') return <div key={i} style={{ height: '6px' }} />;
         return <div key={i}>{line}</div>;
@@ -114,24 +250,29 @@ export function AgentHub() {
     setInput('');
     setLoading(true);
 
-    // Simulate API delay
     await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
 
     const responseText = getAgentResponse(agentId, userMsg.content);
+    const actions = getActionCards(agentId, responseText);
     const agentMsg: AgentMessage = {
       id: `msg-${Date.now() + 1}`,
       role: 'agent',
       content: responseText,
       timestamp: new Date(),
+      actions: actions.length > 0 ? actions : undefined,
     };
     addMessage(agentId, agentMsg);
     setLoading(false);
   };
 
+  const statusColor = isLoading ? '#F59E0B' : '#10B981';
+  const statusLabel = isLoading ? 'Thinking...' : 'Online';
+
   return (
     <>
-      {/* FAB */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
         onClick={() => isAgentHubOpen ? closeAgentHub() : openAgentHub()}
         style={{
           position: 'fixed',
@@ -147,226 +288,486 @@ export function AgentHub() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '22px',
           boxShadow: '0 4px 24px rgba(0,212,255,0.35), 0 8px 40px rgba(124,58,237,0.2)',
-          transition: 'all 150ms ease',
-          transform: isAgentHubOpen ? 'scale(0.9)' : 'scale(1)',
         }}
         title="AI Agent Hub (Ctrl+/)"
         aria-label="Open AI Agent Hub"
       >
-        🤖
-      </button>
+        <Bot size={24} color="white" />
+      </motion.button>
 
-      {/* Panel */}
-      {isAgentHubOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            right: '24px',
-            bottom: '96px',
-            width: '420px',
-            maxHeight: '75vh',
-            background: 'var(--bg-surface-1)',
-            border: '1px solid var(--border-normal)',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(15,23,42,0.08)',
-            zIndex: 9989,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            animation: 'scale-in 0.18s ease-out',
-          }}
-        >
-          {/* Header */}
-          <div style={{
-            padding: '12px 16px',
-            borderBottom: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '18px' }}>🤖</span>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>Urban Copilot</div>
-                <div style={{ fontSize: '10px', color: 'var(--accent-blue)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>AI Agents</div>
-              </div>
-            </div>
-            <button onClick={closeAgentHub} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '18px' }}>×</button>
-          </div>
-
-          {/* Agent Selector */}
-          <div style={{
-            display: 'flex',
-            gap: '4px',
-            padding: '10px 12px',
-            borderBottom: '1px solid var(--border-subtle)',
-            overflowX: 'auto',
-          }}>
-            {(Object.values(AGENTS) as typeof AGENTS[AgentId][]).map(a => (
-              <button
-                key={a.id}
-                onClick={() => openAgentHub(a.id)}
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: '20px',
-                  border: `1px solid ${activeAgentId === a.id ? a.color : 'var(--border-normal)'}`,
-                  background: activeAgentId === a.id ? `${a.color}18` : 'transparent',
-                  color: activeAgentId === a.id ? a.color : 'var(--text-secondary)',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 120ms',
-                }}
-              >
-                {a.icon} {a.name.split(' ')[0]}
-              </button>
-            ))}
-          </div>
-
-          {/* Context Strip */}
-          <div style={{
-            padding: '8px 14px',
-            background: 'var(--bg-surface-2)',
-            borderBottom: '1px solid var(--border-subtle)',
-            display: 'flex',
-            gap: '12px',
-            flexWrap: 'wrap',
-          }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-jetbrains, monospace)' }}>
-              AQI {cityData.metrics.aqi} · Traffic {cityData.metrics.congestionIndex}% · Incidents {cityData.metrics.activeIncidents}
-            </span>
-          </div>
-
-          {/* Quick Actions */}
-          <div style={{ padding: '8px 12px', display: 'flex', gap: '6px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)' }}>
-            {agent.quickActions.slice(0, 4).map(action => (
-              <button
-                key={action}
-                onClick={() => setInput(action)}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  background: 'var(--bg-surface-2)',
-                  border: '1px solid var(--border-normal)',
-                  color: 'var(--text-secondary)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  transition: 'all 120ms',
-                }}
-                className="hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]"
-              >
-                {action}
-              </button>
-            ))}
-          </div>
-
-          {/* Messages */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {messages.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '12px' }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>{agent.icon}</div>
-                <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>{agent.name}</div>
-                <div>{agent.domain}</div>
-                <div style={{ marginTop: '8px' }}>Ask me anything about {agent.domain.split('·')[0].trim().toLowerCase()}</div>
-              </div>
-            )}
-            {messages.map(msg => (
-              <div
-                key={msg.id}
-                style={{
-                  display: 'flex',
-                  flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
-                  gap: '8px',
-                  alignItems: 'flex-start',
-                }}
-              >
-                {msg.role === 'agent' && (
-                  <span style={{ fontSize: '20px', flexShrink: 0 }}>{agent.icon}</span>
-                )}
+      <AnimatePresence>
+        {isAgentHubOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+            style={{
+              position: 'fixed',
+              right: '24px',
+              bottom: '96px',
+              width: '440px',
+              maxHeight: '78vh',
+              background: 'linear-gradient(170deg, var(--bg-surface-1) 0%, color-mix(in srgb, var(--bg-surface-1) 95%, #000) 100%)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '16px',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)',
+              zIndex: 9989,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '14px 16px',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(0,0,0,0.15)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
-                  maxWidth: '80%',
-                  padding: '10px 12px',
-                  borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-                  background: msg.role === 'user' ? 'var(--accent-blue-light)' : 'var(--bg-surface-2)',
-                  border: `1px solid ${msg.role === 'user' ? 'var(--border-accent)' : 'var(--border-subtle)'}`,
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,58,237,0.2))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid rgba(0,212,255,0.15)',
                 }}>
-                  {msg.role === 'agent' ? (
-                    <FormatResponse text={msg.content} />
-                  ) : (
-                    <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{msg.content}</div>
-                  )}
+                  <Brain size={18} color="#00D4FF" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>Bhavora Command</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(0,212,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Intelligence Agent Hub</div>
                 </div>
               </div>
-            ))}
-            {isLoading && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span style={{ fontSize: '20px' }}>{agent.icon}</span>
-                <div style={{ padding: '10px 14px', background: 'var(--bg-surface-2)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {[0, 1, 2].map(i => (
-                      <div key={i} style={{
-                        width: '6px', height: '6px', borderRadius: '50%',
-                        background: 'var(--accent-blue)', opacity: 0.6,
-                        animation: `fade-in 0.6s ease-in-out ${i * 0.2}s infinite alternate`,
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusColor, boxShadow: `0 0 6px ${statusColor}` }} />
+                  {statusLabel}
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={closeAgentHub}
+                  style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '18px', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px' }}
+                >
+                  <X size={14} />
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Agent Selector */}
+            <div style={{
+              display: 'flex',
+              gap: '4px',
+              padding: '10px 12px',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              overflowX: 'auto',
+              background: 'rgba(0,0,0,0.08)',
+            }}>
+              {(Object.values(AGENTS) as typeof AGENTS[AgentId][]).map(a => {
+                const isActive = activeAgentId === a.id;
+                return (
+                  <motion.button
+                    key={a.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => openAgentHub(a.id)}
+                    style={{
+                      position: 'relative',
+                      padding: '7px 12px 7px 10px',
+                      borderRadius: '8px',
+                      border: `1px solid ${isActive ? a.color : 'rgba(255,255,255,0.08)'}`,
+                      background: isActive ? `${a.color}15` : 'transparent',
+                      color: isActive ? a.color : 'rgba(255,255,255,0.5)',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 120ms',
+                    }}
+                  >
+                    <span style={{ fontSize: '14px' }}>{a.icon}</span>
+                    <span>{a.name.split(' ')[0]}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="agent-indicator"
+                        style={{
+                          position: 'absolute',
+                          bottom: '-1px',
+                          left: '20%',
+                          right: '20%',
+                          height: '2px',
+                          borderRadius: '1px',
+                          background: a.color,
+                        }}
+                      />
+                    )}
+                    {isActive && (
+                      <span style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        background: statusColor,
+                        boxShadow: `0 0 4px ${statusColor}`,
+                        flexShrink: 0,
                       }} />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* System Status Strip */}
+            <div style={{
+              padding: '8px 14px',
+              background: 'rgba(0,0,0,0.2)',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+            }}>
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: cityData.metrics.cityHealthScore > 60 ? '#10B981' : '#EF4444', flexShrink: 0 }} />
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>HEALTH</span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.cityHealthScore}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Activity size={10} color="rgba(255,255,255,0.4)" />
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>TRAFFIC</span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.congestionIndex}%</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <AlertTriangle size={10} color={cityData.metrics.aqi > 150 ? '#EF4444' : 'rgba(255,255,255,0.4)'} />
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>AQI</span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.aqi}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Zap size={10} color="rgba(255,255,255,0.4)" />
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>GRID</span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.gridLoad}GW</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <MapPin size={10} color="rgba(255,255,255,0.4)" />
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>INCIDENTS</span>
+                  <span style={{ fontSize: '11px', color: cityData.metrics.activeIncidents > 0 ? '#F59E0B' : 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.activeIncidents}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Context Awareness Greeting Strip */}
+            <div style={{
+              padding: '6px 14px',
+              background: 'rgba(0,212,255,0.04)',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}>
+              <Brain size={10} color="rgba(0,212,255,0.5)" />
+              <span style={{ fontSize: '10px', color: 'rgba(0,212,255,0.6)', fontWeight: 500, fontFamily: 'var(--font-jetbrains, monospace)' }}>
+                {getAgentGreeting(agentId, cityData)}
+              </span>
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{ padding: '8px 12px', display: 'flex', gap: '5px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.05)' }}>
+              {agent.quickActions.slice(0, 4).map(action => (
+                <motion.button
+                  key={action}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setInput(action)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: 'rgba(255,255,255,0.55)',
+                    fontSize: '10px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 120ms',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {action}
+                </motion.button>
+              ))}
+              {agent.quickActions.length > 4 && (
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', alignSelf: 'center' }}>+{agent.quickActions.length - 4} more</span>
+              )}
+            </div>
+
+            {/* Messages */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.1)' }}>
+              {messages.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{ textAlign: 'center', padding: '28px 16px', color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}
+                >
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '16px',
+                    background: `${agent.color}12`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px',
+                    border: `1px solid ${agent.color}20`,
+                  }}>
+                    {AGENT_LUCIDE_ICONS[agentId]}
+                  </div>
+                  <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: '4px', fontSize: '14px' }}>{agent.name}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>{agent.domain}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.3)', lineHeight: 1.6 }}>Ask me anything about {agent.domain.split('·')[0].trim().toLowerCase()}</div>
+                  <div style={{ marginTop: '12px', display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {agent.quickActions.slice(0, 2).map(qa => (
+                      <button
+                        key={qa}
+                        onClick={() => setInput(qa)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          background: `${agent.color}10`,
+                          border: `1px solid ${agent.color}20`,
+                          color: agent.color,
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Ask: {qa}
+                      </button>
                     ))}
                   </div>
+                </motion.div>
+              )}
+              <AnimatePresence initial={false}>
+                {messages.map(msg => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                      gap: '10px',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    {msg.role === 'agent' && (
+                      <div style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '10px',
+                        background: `${agent.color}15`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        border: `1px solid ${agent.color}20`,
+                        fontSize: '16px',
+                      }}>
+                        {agent.icon}
+                      </div>
+                    )}
+                    <div style={{
+                      maxWidth: '82%',
+                      padding: msg.role === 'user' ? '10px 14px' : '12px 14px',
+                      borderRadius: msg.role === 'user' ? '14px 14px 6px 14px' : '14px 14px 14px 6px',
+                      background: msg.role === 'user'
+                        ? 'linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.12))'
+                        : 'rgba(255,255,255,0.03)',
+                      border: msg.role === 'user'
+                        ? '1px solid rgba(0,212,255,0.15)'
+                        : '1px solid rgba(255,255,255,0.06)',
+                      backdropFilter: msg.role === 'agent' ? 'blur(8px)' : 'none',
+                      boxShadow: msg.role === 'agent' ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                    }}>
+                      {msg.role === 'agent' ? (
+                        <FormatResponse text={msg.content} />
+                      ) : (
+                        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)' }}>{msg.content}</div>
+                      )}
+
+                      {/* Action Cards */}
+                      {msg.actions && msg.actions.length > 0 && (
+                        <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>Quick Actions</div>
+                          {msg.actions.map((action, idx) => (
+                            <motion.button
+                              key={idx}
+                              whileHover={{ scale: 1.02, x: 2 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => window.location.href = action.path}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                background: 'rgba(0,212,255,0.06)',
+                                border: '1px solid rgba(0,212,255,0.1)',
+                                color: '#00D4FF',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 120ms',
+                                textAlign: 'left',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {action.label.includes('Map') || action.label.includes('Dashboard') ? <MapPin size={12} /> : action.label.includes('Simulation') ? <Activity size={12} /> : <Target size={12} />}
+                                <span>{action.label}</span>
+                              </div>
+                              <ArrowRight size={12} style={{ opacity: 0.6 }} />
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Timestamp */}
+                      <div style={{
+                        fontSize: '9px',
+                        color: msg.role === 'user' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)',
+                        marginTop: '6px',
+                        textAlign: msg.role === 'user' ? 'right' : 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                      }}>
+                        <Clock size={8} />
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
+                >
+                  <div style={{
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '10px',
+                    background: `${agent.color}15`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    border: `1px solid ${agent.color}20`,
+                    fontSize: '16px',
+                  }}>
+                    {agent.icon}
+                  </div>
+                  <div style={{
+                    padding: '12px 16px',
+                    background: 'rgba(255,255,255,0.03)',
+                    borderRadius: '14px',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    backdropFilter: 'blur(8px)',
+                  }}>
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                      {[0, 1, 2].map(i => (
+                        <motion.div
+                          key={i}
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
+                          style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: agent.color,
+                            opacity: 0.7,
+                          }}
+                        />
+                      ))}
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginLeft: '4px' }}>Analyzing...</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input */}
+            <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <textarea
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSend(); }}
+                  placeholder={`Ask ${agent.name.split(' ')[0]} about ${agent.domain.split('·')[0].trim().toLowerCase()}...`}
+                  rows={2}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(0,0,0,0.25)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: '13px',
+                    resize: 'none',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                  }}
+                />
+                <motion.button
+                  whileHover={input.trim() && !isLoading ? { scale: 1.04 } : {}}
+                  whileTap={input.trim() && !isLoading ? { scale: 0.96 } : {}}
+                  onClick={handleSend}
+                  disabled={!input.trim() || isLoading}
+                  style={{
+                    padding: '10px 14px',
+                    background: !input.trim() || isLoading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00D4FF, #7C3AED)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                    opacity: input.trim() && !isLoading ? 1 : 0.3,
+                    alignSelf: 'flex-end',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Send size={14} />
+                  Send
+                </motion.button>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                <button
+                  onClick={() => { clearConversation(agentId); }}
+                  style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px' }}
+                >
+                  Clear chat
+                </button>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+                  Ctrl+Enter to send · {agent.name}
                 </div>
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div style={{ padding: '12px', borderTop: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <textarea
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSend(); }}
-                placeholder={`Ask ${agent.name.split(' ')[0]} about ${agent.domain.split('·')[0].trim().toLowerCase()}...`}
-                rows={2}
-                style={{
-                  flex: 1,
-                  background: 'var(--bg-surface-2)',
-                  border: '1px solid var(--border-normal)',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  color: 'var(--text-primary)',
-                  fontSize: '13px',
-                  resize: 'none',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                }}
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                style={{
-                  padding: '8px 14px',
-                  background: 'var(--accent-navy)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#FFFFFF',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
-                  opacity: input.trim() && !isLoading ? 1 : 0.4,
-                  alignSelf: 'flex-end',
-                }}
-              >
-                Send
-              </button>
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
-              Ctrl+Enter to send · {agent.name}
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

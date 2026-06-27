@@ -2,58 +2,52 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* === BHAVORA LIGHT PALETTE CONFIG === */
+/* === STITCH DESIGN SYSTEM CONFIG === */
 :root {
-  --bg-base:            #F4F6FA;   /* page background — very light blue-gray */
-  --bg-surface-1:       #FFFFFF;   /* cards */
-  --bg-surface-2:       #F0F3F9;   /* elevated panels, sidebars */
-  --bg-surface-3:       #E8EDF6;   /* hover states, active rows */
-  --bg-surface-4:       #DDE4F0;   /* borders, dividers-as-fills */
+  --bg-base:            #f8f9ff;   /* background */
+  --bg-surface-1:       #ffffff;   /* surface-container-lowest */
+  --bg-surface-2:       #eff4ff;   /* surface-container-low */
+  --bg-surface-3:       #e5eeff;   /* surface-container */
+  --bg-surface-4:       #dce9ff;   /* surface-container-high */
 
-  /* Accent — deep navy as the primary brand color */
-  --accent-navy:        #1B2B4B;   /* primary buttons, headings, icons */
-  --accent-navy-mid:    #2D4270;   /* hover state for navy */
-  --accent-navy-light:  #EEF1F8;   /* navy tint backgrounds, badges */
+  /* Primary Accent - Stitch Blue */
+  --accent-navy:        #004ac6;   /* primary */
+  --accent-navy-mid:    #003ea8;   /* on-primary-fixed-variant */
+  --accent-navy-light:  #dbe1ff;   /* primary-fixed */
 
-  /* Accent — electric blue for data/live indicators */
-  --accent-blue:        #2563EB;   /* active states, links, live badges */
-  --accent-blue-light:  #EFF6FF;   /* blue tint backgrounds */
+  /* Secondary Accent - Teal/Tertiary */
+  --accent-teal:        #006242;   /* tertiary */
+  --accent-teal-light:  #bdffdb;   /* on-tertiary-container */
 
-  /* Accent — teal for positive metrics, success */
-  --accent-teal:        #0D9488;   /* positive deltas, success states */
-  --accent-teal-light:  #F0FDFA;   /* teal tint backgrounds */
+  /* Danger / Error */
+  --accent-red:         #ba1a1a;   /* error */
+  --accent-red-light:   #ffdad6;   /* error-container */
 
-  /* Accent — amber for warnings */
+  /* Warning / Amber */
   --accent-amber:       #D97706;
   --accent-amber-light: #FFFBEB;
 
-  /* Accent — red for critical/danger */
-  --accent-red:         #DC2626;
-  --accent-red-light:   #FEF2F2;
-
-  /* Accent — violet for AI features */
-  --accent-violet:      #7C3AED;
-  --accent-violet-light:#F5F3FF;
+  /* AI / Violet (Stitch secondary) */
+  --accent-violet:      #00687a;   /* secondary */
+  --accent-violet-light:#acedff;   /* secondary-fixed */
 
   /* Text hierarchy */
-  --text-primary:       #0F172A;   /* near-black, main body text */
-  --text-secondary:     #334155;   /* secondary labels */
-  --text-muted:         #64748B;   /* placeholders, hints, timestamps */
-  --text-disabled:      #94A3B8;
+  --text-primary:       #0b1c30;   /* on-surface */
+  --text-secondary:     #434655;   /* on-surface-variant */
+  --text-muted:         #737686;   /* outline */
+  --text-disabled:      #c3c6d7;   /* outline-variant */
 
   /* Borders */
-  --border-subtle:      #E2E8F0;   /* hairline card borders */
-  --border-normal:      #CBD5E1;   /* standard borders */
-  --border-strong:      #94A3B8;   /* emphasis borders */
-  --border-accent:      rgba(37,99,235,0.3);  /* blue accent border */
+  --border-subtle:      #c3c6d7;   /* outline-variant */
+  --border-normal:      #737686;   /* outline */
+  --border-strong:      #434655;   /* on-surface-variant */
+  --border-accent:      rgba(0, 74, 198, 0.3);
 
-  /* Data visualization palette (for charts — stays readable on white) */
-  --chart-1:            #2563EB;   /* blue */
-  --chart-2:            #0D9488;   /* teal */
-  --chart-3:            #7C3AED;   /* violet */
-  --chart-4:            #D97706;   /* amber */
-  --chart-5:            #DC2626;   /* red */
-  --chart-6:            #0891B2;   /* cyan */
+  /* Shadows (Stitch elevation system) */
+  --shadow-sm: 0 1px 3px 0 rgba(11, 28, 48, 0.04), 0 1px 2px -1px rgba(11, 28, 48, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(11, 28, 48, 0.05), 0 2px 4px -2px rgba(11, 28, 48, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(11, 28, 48, 0.06), 0 4px 6px -4px rgba(11, 28, 48, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(11, 28, 48, 0.08), 0 8px 10px -6px rgba(11, 28, 48, 0.04);
 }
 
 @theme inline {
@@ -68,8 +62,8 @@
   --color-accent-navy-mid: var(--accent-navy-mid);
   --color-accent-navy-light: var(--accent-navy-light);
 
-  --color-accent-blue: var(--accent-blue);
-  --color-accent-blue-light: var(--accent-blue-light);
+  --color-accent-blue: var(--accent-navy); /* Map blue to primary for consistency */
+  --color-accent-blue-light: var(--accent-navy-light);
 
   --color-accent-teal: var(--accent-teal);
   --color-accent-teal-light: var(--accent-teal-light);
@@ -88,40 +82,28 @@
   --color-text-muted: var(--text-muted);
   --color-text-disabled: var(--text-disabled);
 
-  /* Legacy aliases mapped to Light Palette variables */
-  --color-foreground: var(--text-primary);
-  --color-surface: var(--bg-surface-1);
-  --color-surface-container: var(--bg-surface-2);
-  --color-surface-container-low: var(--bg-surface-2);
-  --color-surface-container-high: var(--bg-surface-3);
-  --color-surface-container-highest: var(--bg-surface-4);
-  --color-on-surface: var(--text-primary);
-  --color-on-surface-variant: var(--text-secondary);
-  --color-primary: var(--accent-navy);
-  --color-primary-hover: var(--accent-navy-mid);
-  --color-on-primary: #FFFFFF;
-  --color-primary-container: var(--accent-navy-light);
-  --color-secondary: var(--accent-blue);
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: var(--accent-blue-light);
-  --color-tertiary: var(--accent-teal);
-  --color-on-tertiary: #ffffff;
-  --color-error: var(--accent-red);
-  --color-on-error: #ffffff;
-  --color-outline: var(--border-subtle);
-  --color-outline-variant: var(--border-subtle);
-
-  /* === TYPOGRAPHY SYSTEM === */
+  /* === TYPOGRAPHY SYSTEM (Stitch) === */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
 
   /* === SPACING SYSTEM === */
+  /* Adopt 8px grid system */
+  --spacing-1: 8px;
+  --spacing-2: 16px;
+  --spacing-3: 24px;
+  --spacing-4: 32px;
+  --spacing-5: 40px;
+  --spacing-6: 48px;
+  --spacing-8: 64px;
+  --spacing-0_5: 4px;
+
+  /* Radius */
   --radius-sm:  0.25rem;
   --radius-md:  0.5rem;
   --radius-lg:  0.75rem;
   --radius-xl:  1rem;
   --radius-2xl: 1.5rem;
-  --radius-3xl: 2rem;
+  --radius-3xl: 24px; /* Stitch Cards */
 }
 
 /* ========================================
@@ -139,6 +121,7 @@
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'tnum' on, 'lnum' on;
   }
 
   body {
@@ -147,14 +130,18 @@
     overflow-x: hidden;
   }
 
-  /* Data numerics */
+  /* Stitch Typography Hooks */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+
   .data-value {
     font-family: var(--font-mono);
     font-feature-settings: 'tnum' on, 'lnum' on;
     font-variant-numeric: tabular-nums;
   }
 
-  /* Micro label */
   .micro-label {
     font-family: var(--font-sans);
     font-weight: 500;
@@ -166,28 +153,30 @@
 }
 
 /* ========================================
-   GLASSMORPHISM SYSTEM (Light Edition)
+   GLASSMORPHISM SYSTEM (Stitch Edition)
    ======================================== */
 .glass {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 1px 3px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.02);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 24px -4px rgba(11, 28, 48, 0.08);
 }
 
 .glass-card {
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04);
-  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(11, 28, 48, 0.04), 0 12px 32px rgba(11, 28, 48, 0.04);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .glass-card:hover {
-  border-color: var(--border-accent);
-  box-shadow: 0 4px 24px rgba(37,99,235,0.08);
-  transform: translateY(-1px);
+  border-color: rgba(0, 74, 198, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 74, 198, 0.08), 0 16px 48px rgba(0, 74, 198, 0.06);
+  transform: translateY(-2px);
 }
 
 .glass-nav {
@@ -492,4 +481,221 @@
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ========================================
+   TYPOGRAPHY REFINEMENTS (Stitch)
+   ======================================== */
+.display-xl {
+  font-family: var(--font-sans);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 56px;
+  letter-spacing: -0.02em;
+}
+
+.label-sm {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   CONTAINER QUERY HELPERS
+   ======================================== */
+.container-query {
+  container-type: inline-size;
+  container-name: stitch;
+}
+
+/* ========================================
+   CARD HIERARCHY
+   ======================================== */
+.card-elevated {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.card-elevated:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+}
+
+.card-flat {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  box-shadow: none;
+}
+
+.card-inset {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  box-shadow: inset 0 2px 4px 0 rgba(11, 28, 48, 0.04);
+}
+
+/* ========================================
+   GLASSMORPHISM REFINEMENTS
+   ======================================== */
+.glass-dark {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 24px -4px rgba(11, 28, 48, 0.12);
+}
+
+.glass-edge {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: transparent;
+  border: none;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-lg);
+  border-radius: 1rem;
+}
+
+/* ========================================
+   MAP PROMINENCE
+   ======================================== */
+.map-container {
+  border-radius: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.map-overlay {
+  position: absolute;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* ========================================
+   EXTENDED ANIMATIONS
+   ======================================== */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 74, 198, 0.4); }
+  50% { box-shadow: 0 0 20px 4px rgba(0, 74, 198, 0.15); }
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse-glow    { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-ticker-scroll { animation: ticker-scroll 20s linear infinite; }
+.animate-slide-up-fade { animation: slide-up-fade 0.5s ease-out both; }
+.animate-count-up      { animation: count-up 0.6s ease-out both; }
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ========================================
+   KPI / METRIC ANIMATIONS
+   ======================================== */
+.metric-change-positive {
+  color: #059669;
+  transition: all 300ms ease;
+}
+.metric-change-positive::before {
+  content: '\25B2';
+  font-size: 0.6em;
+  margin-right: 0.2em;
+}
+
+.metric-change-negative {
+  color: var(--accent-red);
+  transition: all 300ms ease;
+}
+.metric-change-negative::before {
+  content: '\25BC';
+  font-size: 0.6em;
+  margin-right: 0.2em;
+}
+
+/* ========================================
+   BUTTON SECONDARY
+   ======================================== */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: transparent;
+  color: var(--accent-navy);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 1.5px solid var(--accent-navy);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 80ms ease;
+}
+.btn-secondary:hover {
+  background: var(--bg-surface-3);
+}
+.btn-secondary:active { transform: scale(0.97); }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ========================================
+   PAGE SHELL
+   ======================================== */
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINT HELPERS
+   ======================================== */
+@media (max-width: 1023px) {
+  .hide-tablet { display: none !important; }
+}
+
+@media (max-width: 767px) {
+  .hide-mobile { display: none !important; }
+}
+
+@media (min-width: 768px) {
+  .show-mobile { display: none !important; }
 }

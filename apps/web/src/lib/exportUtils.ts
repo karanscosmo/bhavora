@@ -4,7 +4,6 @@ import html2canvas from 'html2canvas';
 export async function exportToPDF(elementId: string, filename: string = 'bhavora-report.pdf') {
   const element = document.getElementById(elementId);
   if (!element) {
-    console.error(`Element with id ${elementId} not found`);
     return;
   }
 
@@ -36,8 +35,7 @@ export async function exportToPDF(elementId: string, filename: string = 'bhavora
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     pdf.save(filename);
 
-  } catch (error) {
-    console.error('Error generating PDF', error);
+  } catch {
   } finally {
     // Cleanup
     element.classList.remove('pdf-exporting');

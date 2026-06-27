@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { ArrowRight, Bot, Brain, Send, X, Zap, Activity } from 'lucide-react';
+import { ArrowRight, Bot, Brain, Send, X, Zap, Activity, Clock, MapPin, Target, AlertTriangle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -33,22 +33,22 @@ export function OperationsAgent() {
     let actions: { label: string; onClick: () => void }[] = [];
 
     if (metrics.trafficCongestion > 15) {
-      proactiveMessage = `Good Morning Rajesh.\\nWhitefield and ORR congestion expected to increase by \${Math.round(metrics.trafficCongestion)}% due to \${popGrowth}% population influx.\\n\\nSuggested Actions:\\n✓ Increase ORR signal cycle by 8%\\n✓ Deploy 4 additional BMTC feeder buses\\n✓ Accelerate Metro Phase 3 funding`;
+      proactiveMessage = `Good Morning Rajesh.\nWhitefield and ORR congestion expected to increase by ${Math.round(metrics.trafficCongestion)}% due to ${popGrowth}% population influx.\n\nSuggested Actions:\n✓ Increase ORR signal cycle by 8%\n✓ Deploy 4 additional BMTC feeder buses\n✓ Accelerate Metro Phase 3 funding`;
       actions = [
         { label: "Simulate Metro Expansion", onClick: () => { store.setInputs({ metroExpansion: 10 }); store.runSimulation(); } }
       ];
     } else if (metrics.energyDemand > 20) {
-      proactiveMessage = `Good Morning Rajesh.\\nCritical grid load detected. Substation capacity at 94% due to rapid EV adoption.\\n\\nSuggested Actions:\\n✓ Enable smart-grid load shedding in East Zone\\n✓ Route 400MW from Solar Park\\n✓ Issue emergency conservation alert`;
+      proactiveMessage = `Good Morning Rajesh.\nCritical grid load detected. Substation capacity at 94% due to rapid EV adoption.\n\nSuggested Actions:\n✓ Enable smart-grid load shedding in East Zone\n✓ Route 400MW from Solar Park\n✓ Issue emergency conservation alert`;
       actions = [
         { label: "Simulate Grid Balancing", onClick: () => { store.setInputs({ renewableGrowth: 50 }); store.runSimulation(); } }
       ];
     } else if (metrics.waterDemand > 15) {
-      proactiveMessage = `Good Morning Rajesh.\\nWater reserve depletion accelerated. Cauvery Stage V supply insufficient for current growth.\\n\\nSuggested Actions:\\n✓ Mandate STP water for construction\\n✓ Reduce industrial quota by 5%\\n✓ Deploy pressure valving`;
+      proactiveMessage = `Good Morning Rajesh.\nWater reserve depletion accelerated. Cauvery Stage V supply insufficient for current growth.\n\nSuggested Actions:\n✓ Mandate STP water for construction\n✓ Reduce industrial quota by 5%\n✓ Deploy pressure valving`;
       actions = [
         { label: "Apply Conservation Policy", onClick: () => { store.setInputs({ indExpansion: -5 }); store.runSimulation(); } }
       ];
     } else {
-      proactiveMessage = `Good Morning Rajesh.\\nAll city infrastructure operating within optimal parameters. No severe anomalies detected across 428 monitored nodes.`;
+      proactiveMessage = `Good Morning Rajesh.\nAll city infrastructure operating within optimal parameters. No severe anomalies detected across 428 monitored nodes.`;
     }
 
     setMessages([
@@ -95,13 +95,31 @@ export function OperationsAgent() {
     <>
       {/* Floating Action Button */}
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-2xl flex items-center justify-center transition-colors \${isOpen ? 'bg-surface border border-outline-variant scale-0 opacity-0' : 'bg-primary text-white hover:bg-primary-hover animate-bounce-slow'}`}
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '96px',
+          zIndex: 9990,
+          padding: '12px 20px 12px 16px',
+          borderRadius: '28px',
+          background: 'linear-gradient(135deg, #00D4FF, #7C3AED)',
+          border: 'none',
+          boxShadow: '0 4px 24px rgba(0,212,255,0.3), 0 8px 40px rgba(124,58,237,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          color: '#fff',
+          fontWeight: 700,
+          fontSize: '13px',
+        }}
       >
-        <Activity className="w-6 h-6 mr-2" />
-        <span className="font-bold text-sm">Operations Agent</span>
+        <Activity size={18} />
+        <span>Operations Agent</span>
       </motion.button>
 
       {/* Copilot Window */}
@@ -112,86 +130,219 @@ export function OperationsAgent() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-6 z-50 w-[420px] h-[600px] bg-white/90 backdrop-blur-3xl rounded-3xl shadow-2xl border border-white/20 flex flex-col overflow-hidden"
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '96px',
+              zIndex: 9990,
+              width: '420px',
+              height: '600px',
+              background: 'linear-gradient(170deg, var(--bg-surface-1) 0%, color-mix(in srgb, var(--bg-surface-1) 95%, #000) 100%)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '16px',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-outline-variant/30 bg-gradient-to-r from-blue-600 to-cyan-500 text-white flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                  <Activity className="w-5 h-5 text-white" />
+            <div style={{
+              padding: '14px 16px',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(0,0,0,0.15)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,58,237,0.2))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid rgba(0,212,255,0.15)',
+                }}>
+                  <Brain size={18} color="#00D4FF" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">Bhavora AI Command</h3>
-                  <p className="text-[10px] text-blue-100 uppercase tracking-wider font-bold">Proactive Agent</p>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>Bhavora AI Command</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(0,212,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Proactive Agent</div>
                 </div>
               </div>
-              <button 
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '18px', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px' }}
               >
-                <X className="w-5 h-5" />
-              </button>
+                <X size={14} />
+              </motion.button>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface/50">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex \${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.role === 'agent' && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0 border border-primary/20">
-                      <Brain className="w-4 h-4 text-primary" />
-                    </div>
-                  )}
-                  
-                  <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm \${
-                    msg.role === 'user' 
-                      ? 'bg-primary text-white rounded-tr-sm' 
-                      : 'bg-white border border-outline-variant/30 rounded-tl-sm text-on-surface'
-                  }`}>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                    
-                    {/* Action Buttons */}
-                    {msg.actions && msg.actions.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        {msg.actions.map((action, idx) => (
-                          <button
-                            key={idx}
-                            onClick={action.onClick}
-                            className="w-full text-left px-4 py-2.5 bg-[#f8f9ff] hover:bg-[#e5eeff] text-primary text-xs font-bold rounded-xl border border-primary/10 transition-colors flex items-center justify-between group"
-                          >
-                            <span>{action.label}</span>
-                            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                          </button>
-                        ))}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              background: 'rgba(0,0,0,0.1)',
+            }}>
+              <AnimatePresence initial={false}>
+                {messages.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                      gap: '10px',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    {msg.role === 'agent' && (
+                      <div style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '10px',
+                        background: 'rgba(0,212,255,0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        border: '1px solid rgba(0,212,255,0.15)',
+                      }}>
+                        <Brain size={16} color="#00D4FF" />
                       </div>
                     )}
                     
-                    <span className={`text-[10px] mt-2 block \${msg.role === 'user' ? 'text-primary-100' : 'text-gray-400'}`}>
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                    <div style={{
+                      maxWidth: '85%',
+                      padding: msg.role === 'user' ? '10px 14px' : '12px 14px',
+                      borderRadius: msg.role === 'user' ? '14px 14px 6px 14px' : '14px 14px 14px 6px',
+                      background: msg.role === 'user'
+                        ? 'linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.12))'
+                        : 'rgba(255,255,255,0.03)',
+                      border: msg.role === 'user'
+                        ? '1px solid rgba(0,212,255,0.15)'
+                        : '1px solid rgba(255,255,255,0.06)',
+                      backdropFilter: msg.role === 'agent' ? 'blur(8px)' : 'none',
+                      boxShadow: msg.role === 'agent' ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                    }}>
+                      <p style={{
+                        fontSize: '13px',
+                        color: msg.role === 'user' ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.8)',
+                        lineHeight: 1.7,
+                        whiteSpace: 'pre-wrap',
+                        margin: 0,
+                      }}>{msg.content}</p>
+                      
+                      {/* Action Buttons */}
+                      {msg.actions && msg.actions.length > 0 && (
+                        <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>Recommended Action</div>
+                          {msg.actions.map((action, idx) => (
+                            <motion.button
+                              key={idx}
+                              whileHover={{ scale: 1.02, x: 2 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={action.onClick}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                background: 'rgba(0,212,255,0.06)',
+                                border: '1px solid rgba(0,212,255,0.1)',
+                                color: '#00D4FF',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 120ms',
+                                textAlign: 'left',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Zap size={12} />
+                                <span>{action.label}</span>
+                              </div>
+                              <ArrowRight size={12} style={{ opacity: 0.6 }} />
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Timestamp */}
+                      <div style={{
+                        fontSize: '9px',
+                        color: msg.role === 'user' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)',
+                        marginTop: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                      }}>
+                        <Clock size={8} />
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-outline-variant/30">
-              <form onSubmit={handleSend} className="relative flex items-center">
+            <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}>
+              <form onSubmit={handleSend} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask Bhavora AI..."
-                  className="w-full bg-[#f8f9ff] border border-outline-variant/50 text-sm rounded-full pl-5 pr-12 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-gray-900"
+                  style={{
+                    flex: 1,
+                    background: 'rgba(0,0,0,0.25)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '24px',
+                    padding: '10px 16px',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                  }}
                 />
-                <button
+                <motion.button
+                  whileHover={input.trim() ? { scale: 1.04 } : {}}
+                  whileTap={input.trim() ? { scale: 0.96 } : {}}
                   type="submit"
                   disabled={!input.trim()}
-                  className="absolute right-2 p-2 bg-primary text-white rounded-full hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  style={{
+                    padding: '10px',
+                    background: !input.trim() ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00D4FF, #7C3AED)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    color: '#FFFFFF',
+                    cursor: input.trim() ? 'pointer' : 'not-allowed',
+                    opacity: input.trim() ? 1 : 0.3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '38px',
+                    height: '38px',
+                    flexShrink: 0,
+                  }}
                 >
-                  <Send className="w-4 h-4" />
-                </button>
+                  <Send size={14} />
+                </motion.button>
               </form>
             </div>
           </motion.div>

@@ -51,7 +51,7 @@ export function Sidebar() {
         left: 0,
         top: '64px',
         height: 'calc(100vh - 64px)',
-        width: collapsed ? '56px' : '224px',
+        width: collapsed ? '56px' : '256px',
         background: 'var(--bg-surface-2)',
         borderRight: '1px solid var(--border-subtle)',
         backdropFilter: 'none',
@@ -72,7 +72,7 @@ export function Sidebar() {
         minHeight: '52px',
         overflow: 'hidden',
       }}>
-        <LogoIcon size={28} variant="light" />
+        <LogoIcon size={28} />
         {!collapsed && (
           <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>BHAVORA</div>

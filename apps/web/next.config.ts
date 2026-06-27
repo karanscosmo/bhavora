@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ['mapbox-gl'],
+  experimental: {
+    optimizePackageImports: ['recharts', 'lucide-react', 'framer-motion', 'mapbox-gl'],
+  },
 };
 
 export default nextConfig;

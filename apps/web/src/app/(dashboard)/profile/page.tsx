@@ -31,8 +31,7 @@ export default function ProfilePage() {
       if (savedUser) {
         try {
           return JSON.parse(savedUser);
-        } catch (e) {
-          console.error(e);
+        } catch {
         }
       }
       localStorage.setItem('bhavoraUser', JSON.stringify(defaultAdmin));
