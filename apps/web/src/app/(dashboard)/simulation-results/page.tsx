@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useSimulationStore } from '@/stores';
 import { ChevronLeft, ArrowDown, ArrowUp, Activity, Car, Wind, Droplets, Zap, TrendingUp, Home, CheckCircle2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-export default function SimulationResultsPage() {
+function SimulationResultsPageContent() {
   const simStore = useSimulationStore();
   const inputs = simStore.activePolicy;
 
@@ -226,3 +227,5 @@ function MetricCard({ title, value, icon: Icon, isGood }: { title: string, value
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(SimulationResultsPageContent), { ssr: false });

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useSimulationStore } from '@/stores';
@@ -56,7 +57,7 @@ function PolicySlider({
   );
 }
 
-export default function DecisionTwinPage() {
+function DecisionTwinPageContent() {
   const simStore = useSimulationStore();
   const { results, activePolicy } = simStore;
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -237,3 +238,6 @@ export default function DecisionTwinPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(DecisionTwinPageContent), { ssr: false });
+

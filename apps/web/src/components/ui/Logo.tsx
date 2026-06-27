@@ -210,8 +210,6 @@ export function LogoIcon({
       style={{ color }}
     >
       <BBlocks />
-      <GridLines />
-      <PulseArc />
     </svg>
   );
 }

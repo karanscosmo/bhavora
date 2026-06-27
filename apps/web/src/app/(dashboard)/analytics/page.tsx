@@ -4,12 +4,13 @@ import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Legend, ComposedChart, Bar } from 'recharts';
 import { Filter, Download, Activity, TrendingUp, MapPin } from 'lucide-react';
 import { useCityDataStore } from '@/stores';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
   const cityData = useCityDataStore();
   const [timeframe, setTimeframe] = useState<'30D' | '90D' | '1Y'>('30D');
 
@@ -203,3 +204,5 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(AnalyticsPageContent), { ssr: false });

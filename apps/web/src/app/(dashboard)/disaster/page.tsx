@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { AlertTriangle, Clock, Map, Users, Truck, AlertCircle, Droplets, Flame, Zap, Navigation } from 'lucide-react';
@@ -28,7 +29,7 @@ const INCIDENTS: Incident[] = [
   { id: 'INC-KSFRS-110', type: 'Industrial Fire', location: 'Peenya Industrial Area', time: '15 mins ago', status: 'Active', severity: 'Critical', coords: [77.5147, 13.0285], radius: 400, icon: Flame, resources: [{ type: 'Fire Engines', count: 12 }, { type: 'Ambulances', count: 3 }], impact: 'Air quality hazard' }
 ];
 
-export default function DisasterPage() {
+function DisasterPageContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
@@ -239,3 +240,5 @@ export default function DisasterPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(DisasterPageContent), { ssr: false });

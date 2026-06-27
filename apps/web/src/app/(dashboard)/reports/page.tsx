@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { FileText, Download, Share2, Map, LayoutDashboard, Clock, ChevronRight, File } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-export default function ReportsPage() {
+function ReportsPageContent() {
   const [activeSection, setActiveSection] = useState('exec');
 
   const chartData = [
@@ -189,3 +190,5 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(ReportsPageContent), { ssr: false });

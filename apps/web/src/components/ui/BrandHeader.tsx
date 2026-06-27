@@ -8,8 +8,8 @@ export function BrandHeader() {
       className="flex items-center px-[24px] bg-white border-b border-[var(--border-subtle)] flex-shrink-0"
       style={{ height: '76px' }} // 72-80px as requested
     >
-      <Link href="/overview" className="flex items-center flex-shrink-0" style={{ gap: '24px' }}>
-        <LogoIcon size={52} className="text-[var(--accent-primary)]" />
+      <Link href="/overview" className="flex items-center flex-shrink-0" style={{ gap: '12px' }}>
+        <LogoIcon size={52} className="text-[#0A1628]" />
         <div className="flex flex-col justify-center">
           <span 
             className="text-[var(--text-primary)]"

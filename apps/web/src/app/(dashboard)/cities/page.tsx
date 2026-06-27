@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Layers, Map as MapIcon, Compass, Maximize, Train, Bus, Zap, Hospital, Droplets, Car, Activity } from 'lucide-react';
@@ -16,7 +17,7 @@ const MAP_STYLES = {
 
 const BENGALURU_CENTER = [77.5946, 12.9716] as [number, number];
 
-export default function CitiesPage() {
+function CitiesPageContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
@@ -245,3 +246,5 @@ export default function CitiesPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(CitiesPageContent), { ssr: false });

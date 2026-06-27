@@ -4,12 +4,13 @@ import React, { useMemo } from 'react';
 import { useSimulationStore } from '@/stores';
 import { IndianRupee, TrendingDown, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import dynamic from 'next/dynamic';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-export default function ImpactAnalysisPage() {
+function ImpactAnalysisPageContent() {
   const simStore = useSimulationStore();
   const inputs = simStore.activePolicy;
 
@@ -225,3 +226,5 @@ export default function ImpactAnalysisPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(ImpactAnalysisPageContent), { ssr: false });
