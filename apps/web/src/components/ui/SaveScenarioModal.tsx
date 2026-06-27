@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useUIStore, useScenarioStore, useMapStore, useSimulationStore } from '@/stores';
+import { useUIStore, useScenarioStore, useMapStore, useSimulationStore, useAppStore } from '@/stores';
 import { useRouter } from 'next/navigation';
 import { X, Save, GitBranch } from 'lucide-react';
 
@@ -8,6 +8,7 @@ export function SaveScenarioModal() {
   const { saveScenario } = useScenarioStore();
   const { activeYear } = useSimulationStore();
   const mapStore = useMapStore();
+  const { addNotification } = useAppStore();
   const router = useRouter();
 
   const [name, setName] = useState('');
@@ -45,6 +46,12 @@ export function SaveScenarioModal() {
     setName('');
     setDescription('');
     setTags('');
+    
+    addNotification({ 
+      title: 'Scenario Saved', 
+      message: `Scenario "${name}" committed to War Room successfully.`, 
+      severity: 'success' 
+    });
     
     router.push('/war-room');
   };

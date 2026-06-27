@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSimulationStore, useUIStore } from '@/stores';
-import { Train, Zap, Route, Sun, Droplet, Leaf, Factory, Activity, Map as MapIcon, Database, ShieldAlert, HeartPulse, Gauge, Wind, CloudFog, PlugZap, Waves } from 'lucide-react';
+import { Train, Zap, Route, Sun, Droplet, Leaf, Factory, Activity, Map as MapIcon, Database, ShieldAlert, HeartPulse, Gauge, Wind, CloudFog, PlugZap, Waves, Sparkles } from 'lucide-react';
 import { ConsequenceTree } from '@/components/ui/ConsequenceTree';
 import { SafetyImpactForecast } from '@/components/ui/SafetyImpactForecast';
 import dynamic from 'next/dynamic';
@@ -17,6 +17,82 @@ const CityMapTwin = dynamic(() => import('@/components/ui/CityMapTwin').then(m =
     </div>
   ) 
 });
+
+function LiveTelemetryFeed() {
+  const [telemetry, setTelemetry] = useState<string>('System initializing...');
+
+  React.useEffect(() => {
+    const feeds = [
+      'Substation 4 (Electronic City): 92% Load [WARNING]',
+      'Metro Line Purple: Punctuality 94%',
+      'ORR Traffic Velocity: 14 km/h',
+      'PM2.5 Sensor (Whitefield): 142 AQI',
+      'Water Reservoir Level (Bellandur): 43%',
+      'Grid Stability Index: 0.88'
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
+      setTelemetry(`[LIVE ${timeStr}] ${feeds[i % feeds.length]}`);
+      i++;
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="hidden md:flex bg-black/80 rounded-md border border-[var(--border-subtle)] overflow-hidden items-center px-3 h-8 w-[320px]">
+       <Activity size={12} className="text-green-400 mr-2 animate-pulse shrink-0" />
+       <div className="text-[10px] font-mono text-green-400 truncate">{telemetry}</div>
+    </div>
+  );
+}
+
+function AIPolicyAdvisor({ policy }: { policy: any }) {
+  const [insight, setInsight] = useState('Analyzing current strategy...');
+  const [isTyping, setIsTyping] = useState(false);
+
+  React.useEffect(() => {
+    setIsTyping(true);
+    const timeout = setTimeout(() => {
+      let message = '';
+      if (policy.metroExpansion > 60 && policy.roadCapacity < 40) {
+        message = 'Aggressive transit expansion detected. Expect massive long-term carbon reduction, but short-term construction delays will spike congestion on ORR.';
+      } else if (policy.evAdoptionRate > 60 && policy.renewableShare < 30) {
+        message = 'WARNING: High EV adoption without corresponding grid capacity upgrades will lead to severe brownouts in South zones. Recommend boosting Renewable Grid investment.';
+      } else if (policy.industrialZoning > 50 && policy.waterInfrastructure < 40) {
+        message = 'Industrial expansion exceeds current water supply limits. Whitefield and Peenya risk severe water stress. Increase Water Infra budget immediately.';
+      } else {
+        message = 'Balanced approach detected. Steady GDP growth expected, though climate targets may lag behind 2035 Paris Agreement goals. Consider pushing greener policies.';
+      }
+      setInsight(message);
+      setIsTyping(false);
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [policy]);
+
+  return (
+    <div className="bg-gradient-to-br from-indigo-900 to-slate-900 border border-indigo-500/30 rounded-xl shadow-sm flex flex-col overflow-hidden shrink-0">
+      <div className="p-3 border-b border-indigo-500/20 bg-indigo-950/50 flex items-center gap-2">
+        <Sparkles size={14} className="text-indigo-400" />
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-indigo-300">Bhavishyavani AI Advisor</h2>
+      </div>
+      <div className="p-4 relative min-h-[90px]">
+        {isTyping && (
+          <div className="absolute top-2 right-2 flex gap-1">
+            <span className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" />
+            <span className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce delay-75" />
+            <span className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce delay-150" />
+          </div>
+        )}
+        <p className={`text-xs text-indigo-100 leading-relaxed font-mono transition-opacity duration-300 ${isTyping ? 'opacity-50' : 'opacity-100'}`}>
+          {insight}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 
 const SLIDER_ICON_MAP: Record<string, React.ReactNode> = {
@@ -94,12 +170,15 @@ export default function DecisionTwinPage() {
               Urban Digital Twin
             </h1>
           </div>
-          <div className="flex gap-4 items-center bg-[var(--bg-surface-2)] p-1.5 rounded-lg border border-[var(--border-subtle)]">
-             <div className="px-3 py-1 flex items-center gap-2">
-              <Database size={14} className="text-[var(--text-muted)]"/>
-              <span className="text-xs font-mono font-bold text-[var(--text-primary)]">Model Confidence: {(results.confidence * 100).toFixed(0)}%</span>
+          <div className="flex gap-4 items-center">
+             <LiveTelemetryFeed />
+             <div className="flex gap-4 items-center bg-[var(--bg-surface-2)] p-1.5 rounded-lg border border-[var(--border-subtle)]">
+               <div className="px-3 py-1 flex items-center gap-2">
+                <Database size={14} className="text-[var(--text-muted)]"/>
+                <span className="text-xs font-mono font-bold text-[var(--text-primary)]">Model Confidence: {(results.confidence * 100).toFixed(0)}%</span>
+               </div>
+               <button onClick={openSaveScenario} className="btn btn-primary py-1.5 px-4 text-xs">Save Scenario</button>
              </div>
-             <button onClick={openSaveScenario} className="btn btn-primary py-1.5 px-4 text-xs">Save Scenario</button>
           </div>
         </div>
         
@@ -189,6 +268,8 @@ export default function DecisionTwinPage() {
         {/* RIGHT PANEL: INTELLIGENCE */}
         <div className="lg:col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar">
           
+          <AIPolicyAdvisor policy={activePolicy} />
+
           <div className="bg-white border border-[var(--border-subtle)] rounded-xl shadow-sm flex flex-col overflow-hidden shrink-0">
              <SafetyImpactForecast safety={results.safety} />
           </div>

@@ -207,22 +207,49 @@ export const useSimulationStore = create<SimulationState>()((set, get) => ({
 
   setPolicy: (patch) => {
     const newPolicy = { ...get().activePolicy, ...patch };
-    set({ isComputing: true });
-    // Debounced recompute
-    setTimeout(() => {
-      const results = computeSimulation(newPolicy);
-      const timeline = projectTimeline(newPolicy);
-      set({ activePolicy: newPolicy, results, timeline, isComputing: false });
-    }, 250);
+    set({ isComputing: true, activePolicy: newPolicy });
+    
+    if ((window as any).__simTimeout) clearTimeout((window as any).__simTimeout);
+    
+    (window as any).__simTimeout = setTimeout(async () => {
+      try {
+        const response = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPolicy)
+        });
+        const json = await response.json();
+        if (json.success) {
+          set({ results: json.data.results, timeline: json.data.timeline, isComputing: false });
+        } else {
+          set({ isComputing: false });
+        }
+      } catch (err) {
+        console.error(err);
+        set({ isComputing: false });
+      }
+    }, 400); // 400ms debounce
   },
 
   setYear: (year) => set({ activeYear: year }),
   setActiveScenario: (name) => set({ activeScenarioName: name }),
   setActiveTrafficRule: (ruleId) => set({ activeTrafficRule: ruleId }),
-  recompute: () => {
-    const results = computeSimulation(get().activePolicy);
-    const timeline = projectTimeline(get().activePolicy);
-    set({ results, timeline });
+  recompute: async () => {
+    set({ isComputing: true });
+    try {
+      const response = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(get().activePolicy)
+      });
+      const json = await response.json();
+      if (json.success) {
+        set({ results: json.data.results, timeline: json.data.timeline, isComputing: false });
+      }
+    } catch (err) {
+      console.error(err);
+      set({ isComputing: false });
+    }
   },
 
   // Legacy compatibility properties
