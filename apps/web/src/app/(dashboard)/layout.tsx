@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNav } from '@/components/layout/TopNav';
 import { useUIStore } from '@/stores';
-import { DemoProvider } from '@/lib/demo/DemoContext';
+import { DemoProvider, useDemo } from '@/lib/demo/DemoContext';
 
 const BhavishyavaniPanel = dynamic(() => import('@/components/ui/BhavishyavaniPanel').then(m => ({ default: m.BhavishyavaniPanel })));
 const Toast = dynamic(() => import('@/components/ui/Toast').then(m => ({ default: m.Toast })));
@@ -14,6 +14,8 @@ const DemoModal = dynamic(() => import('@/components/demo/DemoModal').then(m => 
 
 function DashboardInner({ children }: { children: React.ReactNode }) {
   const { isBhavishyavaniOpen } = useUIStore();
+  const { state: demoState } = useDemo();
+  const isDemoMode = demoState.status !== 'idle';
 
   return (
     <div className="bg-[var(--bg-base)] min-h-screen relative flex overflow-hidden">
@@ -26,8 +28,8 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
         {/* Top Navigation Bar */}
         <TopNav />
 
-        {/* Main content area */}
-        <main className="flex-1 relative z-1 mt-[64px] overflow-auto">
+        {/* Main content area — pb-20 prevents demo bar overlap */}
+        <main className={`flex-1 relative z-1 mt-[64px] overflow-auto ${isDemoMode ? 'pb-20' : ''}`}>
           {children}
         </main>
       </div>
@@ -44,6 +46,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
 
 export default function DashboardLayout({
   children,

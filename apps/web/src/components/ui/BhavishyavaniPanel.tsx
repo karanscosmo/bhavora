@@ -4,8 +4,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { Bot, Send, X, Target, Building2, AlertTriangle, Leaf, Zap, ChevronRight, Activity, Maximize2, Minimize2 } from 'lucide-react';
 import { useAgentStore, useUIStore, AgentId } from '@/stores';
+import { findBestResponse } from '@/lib/ai/responses';
+
 
 const AGENTS: { id: AgentId; name: string; icon: React.ReactNode; color: string }[] = [
   { id: 'executive', name: 'Executive', icon: <Target size={16} />, color: 'var(--accent-primary)' },
@@ -46,17 +49,20 @@ export function BhavishyavaniPanel() {
     addMessage(currentAgent, { id: msgId, role: 'user', content: text, timestamp: new Date() });
     setInput('');
     setLoading(true);
+    // Vary response time to feel natural
+    const delay = 800 + Math.random() * 700;
     setTimeout(() => {
-      // Mock Response
+      const aiResp = findBestResponse(text, currentAgent);
       const respId = String(Math.floor(Math.random() * 1000000));
-      addMessage(currentAgent, { 
-        id: respId, 
-        role: 'agent', 
-        content: `Analyzing "${text}" through the ${currentAgent} context matrix...\n\nData models indicate a strong correlation with recent metric deviations. I recommend reviewing the Simulation Twin to test edge cases.`, 
-        timestamp: new Date() 
+      addMessage(currentAgent, {
+        id: respId,
+        role: 'agent',
+        content: aiResp.content,
+        timestamp: new Date(),
+        actions: aiResp.actions,
       });
       setLoading(false);
-    }, 1500);
+    }, delay);
   };
 
   return (
@@ -142,12 +148,33 @@ export function BhavishyavaniPanel() {
           <div className={`${isFullScreen ? 'max-w-4xl mx-auto' : ''} space-y-4`}>
             {history.map((msg: any, i: number) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-xl p-3.5 text-sm leading-relaxed shadow-sm ${
-                  msg.role === 'user' 
-                    ? 'bg-[#2563EB] text-white rounded-br-sm' 
+                <div className={`max-w-[90%] rounded-xl p-3.5 text-sm leading-relaxed shadow-sm ${
+                  msg.role === 'user'
+                    ? 'bg-[#2563EB] text-white rounded-br-sm'
                     : 'bg-white border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-bl-sm'
                 }`}>
-                  {msg.content}
+                  {/* Render content with bold/line breaks */}
+                  <div className="whitespace-pre-wrap">
+                    {msg.content.split(/\*\*(.+?)\*\*/g).map((part: string, pi: number) =>
+                      pi % 2 === 1
+                        ? <strong key={pi} className={msg.role === 'user' ? 'text-white' : 'text-[var(--text-primary)]'}>{part}</strong>
+                        : <span key={pi}>{part}</span>
+                    )}
+                  </div>
+                  {/* Action buttons */}
+                  {msg.role === 'agent' && msg.actions && msg.actions.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--border-subtle)]">
+                      {msg.actions.map((action: any) => (
+                        <Link
+                          key={action.path}
+                          href={action.path}
+                          className="text-xs bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] hover:bg-[#DBEAFE] px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 transition-colors"
+                        >
+                          {action.label} <ChevronRight size={11} />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
