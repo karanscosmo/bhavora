@@ -16,118 +16,125 @@ interface EngineSpec {
   dataPoints: string;
 }
 
-const ENGINES = [
-  {
-    id: "decision-twin",
-    name: "Decision Twin",
-    description: "Aggregates multi-source geospatial data to form a real-time responsive digital clone of the city's physical infrastructure.",
-    icon: <Server size={22} />,
-    color: "#3B82F6",
-    bg: "rgba(59, 130, 246, 0.08)"
+const ENGINE_SPECS_DATA: Record<string, EngineSpec> = {
+  'decision-twin': {
+    name: 'Decision Twin Engine',
+    version: 'v3.0.5',
+    inputs: ['GIS Layers', 'IoT Sensor Mesh', 'Census Data', 'Traffic APIs'],
+    outputs: ['Scenario Metrics', 'Impact Scores', 'Timeline Projections'],
+    apis: ['/api/simulate', '/api/districts', '/api/dashboard/live-metrics'],
+    dataFlow: 'Sensor Mesh → Aggregation Layer → Decision Model → KPI Output',
+    details: 'Aggregates 240+ urban data streams. Runs on deterministic multi-variable impact equations calibrated against 15 years of municipal data.',
+    latency: '< 2 seconds',
+    accuracy: '94.2%',
+    dataPoints: '240+',
   },
-  {
-    id: "scenario-engine",
-    name: "Scenario Engine",
-    description: "Allows urban planner simulation of policy shifts, infrastructure projects, demographic flows, and climate variations.",
-    icon: <Workflow size={22} />,
-    color: "#06B6D4",
-    bg: "rgba(6, 182, 212, 0.08)"
+  'scenario-engine': {
+    name: 'Scenario Engine',
+    version: 'v3.0.4',
+    inputs: ['EV Adoption Rate', 'Population Growth', 'Industrial Expansion', 'Metro Lines'],
+    outputs: ['Policy Simulations', 'Risk Scores', 'Saved Scenario Library'],
+    apis: ['/api/simulate', '/api/scenarios'],
+    dataFlow: 'Parameter Inputs → Scenario Model → Impact Calculator → Scenario Store',
+    details: 'Supports unlimited scenario branching with version history.',
+    latency: '< 2 seconds',
+    accuracy: '91.8%',
+    dataPoints: '180+',
   },
-  {
-    id: "impact-engine",
-    name: "Impact Engine",
-    description: "Formulates system-wide variance reports detailing traffic congestion, carbon footprints, energy loads, and water capacity.",
-    icon: <PieChart size={22} />,
-    color: "#10B981",
-    bg: "rgba(16, 185, 129, 0.08)"
+  'impact-engine': {
+    name: 'Impact Engine',
+    version: 'v3.0.3',
+    inputs: ['Simulation Outputs', 'Baseline Urban KPIs', 'Historical Scenario Data'],
+    outputs: ['Traffic Delta', 'Carbon Delta', 'Water Delta', 'Energy Delta', 'Sustainability Score'],
+    apis: ['/api/simulate', '/api/dashboard/live-metrics'],
+    dataFlow: 'Simulation Output → Delta Calculator → Visualization Engine → Report',
+    details: 'Compares every simulation output against the baseline. Generates weighted sustainability scores.',
+    latency: '< 1 second',
+    accuracy: '96.1%',
+    dataPoints: '60+',
   },
-  {
-    id: "forecast-engine",
-    name: "Forecast Engine",
-    description: "Generates 15-year projection curves of demographic shifts, infrastructure wear-and-tear, and zoning needs.",
-    icon: <LineChart size={22} />,
-    color: "#8B5CF6",
-    bg: "rgba(139, 92, 246, 0.08)"
+  'forecast-engine': {
+    name: 'Forecast Engine',
+    version: 'v3.0.2',
+    inputs: ['Population Growth Rate', 'Economic Indicators', 'Infrastructure Wear Index'],
+    outputs: ['15-Year Projection Curves', 'Infrastructure Deficit Reports', 'Policy Recommendations'],
+    apis: ['/api/simulate', '/api/reports/generate'],
+    dataFlow: 'Trend Modeling → Regression Analysis → Projection Curves → Report Generator',
+    details: 'Logarithmic regression models for population. Linear projection for energy and water demand.',
+    latency: '< 3 seconds',
+    accuracy: '88.5%',
+    dataPoints: '120+',
   },
-  {
-    id: "ai-insights-engine",
-    name: "AI Insights Engine",
-    description: "Constantly scans the simulated outcomes to automatically identify bottlenecks, project deficits, and trigger warnings.",
-    icon: <Brain size={22} />,
-    color: "#F59E0B",
-    bg: "rgba(245, 158, 11, 0.08)"
+  'ai-insights-engine': {
+    name: 'AI Insights Engine',
+    version: 'v3.0.5',
+    inputs: ['Simulation Outputs', 'Map Layer Data', 'Infrastructure Metrics', 'Historical Scenarios'],
+    outputs: ['Strategic Recommendations', 'Risk Alerts', 'Investment Priorities'],
+    apis: ['/api/simulate', '/api/insights'],
+    dataFlow: 'Output Scan → Threshold Analysis → Recommendation Generator → Alert System',
+    details: 'Rule-based expert system with 48 configured threshold rules. Generates natural language recommendations.',
+    latency: '< 1 second',
+    accuracy: '92.7%',
+    dataPoints: '48 rules',
   },
-  {
-    id: "report-generator",
-    name: "Report Generator",
-    description: "Compiles all scenario parameters, timeline metrics, and AI recommendations into executive PDF strategy briefs.",
-    icon: <FileText size={22} />,
-    color: "#A855F7",
-    bg: "rgba(168, 85, 247, 0.08)"
+  'report-generator': {
+    name: 'Report Generator',
+    version: 'v3.0.1',
+    inputs: ['Scenario Parameters', 'Simulation Metrics', 'AI Recommendations', 'Timeline Data'],
+    outputs: ['Executive PDF Reports', 'Infrastructure Reports', 'Disaster Reports', 'CSV Exports'],
+    apis: ['/api/reports/generate'],
+    dataFlow: 'Data Aggregation → Template Engine → HTML Render → PDF Conversion',
+    details: 'Client-side PDF generation using jsPDF + html2canvas.',
+    latency: '< 5 seconds',
+    accuracy: 'N/A',
+    dataPoints: 'All platform data',
   },
-  {
-    id: "disaster-engine",
-    name: "Disaster Command Engine",
-    description: "Evaluates incident command protocols, dynamic evacuation routing, and BESCOM/BBMP dispatch resource load levels.",
-    icon: <ShieldAlert size={22} />,
-    color: "#EF4444",
-    bg: "rgba(239, 68, 68, 0.08)"
+  'disaster-engine': {
+    name: 'Disaster Command Engine',
+    version: 'v3.0.6',
+    inputs: ['Live Weather Radar', 'Sensors Mesh', 'Resource Locations', 'Incident Reports'],
+    outputs: ['Response Timelines', 'Evacuation Routes', 'Dispatch Orders', 'Resource Load Levels'],
+    apis: ['/api/disaster/flood', '/api/dashboard/live-metrics'],
+    dataFlow: 'Live Radar & Incident Reports → Threat Evaluator → Response Planner → Dispatch Action',
+    details: 'Optimizes emergency routing and resource dispatch using dynamic flow networks.',
+    latency: '< 1 second',
+    accuracy: '95.4%',
+    dataPoints: '85+ sensors',
   }
+};
+
+const ENGINES = [
+  { id: "decision-twin", name: "Decision Twin", description: "Aggregates multi-source geospatial data to form a real-time responsive digital clone of the city's physical infrastructure.", icon: <Server size={22} />, color: "var(--accent-primary)", bg: "var(--accent-primary-bg)" },
+  { id: "scenario-engine", name: "Scenario Engine", description: "Allows urban planner simulation of policy shifts, infrastructure projects, demographic flows, and climate variations.", icon: <Workflow size={22} />, color: "var(--accent-success)", bg: "#DCFCE7" },
+  { id: "impact-engine", name: "Impact Engine", description: "Formulates system-wide variance reports detailing traffic congestion, carbon footprints, energy loads, and water capacity.", icon: <PieChart size={22} />, color: "var(--accent-warning)", bg: "#FEF3C7" },
+  { id: "forecast-engine", name: "Forecast Engine", description: "Generates 15-year projection curves of demographic shifts, infrastructure wear-and-tear, and zoning needs.", icon: <LineChart size={22} />, color: "var(--accent-danger)", bg: "#FEE2E2" },
+  { id: "ai-insights-engine", name: "AI Insights Engine", description: "Constantly scans the simulated outcomes to automatically identify bottlenecks, project deficits, and trigger warnings.", icon: <Brain size={22} />, color: "var(--accent-primary)", bg: "var(--accent-primary-bg)" },
+  { id: "report-generator", name: "Report Generator", description: "Compiles all scenario parameters, timeline metrics, and AI recommendations into executive PDF strategy briefs.", icon: <FileText size={22} />, color: "var(--accent-success)", bg: "#DCFCE7" },
+  { id: "disaster-engine", name: "Disaster Command Engine", description: "Evaluates incident command protocols, dynamic evacuation routing, and BESCOM/BBMP dispatch resource load levels.", icon: <ShieldAlert size={22} />, color: "var(--accent-danger)", bg: "#FEE2E2" }
 ];
 
 function EngineModal({ engineId, onClose }: { engineId: string; onClose: () => void }) {
-  const [spec, setSpec] = useState<EngineSpec | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'flow' | 'apis' | 'performance'>('overview');
-
-  React.useEffect(() => {
-    fetch(`/api/platform/specs/${engineId}`)
-      .then(res => res.json())
-      .then(data => {
-        setSpec(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [engineId]);
-
-  if (loading) {
-    return (
-      <>
-        <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
-        <div style={{
-          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-          background: '#0A1628', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px',
-          padding: '40px', width: '480px', zIndex: 301, display: 'flex', justifyContent: 'center', alignItems: 'center',
-        }}>
-          <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-        </div>
-      </>
-    );
-  }
+  const spec = ENGINE_SPECS_DATA[engineId];
 
   if (!spec) return null;
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
-      <div style={{
-        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-        background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '14px',
-        padding: '24px', width: '500px', zIndex: 301, boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-        animation: 'scale-in 0.16s ease-out',
-      }}>
-        {/* Modal Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+      <div onClick={onClose} className="fixed inset-0 bg-black/20 z-50 backdrop-blur-sm" />
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white border border-[var(--border-subtle)] rounded-xl p-6 w-[500px] z-[51] shadow-xl">
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <div style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Technical Specification</div>
-            <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '6px 0 2px' }}>{spec.name}</h2>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Engine Version: {spec.version}</span>
+            <div className="text-[10px] font-bold text-[var(--accent-primary)] uppercase tracking-wider mb-1">Technical Specification</div>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">{spec.name}</h2>
+            <span className="text-[11px] text-[var(--text-secondary)]">Engine Version: {spec.version}</span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}>×</button>
+          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+            ✕
+          </button>
         </div>
 
-        {/* Modal Tabs Menu (4 Tabs) */}
-        <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', marginBottom: '16px' }}>
+        <div className="flex gap-2 border-b border-[var(--border-subtle)] pb-2 mb-4">
           {[
             { id: 'overview', label: 'Overview & Specs' },
             { id: 'flow', label: 'Data Flow' },
@@ -137,35 +144,33 @@ function EngineModal({ engineId, onClose }: { engineId: string; onClose: () => v
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id as any)}
-              style={{
-                padding: '6px 10px', borderRadius: '4px', border: 'none', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                background: activeTab === t.id ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                color: activeTab === t.id ? '#00D4FF' : 'rgba(255,255,255,0.45)',
-                transition: 'all 120ms',
-              }}
+              className={`px-3 py-1.5 rounded text-[12px] font-semibold transition-colors ${
+                activeTab === t.id 
+                  ? 'bg-[var(--accent-primary-bg)] text-[var(--accent-primary)]' 
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)]'
+              }`}
             >
               {t.label}
             </button>
           ))}
         </div>
 
-        {/* Tabs Content */}
-        <div style={{ minHeight: '140px' }}>
+        <div className="min-h-[160px]">
           {activeTab === 'overview' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.5, margin: 0 }}>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 {spec.details}
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>INPUT PATHS</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', color: '#fff', marginTop: '4px' }}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-[var(--bg-surface-2)] rounded-lg border border-[var(--border-subtle)]">
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-2">Input Paths</span>
+                  <div className="flex flex-col gap-1 text-xs text-[var(--text-primary)]">
                     {spec.inputs.slice(0, 3).map((inp, idx) => <span key={idx}>• {inp}</span>)}
                   </div>
                 </div>
-                <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>OUTPUT PATHS</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', color: '#fff', marginTop: '4px' }}>
+                <div className="p-3 bg-[var(--bg-surface-2)] rounded-lg border border-[var(--border-subtle)]">
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-2">Output Paths</span>
+                  <div className="flex flex-col gap-1 text-xs text-[var(--text-primary)]">
                     {spec.outputs.slice(0, 3).map((out, idx) => <span key={idx}>• {out}</span>)}
                   </div>
                 </div>
@@ -175,8 +180,8 @@ function EngineModal({ engineId, onClose }: { engineId: string; onClose: () => v
 
           {activeTab === 'flow' && (
             <div>
-              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: '8px' }}>DATA FLOW PIPELINE</span>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px', fontSize: '11px', fontFamily: 'monospace', color: '#00D4FF', lineHeight: 1.5 }}>
+              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-2">Data Flow Pipeline</span>
+              <div className="p-4 bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] rounded-lg text-sm font-mono text-[var(--text-primary)] leading-relaxed">
                 {spec.dataFlow}
               </div>
             </div>
@@ -184,12 +189,12 @@ function EngineModal({ engineId, onClose }: { engineId: string; onClose: () => v
 
           {activeTab === 'apis' && (
             <div>
-              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: '8px' }}>CORE ROUTE ENDPOINTS</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-2">Core Route Endpoints</span>
+              <div className="flex flex-col gap-2">
                 {spec.apis.map(api => (
-                  <div key={api} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                    <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#fff' }}>{api}</span>
-                    <span style={{ fontSize: '8px', color: '#10B981', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(16,185,129,0.1)' }}>GET</span>
+                  <div key={api} className="flex justify-between items-center p-3 bg-[var(--bg-surface-2)] rounded-lg border border-[var(--border-subtle)]">
+                    <span className="text-xs font-mono text-[var(--text-primary)]">{api}</span>
+                    <span className="text-[10px] font-bold text-[var(--accent-success)] bg-[#DCFCE7] px-2 py-0.5 rounded">GET</span>
                   </div>
                 ))}
               </div>
@@ -197,28 +202,21 @@ function EngineModal({ engineId, onClose }: { engineId: string; onClose: () => v
           )}
 
           {activeTab === 'performance' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>Avg Latency</span>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#00D4FF', marginTop: '6px', fontFamily: 'monospace' }}>{spec.latency}</div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 text-center border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface-2)]">
+                <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Latency</div>
+                <div className="text-lg font-bold text-[var(--text-primary)] font-mono">{spec.latency}</div>
               </div>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>Accuracy rate</span>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#10B981', marginTop: '6px', fontFamily: 'monospace' }}>{spec.accuracy}</div>
+              <div className="p-3 text-center border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface-2)]">
+                <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Accuracy</div>
+                <div className="text-lg font-bold text-[var(--accent-success)] font-mono">{spec.accuracy}</div>
               </div>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>Data Points</span>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#F59E0B', marginTop: '7px', fontFamily: 'monospace' }}>{spec.dataPoints}</div>
+              <div className="p-3 text-center border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface-2)]">
+                <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Data Points</div>
+                <div className="text-lg font-bold text-[var(--accent-primary)] font-mono">{spec.dataPoints}</div>
               </div>
             </div>
           )}
-        </div>
-
-        {/* Modal Actions */}
-        <div style={{ marginTop: '20px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} className="btn-primary" style={{ padding: '8px 20px', fontSize: '12px' }}>
-            Close Specifications
-          </button>
         </div>
       </div>
     </>
@@ -226,87 +224,40 @@ function EngineModal({ engineId, onClose }: { engineId: string; onClose: () => v
 }
 
 export default function PlatformPage() {
-  const [selectedEngineId, setSelectedEngineId] = useState<string | null>(null);
+  const [selectedEngine, setSelectedEngine] = useState<string | null>(null);
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      
+    <div className="p-8 max-w-6xl mx-auto h-[calc(100vh-64px)] overflow-y-auto">
       {/* Header */}
-      <div>
-        <nav style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-          <span>Platform Overview</span>
-          <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
-          <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>Bhavora Architecture</span>
-        </nav>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>City Intelligence Architecture</h1>
-        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-          Bhavora combines high-fidelity GIS modeling, deterministic impact analysis, and predictive AI engines to de-risk municipal planning.
-        </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight mb-2">Platform Architecture</h1>
+        <p className="text-sm text-[var(--text-secondary)]">Technical specifications of the Bhavora OS micro-engines.</p>
       </div>
 
-      {/* Grid of 7 Engines */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px' }}>
-        {ENGINES.map((eng, idx) => (
-          <div
-            key={eng.id}
-            className="glass-card"
-            style={{
-              padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              minHeight: '200px', transition: 'all 200ms',
-            }}
-          >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {ENGINES.map(engine => (
+          <div key={engine.id} className="card p-6 flex flex-col justify-between group hover:border-[var(--accent-primary)] transition-colors cursor-pointer" onClick={() => setSelectedEngine(engine.id)}>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: `${eng.bg}33`, color: eng.color, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${eng.bg}` }}>
-                  {eng.icon}
-                </div>
-                <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Engine Layer
-                </span>
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: engine.bg, color: engine.color }}>
+                {engine.icon}
               </div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{eng.name}</h3>
-              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{eng.description}</p>
+              <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">{engine.name}</h3>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed line-clamp-3">
+                {engine.description}
+              </p>
             </div>
-
-            <button
-              onClick={() => setSelectedEngineId(eng.id)}
-              style={{
-                background: 'none', border: 'none', color: eng.color, fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                textAlign: 'left', padding: '12px 0 0', display: 'flex', alignItems: 'center', gap: '4px'
-              }}
-            >
-              View Technical Specs →
-            </button>
+            
+            <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-[var(--accent-primary)]">
+              View Technical Specs
+              <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Bottom Technical Spec Summary Card */}
-      <div className="glass-card" style={{ padding: '24px', borderRadius: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Bengaluru Integrated Data Lake</h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-            The platform is built on real municipal, geographical, and industrial datasets from Bangalore Open Data, Censuses, Karnataka EV Policy publications, and BBMP. By processing spatial distributions and applying local infrastructure rules, Bhavora provides urban planning authorities with actionable predictions.
-          </p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', textAlign: 'center' }}>
-          <div style={{ padding: '16px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-blue)', fontFamily: 'monospace' }}>1.2M+</div>
-            <div style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>Spatial Nodes</div>
-          </div>
-          <div style={{ padding: '16px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-teal)', fontFamily: 'monospace' }}>14,700km</div>
-            <div style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>Road Net</div>
-          </div>
-          <div style={{ padding: '16px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-amber)', fontFamily: 'monospace' }}>650+</div>
-            <div style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>EV Points</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Technical Spec Modal */}
-      {selectedEngineId && <EngineModal engineId={selectedEngineId} onClose={() => setSelectedEngineId(null)} />}
+      {selectedEngine && (
+        <EngineModal engineId={selectedEngine} onClose={() => setSelectedEngine(null)} />
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ export default function PricingPage() {
     {
       name: 'MUNICIPAL',
       desc: 'For cities under 500k population.',
-      price: '$4k',
+      price: '$4,000',
       period: '/mo',
       features: [
         'City Twin GIS (Standard Res)',
@@ -20,7 +20,7 @@ export default function PricingPage() {
     {
       name: 'METROPOLITAN',
       desc: 'Full Cyber-Physical Intelligence.',
-      price: '$12k',
+      price: '$12,000',
       period: '/mo',
       features: [
         'Sub-meter GIS Infrastructure',
@@ -47,47 +47,48 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="pt-24 pb-32 px-8 max-w-6xl mx-auto">
+    <div className="pt-24 pb-32 px-8 max-w-6xl mx-auto bg-white">
       <div className="text-center mb-16">
-        <span className="text-[var(--accent-teal)] text-[10px] font-bold tracking-widest uppercase mb-4 flex items-center justify-center gap-2">
-          <span className="w-1.5 h-1.5 bg-[var(--accent-teal)]" /> 
-          DEPLOYMENT SCALES
-        </span>
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 font-serif">
-          Procurement & Licensing
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+          Enterprise Licensing
         </h1>
-        <p className="max-w-2xl mx-auto text-[var(--slate-400)] text-sm font-mono leading-relaxed">
-          &gt; Select an appropriate deployment scale. All instances run in secure, SOC2 compliant environments with optional air-gapping for defense applications.
+        <p className="max-w-2xl mx-auto text-[var(--text-secondary)] text-lg leading-relaxed">
+          Select an appropriate deployment scale. All instances run in secure, SOC2 compliant environments with optional air-gapping for defense applications.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {tiers.map((tier, i) => (
-          <div key={i} className={`p-8 border ${tier.primary ? 'bg-[#0f141e] border-[var(--accent-blue)] shadow-[inset_0_0_40px_rgba(0,102,255,0.1)]' : 'bg-[var(--slate-900)] border-[var(--slate-800)]'}`}>
-            <h3 className="text-[12px] font-bold text-[var(--slate-300)] uppercase tracking-widest mb-2 font-mono">{tier.name}</h3>
-            <p className="text-sm text-[var(--slate-500)] mb-6 h-10">{tier.desc}</p>
+          <div key={i} className={`p-8 rounded-xl border ${tier.primary ? 'border-[var(--accent-primary)] shadow-md relative' : 'border-[var(--border-subtle)] shadow-sm bg-white'}`}>
+            {tier.primary && (
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--accent-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                Most Popular
+              </div>
+            )}
+            <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">{tier.name}</h3>
+            <p className="text-sm text-[var(--text-secondary)] mb-6 h-10">{tier.desc}</p>
             <div className="mb-8">
-              <span className="text-4xl font-bold font-serif">{tier.price}</span>
-              <span className="text-[var(--slate-500)] text-sm">{tier.period}</span>
+              <span className="text-4xl font-bold font-mono">{tier.price}</span>
+              <span className="text-[var(--text-muted)] text-sm">{tier.period}</span>
             </div>
             
             <ul className="space-y-4 mb-8">
               {tier.features.map((feature, j) => (
                 <li key={j} className="flex items-start gap-3">
-                  <div className={`mt-1 flex-shrink-0 ${tier.primary ? 'text-[var(--accent-blue)]' : 'text-[var(--slate-500)]'}`}>
-                    <Check size={14} strokeWidth={3} />
+                  <div className={`mt-1 flex-shrink-0 ${tier.primary ? 'text-[var(--accent-primary)]' : 'text-[var(--text-muted)]'}`}>
+                    <Check size={16} strokeWidth={2.5} />
                   </div>
-                  <span className="text-sm text-[var(--slate-300)]">{feature}</span>
+                  <span className="text-sm text-[var(--text-secondary)] font-medium">{feature}</span>
                 </li>
               ))}
             </ul>
 
-            <Link href="/contact-sales" className={`block text-center text-[10px] uppercase tracking-widest font-bold py-3 transition-all ${
+            <Link href="/contact-sales" className={`block w-full text-center text-sm font-semibold py-3 rounded-lg transition-colors ${
               tier.primary 
-                ? 'bg-[var(--accent-blue)] text-white hover:bg-[var(--accent-blue-hover)] shadow-[0_0_15px_rgba(37,99,235,0.3)]' 
-                : 'bg-[var(--slate-800)] text-[var(--slate-300)] hover:bg-[var(--slate-700)]'
+                ? 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)]' 
+                : 'bg-[var(--bg-surface-2)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)]'
             }`}>
-              {tier.primary ? 'Initialize Deployment' : 'Request Clearance'}
+              {tier.primary ? 'Start Deployment' : 'Contact Sales'}
             </Link>
           </div>
         ))}
