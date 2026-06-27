@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { useSimulationStore } from '@/stores';
 import { ChevronLeft, ArrowDown, ArrowUp, Activity, Car, Wind, Droplets, Zap, TrendingUp, Home, CheckCircle2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-function SimulationResultsPageContent() {
+
+export default function SimulationResultsPage() {
   const simStore = useSimulationStore();
   const inputs = simStore.activePolicy;
 
@@ -68,14 +67,21 @@ function SimulationResultsPageContent() {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!mapContainer.current) return;
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
+    let mapInstance: any = null;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive || !mapContainer.current) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      const map = new mapboxgl.Map({
+      container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [77.5946, 12.9716],
       zoom: 10,
       interactive: false,
       attributionControl: false
     });
+      mapInstance = map;
     
     map.on('load', () => {
       // Just a static demo visualization for simulation footprint
@@ -103,7 +109,9 @@ function SimulationResultsPageContent() {
       });
     });
 
-    return () => map.remove();
+    });
+
+    return () => { isActive = false; mapInstance?.remove(); };
   }, []);
 
   return (
@@ -228,4 +236,3 @@ function MetricCard({ title, value, icon: Icon, isGood }: { title: string, value
   );
 }
 
-export default dynamic(() => Promise.resolve(SimulationResultsPageContent), { ssr: false });

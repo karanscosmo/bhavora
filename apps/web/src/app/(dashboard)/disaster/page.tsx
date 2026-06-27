@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { AlertTriangle, Clock, Map, Users, Truck, AlertCircle, Droplets, Flame, Zap, Navigation } from 'lucide-react';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
 
 type Incident = {
   id: string;
@@ -29,17 +28,22 @@ const INCIDENTS: Incident[] = [
   { id: 'INC-KSFRS-110', type: 'Industrial Fire', location: 'Peenya Industrial Area', time: '15 mins ago', status: 'Active', severity: 'Critical', coords: [77.5147, 13.0285], radius: 400, icon: Flame, resources: [{ type: 'Fire Engines', count: 12 }, { type: 'Ambulances', count: 3 }], impact: 'Air quality hazard' }
 ];
 
-function DisasterPageContent() {
+export default function DisasterPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<MapboxMap | null>(null);
   
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+      map.current = new mapboxgl.Map({
+      container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [77.5946, 12.9716],
       zoom: 11,
@@ -86,7 +90,12 @@ function DisasterPageContent() {
       });
     });
 
-    return () => map.current?.remove();
+    });
+
+    return () => {
+      isActive = false;
+      map.current?.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -161,7 +170,7 @@ function DisasterPageContent() {
 
       {/* CENTER: Live Map */}
       <div className="flex-1 relative">
-        <div ref={mapContainer} className="absolute inset-0" />
+        <div ref={mapContainer} className="absolute inset-0" style={{ width: '100%', height: '100%', minHeight: '400px' }} />
         {/* Map Overlays */}
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur border border-[var(--border-subtle)] p-2 rounded-lg shadow-sm flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--accent-danger)]">
@@ -241,4 +250,3 @@ function DisasterPageContent() {
   );
 }
 
-export default dynamic(() => Promise.resolve(DisasterPageContent), { ssr: false });

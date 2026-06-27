@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Layers, Map as MapIcon, Compass, Maximize, Train, Bus, Zap, Hospital, Droplets, Car, Activity } from 'lucide-react';
 import { BENGALURU_METRO_GEOJSON } from '@/lib/gis/data';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
 
 const MAP_STYLES = {
   light: 'mapbox://styles/mapbox/light-v11',
@@ -17,9 +16,9 @@ const MAP_STYLES = {
 
 const BENGALURU_CENTER = [77.5946, 12.9716] as [number, number];
 
-function CitiesPageContent() {
+export default function CitiesPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<MapboxMap | null>(null);
   
   const [activeStyle, setActiveStyle] = useState<'light' | 'satellite' | 'hybrid'>('hybrid');
   const [layers, setLayers] = useState({
@@ -32,9 +31,14 @@ function CitiesPageContent() {
 
   useEffect(() => {
     if (!mapContainer.current) return;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+      map.current = new mapboxgl.Map({
+      container: mapContainer.current!,
       style: MAP_STYLES[activeStyle],
       center: BENGALURU_CENTER,
       zoom: 12.5,
@@ -131,7 +135,12 @@ function CitiesPageContent() {
       updateLayers(layers);
     });
 
-    return () => map.current?.remove();
+    });
+
+    return () => {
+      isActive = false;
+      map.current?.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -166,7 +175,7 @@ function CitiesPageContent() {
   return (
     <div className="relative w-full h-[calc(100vh-64px)]">
       {/* Map Container */}
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="absolute inset-0" style={{ width: '100%', height: '100%', minHeight: '400px' }} />
 
       {/* Floating Control Panel */}
       <div className="absolute top-6 left-6 w-[320px] bg-white border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden flex flex-col z-10">
@@ -231,4 +240,3 @@ function CitiesPageContent() {
   );
 }
 
-export default dynamic(() => Promise.resolve(CitiesPageContent), { ssr: false });

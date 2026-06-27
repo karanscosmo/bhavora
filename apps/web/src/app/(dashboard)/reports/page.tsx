@@ -3,13 +3,12 @@
 import React, { useState } from 'react';
 import { FileText, Download, Share2, Map, LayoutDashboard, Clock, ChevronRight, File } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-function ReportsPageContent() {
+
+export default function ReportsPage() {
   const [activeSection, setActiveSection] = useState('exec');
 
   const chartData = [
@@ -24,14 +23,21 @@ function ReportsPageContent() {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!mapContainer.current) return;
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
+    let mapInstance: any = null;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive || !mapContainer.current) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      const map = new mapboxgl.Map({
+      container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [77.6713, 12.9298], // Bellandur/ORR area
       zoom: 11,
       interactive: false,
       attributionControl: false
     });
+      mapInstance = map;
     
     map.on('load', () => {
       map.addSource('corridor-line', {
@@ -62,7 +68,9 @@ function ReportsPageContent() {
       });
     });
 
-    return () => map.remove();
+    });
+
+    return () => { isActive = false; mapInstance?.remove(); };
   }, []);
 
   return (
@@ -166,7 +174,7 @@ function ReportsPageContent() {
                   <div className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px] font-bold px-2 py-1 rounded shadow-sm">
                     ORR Transit Corridor
                   </div>
-                  <div ref={mapContainer} className="w-full h-full" />
+                  <div ref={mapContainer} className="w-full h-full" style={{ width: '100%', height: '100%', minHeight: '400px' }} />
                 </div>
               </div>
             </div>
@@ -191,4 +199,3 @@ function ReportsPageContent() {
   );
 }
 
-export default dynamic(() => Promise.resolve(ReportsPageContent), { ssr: false });

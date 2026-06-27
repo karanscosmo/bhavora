@@ -4,13 +4,12 @@ import React, { useMemo } from 'react';
 import { useSimulationStore } from '@/stores';
 import { IndianRupee, TrendingDown, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-function ImpactAnalysisPageContent() {
+
+export default function ImpactAnalysisPage() {
   const simStore = useSimulationStore();
   const inputs = simStore.activePolicy;
 
@@ -65,14 +64,21 @@ function ImpactAnalysisPageContent() {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!mapContainer.current) return;
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
+    let mapInstance: any = null;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive || !mapContainer.current) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      const map = new mapboxgl.Map({
+      container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [77.5946, 12.9716],
       zoom: 10,
       interactive: false,
       attributionControl: false
     });
+      mapInstance = map;
     
     map.on('load', () => {
       economics.districts.forEach(d => {
@@ -92,7 +98,9 @@ function ImpactAnalysisPageContent() {
       });
     });
 
-    return () => map.remove();
+    });
+
+    return () => { isActive = false; mapInstance?.remove(); };
   }, [economics]);
 
   return (
@@ -227,4 +235,3 @@ function ImpactAnalysisPageContent() {
   );
 }
 
-export default dynamic(() => Promise.resolve(ImpactAnalysisPageContent), { ssr: false });

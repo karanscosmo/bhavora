@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useSimulationStore } from '@/stores';
 import { Train, Zap, Route, Sun, Droplet, Leaf, Factory, HelpCircle, Activity, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
 
 const SLIDER_ICON_MAP: Record<string, React.ReactNode> = {
   train: <Train size={18} />,
@@ -57,17 +56,22 @@ function PolicySlider({
   );
 }
 
-function DecisionTwinPageContent() {
+export default function DecisionTwinPage() {
   const simStore = useSimulationStore();
   const { results, activePolicy } = simStore;
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<MapboxMap | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+      map.current = new mapboxgl.Map({
+      container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [77.5946, 12.9716],
       zoom: 11,
@@ -102,7 +106,12 @@ function DecisionTwinPageContent() {
       });
     });
 
-    return () => map.current?.remove();
+    });
+
+    return () => {
+      isActive = false;
+      map.current?.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -157,7 +166,7 @@ function DecisionTwinPageContent() {
 
       {/* CENTER: Live Map Visualizer */}
       <div className="flex-1 relative">
-        <div ref={mapContainer} className="absolute inset-0" />
+        <div ref={mapContainer} className="absolute inset-0" style={{ width: '100%', height: '100%', minHeight: '400px' }} />
         <div className="absolute top-6 left-6 bg-white/90 backdrop-blur border border-[var(--border-subtle)] p-4 rounded-xl shadow-lg w-[280px]">
           <h3 className="text-sm font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2">
             <HelpCircle size={16} className="text-[#2563EB]" />
@@ -238,6 +247,4 @@ function DecisionTwinPageContent() {
     </div>
   );
 }
-
-export default dynamic(() => Promise.resolve(DecisionTwinPageContent), { ssr: false });
 

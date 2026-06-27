@@ -4,13 +4,12 @@ import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Legend, ComposedChart, Bar } from 'recharts';
 import { Filter, Download, Activity, TrendingUp, MapPin } from 'lucide-react';
 import { useCityDataStore } from '@/stores';
-import dynamic from 'next/dynamic';
-import mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-function AnalyticsPageContent() {
+
+export default function AnalyticsPage() {
   const cityData = useCityDataStore();
   const [timeframe, setTimeframe] = useState<'30D' | '90D' | '1Y'>('30D');
 
@@ -45,42 +44,48 @@ function AnalyticsPageContent() {
   const mapContainer = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!mapContainer.current) return;
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [77.5946, 12.9716],
-      zoom: 10,
-      interactive: false,
-      attributionControl: false
-    });
-    
-    map.on('load', () => {
-      scatterData.forEach(d => {
-        const coords = d.district === 'Whitefield' ? [77.7499, 12.9698] :
-                       d.district === 'Electronic City' ? [77.6713, 12.8399] :
-                       d.district === 'Koramangala' ? [77.6225, 12.9352] :
-                       d.district === 'Hebbal' ? [77.5913, 13.0354] :
-                       d.district === 'Indiranagar' ? [77.6412, 12.9719] :
-                       d.district === 'Jayanagar' ? [77.5838, 12.9299] :
-                       [77.5562, 13.0031]; // Malleswaram
-        
-        const el = document.createElement('div');
-        el.className = 'rounded-full border-2 border-white shadow-md flex items-center justify-center text-[10px] font-bold text-white';
-        // Size proportional to density
-        const size = Math.max(12, (d.density / 16000) * 24);
-        el.style.width = `${size}px`;
-        el.style.height = `${size}px`;
-        // Color proportional to AQI (red = high AQI)
-        el.style.backgroundColor = d.aqi > 150 ? '#EF4444' : d.aqi > 110 ? '#F59E0B' : '#10B981';
-        el.style.opacity = '0.8';
-        
-        new mapboxgl.Marker(el)
-          .setLngLat(coords as [number, number])
-          .addTo(map);
+    let mapInstance: any = null;
+    let isActive = true;
+    import('mapbox-gl').then(m => {
+      if (!isActive || !mapContainer.current) return;
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      const map = new mapboxgl.Map({
+        container: mapContainer.current!,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [77.5946, 12.9716],
+        zoom: 10,
+        interactive: false,
+        attributionControl: false
+      });
+      mapInstance = map;
+      
+      map.on('load', () => {
+        scatterData.forEach(d => {
+          const coords = d.district === 'Whitefield' ? [77.7499, 12.9698] :
+                         d.district === 'Electronic City' ? [77.6713, 12.8399] :
+                         d.district === 'Koramangala' ? [77.6225, 12.9352] :
+                         d.district === 'Hebbal' ? [77.5913, 13.0354] :
+                         d.district === 'Indiranagar' ? [77.6412, 12.9719] :
+                         d.district === 'Jayanagar' ? [77.5838, 12.9299] :
+                         [77.5562, 13.0031]; // Malleswaram
+          
+          const el = document.createElement('div');
+          el.className = 'rounded-full border-2 border-white shadow-md flex items-center justify-center text-[10px] font-bold text-white';
+          const size = Math.max(12, (d.density / 16000) * 24);
+          el.style.width = `${size}px`;
+          el.style.height = `${size}px`;
+          el.style.backgroundColor = d.aqi > 150 ? '#EF4444' : d.aqi > 110 ? '#F59E0B' : '#10B981';
+          el.style.opacity = '0.8';
+          
+          new mapboxgl.Marker(el)
+            .setLngLat(coords as [number, number])
+            .addTo(map);
+        });
       });
     });
 
-    return () => map.remove();
+    return () => { isActive = false; mapInstance?.remove(); };
   }, [scatterData]);
 
   return (
@@ -205,4 +210,3 @@ function AnalyticsPageContent() {
   );
 }
 
-export default dynamic(() => Promise.resolve(AnalyticsPageContent), { ssr: false });
