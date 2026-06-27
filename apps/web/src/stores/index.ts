@@ -441,8 +441,8 @@ interface MapState {
   toggleLayer: (id: string) => void;
   layerOpacity: number;
   setLayerOpacity: (v: number) => void;
-  activeBasemap: 'dark' | 'satellite';
-  setBasemap: (b: 'dark' | 'satellite') => void;
+  activeBasemap: 'light' | 'dark' | 'satellite';
+  setBasemap: (b: 'light' | 'dark' | 'satellite') => void;
 }
 
 export const useMapStore = create<MapState>()(

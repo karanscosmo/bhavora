@@ -9,6 +9,7 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid,
 } from 'recharts';
+import { Sliders, RefreshCcw, Save, FolderOpen, Play, CheckCircle2, AlertTriangle, HelpCircle, ChevronRight, ChevronDown } from 'lucide-react';
 
 // ===== PRESET BUTTONS =====
 const PRESETS = [
@@ -17,510 +18,264 @@ const PRESETS = [
   { label: 'High', value: 80 },
 ];
 
-// ===== EXPLAIN PANEL =====
 const EXPLAIN_CONTENT: Record<string, { methodology: string; formula: string; confidence: number; whyMatters: string }> = {
   metroExpansion: {
     methodology: 'Transport Demand Model (4-step)',
     formula: 't = t₀ × (1 + 0.15 × (V/C)⁴) — BPR Traffic Function',
     confidence: 0.87,
-    whyMatters: 'Bengaluru has the 5th worst traffic globally, with avg commute times exceeding 50 min. Metro decongestion directly improves economic productivity and air quality.',
+    whyMatters: 'Bengaluru has the 5th worst traffic globally. Metro decongestion directly improves economic productivity and air quality.',
   },
   evAdoptionRate: {
     methodology: 'Carbon Emission Model (IPCC Tier 2)',
-    formula: 'CO₂ = VKT × EF × (1 − EV_share) — IPCC Guidelines 2006',
+    formula: 'CO₂ = VKT × EF × (1 − EV_share) — IPCC 2006',
     confidence: 0.91,
-    whyMatters: 'Transport accounts for 43% of Bengaluru\'s CO₂. EV adoption is Karnataka\'s primary strategy for achieving 30% EV penetration by 2030 (Karnataka EV Policy 2022).',
+    whyMatters: 'Transport accounts for 43% of Bengaluru\'s CO₂. EV adoption is Karnataka\'s primary strategy for achieving 30% EV penetration by 2030.',
   },
   roadCapacity: {
     methodology: 'BPR Traffic Assignment Function',
     formula: 't = t₀ × (1 + α × (V/C)^β), α = 0.15, β = 4',
     confidence: 0.87,
-    whyMatters: 'Road capacity improvements can reduce congestion but may induce demand (Downs-Thomson paradox). Optimal investment balances road widening with transit alternatives.',
+    whyMatters: 'Road capacity improvements can reduce congestion but may induce demand. Optimal investment balances road widening with transit.',
   },
   renewableShare: {
     methodology: 'Energy Grid Model (Load Duration Curve)',
-    formula: 'EF_grid = Σ(EF_i × share_i) — CEA Karnataka 2023: 0.82 kgCO₂/kWh',
+    formula: 'EF_grid = Σ(EF_i × share_i) — CEA 2023',
     confidence: 0.89,
-    whyMatters: 'Karnataka aims for 50% renewable by 2030. Each 10% grid decarbonization cascades across buildings, industry, and transport (via EV charging).',
+    whyMatters: 'Karnataka aims for 50% renewable by 2030. Each 10% grid decarbonization cascades across buildings and transport.',
   },
   waterInfrastructure: {
     methodology: 'IWA Water Balance Model',
-    formula: 'NRW = (Supply − Billed) / Supply — Bengaluru leakage: 40%',
+    formula: 'NRW = (Supply − Billed) / Supply — Leakage: 40%',
     confidence: 0.84,
-    whyMatters: 'Bengaluru\'s 40% water leakage is among India\'s highest. Fixing leaks costs 5× less than new supply projects and directly reduces water stress.',
+    whyMatters: 'Bengaluru\'s 40% water leakage is among India\'s highest. Fixing leaks costs 5× less than new supply projects.',
   },
   greenSpaceAllocation: {
     methodology: 'Urban Heat Island + AQI Regression',
     formula: 'ΔT = −0.4°C per 10% green cover increase (Oke 1982)',
     confidence: 0.82,
-    whyMatters: 'Bengaluru has only 11% green cover vs WHO\'s 30% recommendation. Green spaces sequester carbon, lower urban temps by up to 4°C, and improve mental health.',
+    whyMatters: 'Green spaces sequester carbon, lower urban temps by up to 4°C, and improve mental health.',
   },
   industrialZoning: {
     methodology: 'Land Use + Solow-Swan Economic Model',
     formula: 'Y = A × K^α × L^(1−α), α = 0.35',
     confidence: 0.78,
-    whyMatters: 'Industrial zoning above 50% boosts GDP but compounds pollution and traffic. Bengaluru must balance its IT services-led economy with sustainable industrial growth.',
+    whyMatters: 'Industrial zoning above 50% boosts GDP but compounds pollution and traffic.',
   },
-};
-
-const panelVariants: Variants = {
-  hidden: { x: 320, opacity: 0 },
-  visible: { x: 0, opacity: 1, transition: { type: 'spring' as const, damping: 24, stiffness: 200 } },
-  exit: { x: 320, opacity: 0, transition: { duration: 0.15 } },
-};
-
-const sectionVariants: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.35, ease: 'easeOut' as const },
-  }),
 };
 
 function ExplainPanel({ sliderKey, onClose }: { sliderKey: keyof PolicyInput; onClose: () => void }) {
   const info = EXPLAIN_CONTENT[sliderKey];
   if (!info) return null;
   const confPct = Math.round(info.confidence * 100);
-  const interval = Math.round((1 - info.confidence) * 100);
   const confTier = info.confidence >= 0.85 ? 'High' : info.confidence >= 0.65 ? 'Medium' : 'Low';
 
   return (
     <motion.div
-      variants={panelVariants} initial="hidden" animate="visible" exit="exit"
-      style={{
-        position: 'absolute', top: 0, right: 0, bottom: 0, width: 320,
-        background: 'var(--bg-surface-1)', borderLeft: '1px solid var(--border-subtle)',
-        boxShadow: 'var(--shadow-xl)', zIndex: 50, display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
-      }}
+      initial={{ x: 320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 320, opacity: 0 }}
+      className="absolute top-0 right-0 bottom-0 w-80 bg-white border-l border-[var(--slate-200)] shadow-2xl z-50 flex flex-col"
     >
-      <div style={{ padding: '20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>Explainability</span>
-        <button onClick={onClose} style={{ background: 'var(--bg-surface-2)', border: 'none', width: '28px', height: '28px', borderRadius: '8px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          ✕
-        </button>
+      <div className="p-5 border-b border-[var(--slate-200)] flex justify-between items-center bg-[var(--slate-50)] shrink-0">
+        <span className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-wider flex items-center gap-2">
+          <HelpCircle size={16} className="text-[var(--accent-blue)]" /> Explainability
+        </span>
+        <button onClick={onClose} className="text-[var(--slate-400)] hover:text-[var(--accent-red)] transition-colors">✕</button>
       </div>
 
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="p-5 flex flex-col gap-6 overflow-y-auto">
         <div>
-          <div className="micro-label" style={{ marginBottom: '6px' }}>Model Reference</div>
-          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{info.methodology}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', fontFamily: 'var(--font-mono)', background: 'var(--bg-surface-2)', padding: '8px 12px', borderRadius: '8px' }}>
+          <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1.5">Model Reference</div>
+          <div className="text-sm font-bold text-[var(--slate-900)]">{info.methodology}</div>
+          <div className="text-[11px] text-[var(--accent-blue)] font-mono bg-[var(--accent-blue)]/5 p-2 rounded border border-[var(--accent-blue)]/20 mt-2">
             {info.formula}
           </div>
         </div>
 
         <div>
-          <div className="micro-label" style={{ marginBottom: '8px' }}>Confidence Interval</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span className="stat-value" style={{ fontSize: '28px', color: info.confidence >= 0.85 ? 'var(--accent-teal)' : info.confidence >= 0.65 ? 'var(--accent-amber)' : 'var(--accent-red)' }}>
+          <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-2">Confidence Interval</div>
+          <div className="flex items-center gap-4">
+            <span className={`text-3xl font-bold ${info.confidence >= 0.85 ? 'text-[var(--accent-teal)]' : info.confidence >= 0.65 ? 'text-[var(--accent-amber)]' : 'text-[var(--accent-red)]'}`}>
               {confPct}%
             </span>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{confTier} Confidence</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>±{interval}% margin of error</div>
+              <div className="text-sm font-bold text-[var(--slate-900)]">{confTier} Confidence</div>
+              <div className="text-xs text-[var(--slate-500)]">±{(100 - confPct)}% margin of error</div>
             </div>
           </div>
-          <div style={{ marginTop: '12px', height: '4px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${confPct}%`, background: info.confidence >= 0.85 ? 'var(--accent-teal)' : info.confidence >= 0.65 ? 'var(--accent-amber)' : 'var(--accent-red)', borderRadius: '2px', transition: 'width 300ms ease' }} />
+          <div className="mt-3 h-1.5 bg-[var(--slate-200)] rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${info.confidence >= 0.85 ? 'bg-[var(--accent-teal)]' : info.confidence >= 0.65 ? 'bg-[var(--accent-amber)]' : 'bg-[var(--accent-red)]'}`} style={{ width: `${confPct}%` }} />
           </div>
         </div>
 
-        <div style={{ background: 'var(--accent-navy-light)', borderRadius: '12px', padding: '16px' }}>
-          <div className="micro-label" style={{ color: 'var(--accent-navy)', marginBottom: '8px' }}>Why This Matters</div>
-          <div style={{ fontSize: '13px', color: 'var(--accent-navy-mid)', lineHeight: 1.6 }}>{info.whyMatters}</div>
-        </div>
-
-        <div>
-          <div className="micro-label" style={{ marginBottom: '8px' }}>Data Sources</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-teal)', flexShrink: 0 }} />
-              CEA Karnataka Grid Emission Factor 2023
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-teal)', flexShrink: 0 }} />
-              Bengaluru Smart City Dashboard (Live)
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-teal)', flexShrink: 0 }} />
-              Karnataka State Pollution Control Board
-            </div>
-          </div>
+        <div className="bg-[var(--slate-900)] rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--accent-blue)]/30 blur-2xl rounded-full" />
+          <div className="text-[10px] font-bold text-[var(--accent-blue-light)] uppercase tracking-widest mb-2">Why This Matters</div>
+          <div className="text-xs text-[var(--slate-300)] leading-relaxed">{info.whyMatters}</div>
         </div>
       </div>
     </motion.div>
   );
 }
 
-// ===== SLIDER COMPONENT =====
 function PolicySlider({
-  label, description, tooltip, value, onChange, icon, onExplain,
+  label, description, value, onChange, icon, onExplain,
 }: {
-  label: string; description: string; tooltip: string;
+  label: string; description: string;
   value: number; onChange: (v: number) => void; icon: string; onExplain: () => void;
 }) {
   const percentage = value;
-  const trackGradient = `linear-gradient(90deg, var(--accent-red) 0%, var(--accent-amber) 33%, var(--accent-teal) 66%, var(--accent-teal) 100%)`;
   const segmentColor = percentage > 66 ? 'var(--accent-teal)' : percentage > 33 ? 'var(--accent-amber)' : 'var(--accent-red)';
-
   const impactDirection = percentage > 55 ? 'positive' : percentage < 45 ? 'negative' : 'neutral';
   const impactLabel = impactDirection === 'positive' ? 'Beneficial' : impactDirection === 'negative' ? 'Caution' : 'Neutral';
-  const impactColor = impactDirection === 'positive' ? 'var(--accent-teal)' : impactDirection === 'negative' ? 'var(--accent-red)' : 'var(--text-muted)';
+  const impactColor = impactDirection === 'positive' ? 'var(--accent-teal)' : impactDirection === 'negative' ? 'var(--accent-red)' : 'var(--slate-400)';
 
   return (
-    <motion.div
-      layout
-      style={{ padding: '16px 0', borderBottom: '1px solid var(--border-subtle)' }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <span style={{ fontSize: '16px', flexShrink: 0 }}>{icon}</span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-          <button
-            onClick={onExplain}
-            style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', flexShrink: 0, alignItems: 'center', justifyContent: 'center' }}
-            title="Explain methodology"
-          >?</button>
+    <div className="py-4 border-b border-[var(--slate-200)] group">
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{icon}</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-[var(--slate-900)]">{label}</span>
+              <button onClick={onExplain} className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold border border-[var(--accent-blue)]/30">?</button>
+            </div>
+            <div className="text-[10px] text-[var(--slate-500)] mt-0.5">{description}</div>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className="data-value" style={{ fontSize: '14px', fontWeight: 700, color: segmentColor }}>{value}%</span>
-          <button
-            onClick={() => onChange(0)}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px', padding: '2px' }}
-            title="Reset to baseline"
-          >↺</button>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-bold" style={{ color: segmentColor }}>{value}%</span>
+          <button onClick={() => onChange(0)} className="text-[9px] font-bold text-[var(--slate-400)] uppercase tracking-wider hover:text-[var(--accent-blue)] transition-colors mt-0.5">Reset</button>
         </div>
       </div>
 
-      {/* Impact preview badge */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: '4px',
-          fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px',
-          background: impactDirection === 'positive' ? 'var(--accent-teal-light)' : impactDirection === 'negative' ? 'var(--accent-red-light)' : 'var(--bg-surface-2)',
-          color: impactColor, textTransform: 'uppercase', letterSpacing: '0.06em',
-        }}>
-          <span style={{ fontSize: '8px' }}>{impactDirection === 'positive' ? '▲' : impactDirection === 'negative' ? '▼' : '◆'}</span>
-          {impactLabel}
-        </span>
-        <div style={{ flex: 1, height: '4px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden', maxWidth: '80px' }}>
-          <div style={{
-            height: '100%', width: `${Math.abs(value - 50) * 2}%`, maxWidth: '100%',
-            background: impactColor, borderRadius: '2px', transition: 'width 200ms ease',
-            marginLeft: value > 50 ? '0' : 'auto',
-          }} />
-        </div>
-      </div>
-
-      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '8px', lineHeight: 1.4 }}>{description}</div>
-
-      {/* Track */}
-      <div style={{ position: 'relative', height: '28px', display: 'flex', alignItems: 'center' }}>
-        <div style={{ position: 'absolute', left: 0, right: 0, height: '6px', background: 'var(--border-subtle)', borderRadius: '3px' }} />
-        <div style={{ position: 'absolute', left: 0, width: `${value}%`, height: '6px', background: trackGradient, borderRadius: '3px', transition: 'width 120ms ease', opacity: 0.7 }} />
-        <div style={{ position: 'absolute', left: `${value}%`, width: '2px', height: '6px', background: segmentColor, borderRadius: '1px', transition: 'left 120ms ease', transform: 'translateX(-1px)' }} />
+      <div className="relative h-6 flex items-center mt-2 group/slider">
+        <div className="absolute inset-x-0 h-1.5 bg-[var(--slate-200)] rounded-full" />
+        <div className="absolute left-0 h-1.5 rounded-full" style={{ width: `${value}%`, background: `linear-gradient(90deg, var(--accent-red) 0%, var(--accent-amber) 33%, var(--accent-teal) 66%, var(--accent-teal) 100%)` }} />
+        <div className="absolute w-3 h-3 bg-white border-2 rounded-full shadow-sm top-1/2 -translate-y-1/2 -translate-x-1.5 group-hover/slider:scale-125 transition-transform" style={{ left: `${value}%`, borderColor: segmentColor }} />
         <input
           type="range" min={0} max={100} value={value}
           onChange={e => onChange(Number(e.target.value))}
-          style={{ position: 'relative', width: '100%', appearance: 'none', background: 'transparent', cursor: 'pointer', height: '28px', zIndex: 1 }}
+          className="absolute inset-0 w-full opacity-0 cursor-pointer"
         />
       </div>
 
-      {/* Preset buttons */}
-      <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+      <div className="flex gap-1.5 mt-3">
         {PRESETS.map(p => (
           <button
-            key={p.label}
-            onClick={() => onChange(p.value)}
-            style={{
-              flex: 1, padding: '3px 0', fontSize: '10px', fontWeight: 700,
-              background: value === p.value ? segmentColor : 'var(--bg-surface-2)',
-              color: value === p.value ? '#fff' : 'var(--text-muted)',
-              border: value === p.value ? 'none' : '1px solid var(--border-subtle)',
-              borderRadius: '5px', cursor: 'pointer', transition: 'all 120ms ease',
-              textTransform: 'uppercase', letterSpacing: '0.05em',
-            }}
-          >{p.label}</button>
+            key={p.label} onClick={() => onChange(p.value)}
+            className={`flex-1 py-1 text-[9px] font-bold uppercase tracking-widest rounded transition-colors ${
+              value === p.value ? 'text-white shadow-sm' : 'bg-[var(--slate-100)] text-[var(--slate-500)] hover:bg-[var(--slate-200)]'
+            }`}
+            style={value === p.value ? { background: segmentColor } : {}}
+          >
+            {p.label}
+          </button>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-// ===== METRIC DELTA CARD =====
 function MetricDelta({ label, before, after, delta, unit, confidence }: {
   label: string; before: number; after: number; delta: number; unit: string; confidence: number;
 }) {
   const isGood = unit === '%congestion' ? delta < 0 : unit === 'ktCO2/yr' ? delta < 0 : unit === 'AQI' ? delta < 0 : delta > 0;
   const deltaColor = isGood ? 'var(--accent-teal)' : 'var(--accent-red)';
   const deltaArrow = delta > 0 ? '▲' : '▼';
-  const confidenceTier = confidence >= 0.85 ? 'High' : confidence >= 0.65 ? 'Medium' : 'Low';
-  const confColor = confidence >= 0.85 ? 'var(--accent-teal)' : confidence >= 0.65 ? 'var(--accent-amber)' : 'var(--accent-red)';
-  const pctChange = before !== 0 ? ((delta / before) * 100) : 0;
-
+  const confidenceTier = confidence >= 0.85 ? 'High' : confidence >= 0.65 ? 'Med' : 'Low';
+  
   return (
-    <motion.div
-      layout
-      className="glass-card"
-      style={{ padding: '16px', overflow: 'hidden' }}
-    >
-      <div className="micro-label" style={{ marginBottom: '10px' }}>{label}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '12px', alignItems: 'center' }}>
-        {/* Before */}
-        <div style={{ textAlign: 'center', padding: '8px', background: 'var(--bg-surface-2)', borderRadius: '10px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 500 }}>Before</div>
-          <div className="data-value" style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
+    <div className="bg-white border border-[var(--slate-200)] rounded-xl p-4 shadow-sm relative overflow-hidden">
+      {/* Background decoration */}
+      <div className={`absolute top-0 right-0 w-16 h-16 blur-2xl rounded-full opacity-20 ${isGood ? 'bg-[var(--accent-teal)]' : 'bg-[var(--accent-red)]'}`} />
+      
+      <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-3">{label}</div>
+      
+      <div className="flex items-end gap-4 mb-3">
+        <div className="flex-1">
+          <div className="text-[10px] text-[var(--slate-400)] font-semibold uppercase mb-1">Before</div>
+          <div className="text-xl font-bold text-[var(--slate-700)]">
             {typeof before === 'number' ? before.toFixed(before < 10 ? 1 : 0) : before}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>{unit}</div>
         </div>
-
-        {/* Arrow */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-          <motion.span
-            key={String(delta)}
-            initial={{ opacity: 0, y: delta > 0 ? 8 : -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ fontSize: '13px', color: deltaColor, fontWeight: 700 }}
-          >
-            {deltaArrow}
-          </motion.span>
+        
+        <div className="flex flex-col items-center justify-center shrink-0 w-8">
+          <span className="text-[10px] text-[var(--slate-300)] font-bold">→</span>
         </div>
-
-        {/* After */}
-        <div style={{ textAlign: 'center', padding: '8px', background: 'var(--bg-surface-2)', borderRadius: '10px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 500 }}>After</div>
-          <motion.div
-            key={String(after)}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="data-value"
-            style={{ fontSize: '18px', color: 'var(--accent-navy)' }}
-          >
+        
+        <div className="flex-1">
+          <div className="text-[10px] text-[var(--accent-blue)] font-bold uppercase mb-1">After</div>
+          <div className="text-2xl font-bold text-[var(--slate-900)]">
             {typeof after === 'number' ? after.toFixed(after < 10 ? 1 : 0) : after}
-          </motion.div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>{unit}</div>
-        </div>
-      </div>
-
-      {/* Delta row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', padding: '6px 8px', background: isGood ? 'rgba(0, 98, 66, 0.04)' : 'rgba(186, 26, 26, 0.04)', borderRadius: '8px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 600, color: deltaColor }}>
-          {delta > 0 ? '+' : ''}{typeof delta === 'number' ? delta.toFixed(delta < 10 ? 1 : 0) : delta} {unit}
-        </span>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: deltaColor }}>
-          {pctChange > 0 ? '+' : ''}{pctChange.toFixed(1)}%
-        </span>
-        <span style={{ fontSize: '10px', color: confColor, fontWeight: 600 }}>
-          {Math.round(confidence * 100)}% · {confidenceTier}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
-
-// ===== CASCADE NODE =====
-function CascadeNodeView({ node, depth = 0 }: { node: CascadeNode; depth?: number }) {
-  const [open, setOpen] = useState(depth < 1);
-  const color = node.type === 'improvement' ? 'var(--accent-teal)' : node.type === 'deterioration' ? 'var(--accent-red)' : 'var(--text-muted)';
-  const bgColor = node.type === 'improvement' ? 'rgba(0, 98, 66, 0.08)' : node.type === 'deterioration' ? 'rgba(186, 26, 26, 0.08)' : 'var(--bg-surface-2)';
-  const arrowIcon = node.type === 'improvement' ? '▲' : node.type === 'deterioration' ? '▼' : '◆';
-  const severityLabel = node.confidence >= 0.85 ? 'High' : node.confidence >= 0.65 ? 'Med' : 'Low';
-  const severityColor = node.confidence >= 0.85 ? 'var(--accent-teal)' : node.confidence >= 0.65 ? 'var(--accent-amber)' : 'var(--accent-red)';
-  const absDelta = Math.abs(node.delta);
-
-  const barWidth = Math.min(100, absDelta * 2);
-  const barColor = node.type === 'improvement' ? 'var(--accent-teal)' : node.type === 'deterioration' ? 'var(--accent-red)' : 'var(--border-normal)';
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.2, delay: depth * 0.04 }}
-    >
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
-        {/* Connecting line area */}
-        {depth > 0 && (
-          <div style={{ width: '24px', flexShrink: 0, position: 'relative', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: '2px', background: 'var(--border-subtle)', position: 'absolute', top: 0, bottom: 0 }} />
-            <div style={{
-              width: '10px', height: '2px', background: color, position: 'absolute', top: '18px', left: '50%',
-              borderRadius: '1px',
-            }} />
-            <div style={{
-              width: '6px', height: '6px', borderRight: `2px solid ${color}`, borderBottom: `2px solid ${color}`,
-              position: 'absolute', top: '16px', left: '60%', transform: 'rotate(-45deg)',
-            }} />
-          </div>
-        )}
-
-        <div style={{ flex: 1, marginLeft: depth > 0 ? 0 : 0, minWidth: 0 }}>
-          <button
-            onClick={() => setOpen(o => !o)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              padding: '6px 8px', textAlign: 'left', borderRadius: '8px',
-              transition: 'background 120ms ease',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = bgColor)}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          >
-            {/* Toggle icon */}
-            <span style={{ fontSize: '8px', color: 'var(--text-muted)', width: '10px', flexShrink: 0, transition: 'transform 150ms ease', transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-              {node.children.length > 0 ? '▶' : ''}
-            </span>
-
-            {/* Type badge */}
-            <span style={{
-              fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '5px',
-              background: bgColor, color, border: `1px solid ${color}40`,
-              flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '3px',
-            }}>
-              <span style={{ fontSize: '8px' }}>{arrowIcon}</span>
-              {node.type === 'improvement' ? 'Improve' : node.type === 'deterioration' ? 'Worsen' : 'Neutral'}
-            </span>
-
-            {/* Label */}
-            <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {node.label}
-            </span>
-
-            {/* Impact bar */}
-            <div style={{ width: '48px', height: '4px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden', flexShrink: 0 }}>
-              <div style={{ width: `${barWidth}%`, height: '100%', background: barColor, borderRadius: '2px', transition: 'width 200ms ease' }} />
-            </div>
-
-            {/* Severity badge */}
-            <span style={{
-              fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '999px',
-              background: severityColor + '18', color: severityColor, flexShrink: 0,
-              letterSpacing: '0.03em',
-            }}>
-              {severityLabel}
-            </span>
-
-            {/* Confidence */}
-            <span className="data-value" style={{ fontSize: '10px', color: 'var(--text-muted)', flexShrink: 0, minWidth: '36px', textAlign: 'right' }}>
-              {Math.round(node.confidence * 100)}%
-            </span>
-          </button>
-
-          <AnimatePresence>
-            {open && node.children.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                style={{ overflow: 'hidden' }}
-              >
-                {node.children.map(child => (
-                  <CascadeNodeView key={child.id} node={child} depth={depth + 1} />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// ===== SAVE SCENARIO MODAL =====
-function SaveScenarioModal({ onClose }: { onClose: () => void }) {
-  const { saveScenario } = useScenarioStore();
-  const { addNotification } = useAppStore();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [tags, setTags] = useState('transport, 2035');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (!name.trim()) return;
-    setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    saveScenario(name, description, tags.split(',').map(t => t.trim()).filter(Boolean), '');
-    addNotification({ title: 'Scenario Saved', message: `"${name}" saved to Scenario Vault`, severity: 'success' });
-    setSaving(false);
-    onClose();
-  };
-
-  return (
-    <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
-      <div className="animate-scale-in" style={{
-        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-        background: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)', borderRadius: '16px',
-        padding: '24px', width: '420px', zIndex: 301, boxShadow: 'var(--shadow-lg)',
-      }}>
-        <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Save Scenario</div>
-        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '24px' }}>Commit current policy configuration to the Scenario Vault</div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label className="micro-label" style={{ display: 'block', marginBottom: '8px' }}>Scenario Name *</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Metro 2035 Expansion" className="input-dark" style={{ width: '100%' }} />
-          </div>
-          <div>
-            <label className="micro-label" style={{ display: 'block', marginBottom: '8px' }}>Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Brief description of this policy scenario..." className="input-dark" style={{ width: '100%', resize: 'none' }} />
-          </div>
-          <div>
-            <label className="micro-label" style={{ display: 'block', marginBottom: '8px' }}>Tags (comma-separated)</label>
-            <input value={tags} onChange={e => setTags(e.target.value)} className="input-dark" style={{ width: '100%' }} />
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} className="btn-ghost" style={{ padding: '10px 16px' }}>Cancel</button>
-          <button onClick={handleSave} disabled={!name.trim() || saving} className="btn-primary" style={{ padding: '10px 20px', opacity: !name.trim() || saving ? 0.5 : 1 }}>
-            {saving ? 'Saving...' : 'Save to Vault'}
-          </button>
+      </div>
+      
+      <div className={`flex justify-between items-center px-3 py-1.5 rounded-md border ${isGood ? 'bg-[var(--accent-teal)]/5 border-[var(--accent-teal)]/20' : 'bg-[var(--accent-red)]/5 border-[var(--accent-red)]/20'}`}>
+        <div className="flex items-center gap-1.5 font-bold text-xs" style={{ color: deltaColor }}>
+          {deltaArrow} {Math.abs(delta).toFixed(delta < 10 ? 1 : 0)} {unit}
+        </div>
+        <div className="text-[9px] font-bold text-[var(--slate-500)] uppercase">
+          {Math.round(confidence * 100)}% Conf
         </div>
       </div>
-    </>
-  );
-}
-
-// ===== CUSTOM TIMELINE TOOLTIP =====
-function TimelineTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string }[]; label?: number }) {
-  if (!active || !payload || !payload.length) return null;
-  return (
-    <div style={{
-      background: 'var(--bg-surface-1)', border: '1px solid var(--border-normal)',
-      borderRadius: '12px', padding: '12px 16px', boxShadow: 'var(--shadow-lg)',
-    }}>
-      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{label}</div>
-      {payload.map((entry, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-          <span>{entry.name === 'city_health' ? 'City Health Score' : entry.name}</span>
-          <span className="data-value" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{entry.value}/100</span>
-        </div>
-      ))}
     </div>
   );
 }
 
-// ===== MAIN DECISION TWIN PAGE =====
-const SLIDERS: { key: keyof PolicyInput; label: string; description: string; tooltip: string; icon: string }[] = [
-  { key: 'metroExpansion', label: 'Metro Network Expansion', description: 'Feeds Transport Demand Model (4-step)', tooltip: 'Increasing by 10% reduces transport CO₂ by ~2.8 ktCO₂/yr based on BPR traffic function. Modal split shifts +4% toward transit per 20% increment.', icon: '🚇' },
-  { key: 'evAdoptionRate', label: 'EV Adoption Rate', description: 'Feeds Carbon Emission Model (IPCC Tier 2)', tooltip: 'Each 10% EV adoption reduces transport CO₂ by ~1.5 ktCO₂/yr. Effect compounds with renewable grid share.', icon: '⚡' },
-  { key: 'roadCapacity', label: 'Road Capacity Investment', description: 'Feeds BPR Traffic Assignment Function', tooltip: 'BPR function: t = t₀ × (1 + 0.15 × (V/C)⁴). Each 20% road investment shifts V/C ratio down by ~0.12.', icon: '🛣' },
-  { key: 'renewableShare', label: 'Renewable Energy Share', description: 'Feeds Energy Grid Model (Load Duration Curve)', tooltip: 'Karnataka grid EF: 0.82 kgCO₂/kWh (CEA 2023). Each 10% renewable increase reduces grid CO₂ intensity by ~0.075 kgCO₂/kWh.', icon: '☀' },
-  { key: 'waterInfrastructure', label: 'Water Infrastructure Upgrade', description: 'Feeds IWA Water Balance Model', tooltip: 'Bengaluru leakage rate: 40% of supply. Each 10% infrastructure investment reduces leakage by 3%, adding ~60 MLD effective supply.', icon: '💧' },
-  { key: 'greenSpaceAllocation', label: 'Green Space Allocation', description: 'Feeds AQI + Temperature models', tooltip: 'Green spaces sequester ~500 kt CO₂/yr per 100% allocation. Also reduces urban heat island effect, lowering peak energy demand.', icon: '🌿' },
-  { key: 'industrialZoning', label: 'Industrial Zoning Intensity', description: 'Feeds Land Use + Solow-Swan Economic Model', tooltip: 'Solow-Swan: Y = A × K^α × L^(1-α). Industrial zoning above 50% increases GDP growth but adds CO₂ and worsens AQI.', icon: '🏭' },
+function CascadeNodeView({ node, depth = 0 }: { node: CascadeNode; depth?: number }) {
+  const [open, setOpen] = useState(depth < 1);
+  const isImprovement = node.type === 'improvement';
+  const color = isImprovement ? 'var(--accent-teal)' : node.type === 'deterioration' ? 'var(--accent-red)' : 'var(--slate-500)';
+  
+  return (
+    <div className="mb-1">
+      <div className="flex items-center">
+        {depth > 0 && (
+          <div className="w-6 flex shrink-0 justify-center">
+            <div className="w-px h-full bg-[var(--slate-200)]" />
+            <div className="w-2 h-px bg-[var(--slate-300)]" />
+          </div>
+        )}
+        <button 
+          onClick={() => setOpen(!open)}
+          className={`flex-1 flex items-center justify-between p-2 rounded-lg border hover:bg-[var(--slate-50)] transition-colors ${depth === 0 ? 'bg-white border-[var(--slate-200)] shadow-sm' : 'border-transparent'}`}
+        >
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] transition-transform ${open ? 'rotate-90' : ''} ${node.children.length > 0 ? 'text-[var(--slate-400)]' : 'opacity-0'}`}>▶</span>
+            <div className={`w-1.5 h-1.5 rounded-full`} style={{ background: color }} />
+            <span className="text-xs font-semibold text-[var(--slate-800)]">{node.label}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-1 bg-[var(--slate-100)] rounded-full overflow-hidden shrink-0">
+              <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.abs(node.delta)*2)}%`, background: color }} />
+            </div>
+            <span className="text-[10px] font-bold text-[var(--slate-400)] w-8 text-right">{Math.round(node.confidence * 100)}%</span>
+          </div>
+        </button>
+      </div>
+      
+      {open && node.children.length > 0 && (
+        <div className="ml-1 mt-1 border-l border-[var(--slate-100)] pl-1">
+          {node.children.map(child => <CascadeNodeView key={child.id} node={child} depth={depth + 1} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const SLIDERS: { key: keyof PolicyInput; label: string; description: string; icon: string }[] = [
+  { key: 'metroExpansion', label: 'Metro Expansion', description: 'Network reach vs demand', icon: '🚇' },
+  { key: 'evAdoptionRate', label: 'EV Adoption Rate', description: 'Fleet electrification %', icon: '⚡' },
+  { key: 'roadCapacity', label: 'Road Capacity', description: 'Infrastructure widenings', icon: '🛣' },
+  { key: 'renewableShare', label: 'Renewable Grid', description: 'Solar/Wind integration', icon: '☀' },
+  { key: 'waterInfrastructure', label: 'Water Infrastructure', description: 'Leakage reduction', icon: '💧' },
+  { key: 'greenSpaceAllocation', label: 'Green Space', description: 'Parks & canopy cover', icon: '🌿' },
+  { key: 'industrialZoning', label: 'Industrial Zoning', description: 'Manufacturing capacity', icon: '🏭' },
 ];
 
 export default function DecisionTwinPage() {
   const { activePolicy, results, timeline, isComputing, setPolicy, activeScenarioName } = useSimulationStore();
-  const { openSaveScenario, isSaveScenarioOpen, closeSaveScenario } = useUIStore();
-  const [showCascade, setShowCascade] = useState(true);
   const [explainSlider, setExplainSlider] = useState<keyof PolicyInput | null>(null);
-
-  const timelineChart = timeline.filter((_, i) => i % 5 === 0 || timeline[i].year === 2025 || timeline[i].year === 2050);
 
   const radarData = [
     { dimension: 'Mobility', value: Math.max(0, 100 - results.traffic.after) },
@@ -533,222 +288,120 @@ export default function DecisionTwinPage() {
     { dimension: 'Climate', value: Math.max(0, 100 - (results.co2.after / results.co2.before * 80)) },
   ];
 
-  // Derive scenario summary metrics
-  const activePoliciesCount = Object.values(activePolicy).filter(v => v > 0).length;
-  const avgImprovement = [
-    -results.traffic.delta,
-    -results.co2.delta / 100,
-    -results.aqi.delta,
-    results.gdp.delta,
-  ];
-  const avgDelta = avgImprovement.reduce((a, b) => a + b, 0) / avgImprovement.length;
-  const summaryDirection = avgDelta > 0 ? 'positive' : avgDelta < 0 ? 'negative' : 'neutral';
-  const summaryColor = summaryDirection === 'positive' ? 'var(--accent-teal)' : summaryDirection === 'negative' ? 'var(--accent-red)' : 'var(--text-muted)';
-
-  // Key years for timeline annotations
-  const milestoneYears = [
-    { year: 2025, label: 'Baseline' },
-    { year: 2030, label: 'Karnataka EV Target' },
-    { year: 2040, label: 'Net-Zero Pathway' },
-    { year: 2050, label: 'Horizon' },
-  ];
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', overflow: 'hidden', background: 'var(--bg-surface-2)' }}>
-
-      {/* SCENARIO SUMMARY BAR */}
-      <div className="glass-card" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', flexShrink: 0, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '56px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="micro-label" style={{ color: 'var(--text-muted)' }}>Scenario</span>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {activeScenarioName || 'Custom Configuration'}
-            </span>
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-[var(--slate-50)]">
+      
+      {/* Header Bar */}
+      <div className="bg-white border-b border-[var(--slate-200)] px-6 py-3 flex justify-between items-center shrink-0 z-10 shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[var(--slate-900)] text-white flex items-center justify-center">
+              <Sliders size={16} />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-wider">Decision Twin Engine</h1>
+              <div className="text-[10px] text-[var(--slate-500)] font-semibold mt-0.5">{activeScenarioName || 'Custom Run'}</div>
+            </div>
           </div>
-          <div style={{ width: '1px', height: '20px', background: 'var(--border-subtle)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="micro-label" style={{ color: 'var(--text-muted)' }}>Policies</span>
-            <span className="data-value" style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>{activePoliciesCount}/7</span>
-          </div>
-          <div style={{ width: '1px', height: '20px', background: 'var(--border-subtle)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="micro-label" style={{ color: 'var(--text-muted)' }}>Confidence</span>
-            <span className="data-value" style={{ fontSize: '13px', color: 'var(--accent-teal)', fontWeight: 600 }}>{Math.round(results.confidence * 100)}%</span>
-          </div>
-          <div style={{ width: '1px', height: '20px', background: 'var(--border-subtle)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="micro-label" style={{ color: 'var(--text-muted)' }}>Net Impact</span>
-            <span style={{
-              fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px',
-              background: summaryDirection === 'positive' ? 'var(--accent-teal-light)' : summaryDirection === 'negative' ? 'var(--accent-red-light)' : 'var(--bg-surface-2)',
-              color: summaryColor,
-            }}>
-              {summaryDirection === 'positive' ? '▲ Improving' : summaryDirection === 'negative' ? '▼ Declining' : '◆ Stable'}
-            </span>
+          
+          <div className="h-8 w-px bg-[var(--slate-200)]" />
+          
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="text-[9px] font-bold text-[var(--slate-400)] uppercase tracking-widest mb-0.5">Model Confidence</div>
+              <div className="text-sm font-bold text-[var(--accent-teal)]">{Math.round(results.confidence * 100)}%</div>
+            </div>
+            {isComputing && (
+              <div className="flex items-center gap-1.5 bg-[var(--accent-blue)]/10 px-2 py-1 rounded">
+                <RefreshCcw size={12} className="text-[var(--accent-blue)] animate-spin" />
+                <span className="text-[10px] font-bold text-[var(--accent-blue)] uppercase tracking-wider">Computing</span>
+              </div>
+            )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {isComputing && (
-            <span className="badge badge-live live-dot" style={{ fontSize: '10px' }}>COMPUTING</span>
-          )}
-          <button onClick={openSaveScenario} className="btn-primary" style={{ padding: '6px 14px', fontSize: '12px' }}>💾 Save</button>
-          <Link href="/scenarios" style={{ textDecoration: 'none' }}>
-            <button className="btn-ghost" style={{ padding: '6px 14px', fontSize: '12px' }}>📁 Load</button>
-          </Link>
+        <div className="flex gap-2">
+          <button className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[var(--slate-200)] hover:bg-[var(--slate-50)] text-xs font-bold text-[var(--slate-600)] rounded-lg transition-colors">
+            <FolderOpen size={14} /> Load
+          </button>
+          <button className="flex items-center gap-1.5 px-4 py-2 bg-[var(--slate-900)] hover:bg-[var(--slate-800)] text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+            <Save size={14} /> Save Scenario
+          </button>
         </div>
       </div>
 
-      {/* MAIN 2-COLUMN LAYOUT */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-
-        {/* LEFT PANEL — Policy Sliders */}
-        <div className="glass-card" style={{ width: '320px', flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-subtle)', borderRadius: 0, position: 'relative' }}>
-
-          <div style={{ padding: '20px', borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Policy Controls</h2>
-                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>Adjust sliders to simulate policy impact</p>
-              </div>
-            </div>
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* Left: Inputs */}
+        <div className="w-[340px] bg-white border-r border-[var(--slate-200)] flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+          <div className="p-4 bg-[var(--slate-50)] border-b border-[var(--slate-200)] flex items-center justify-between shrink-0">
+            <span className="text-xs font-bold text-[var(--slate-500)] uppercase tracking-widest">Policy Dials</span>
+            <span className="text-[10px] font-bold bg-[var(--slate-200)] text-[var(--slate-600)] px-2 py-0.5 rounded-full">{Object.values(activePolicy).filter(v => v>0).length}/7 Active</span>
           </div>
-
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px' }} className="hide-scrollbar">
-            {SLIDERS.map((slider, i) => (
-              <motion.div key={slider.key} custom={i} variants={sectionVariants} initial="hidden" animate="visible">
-                <PolicySlider
-                  label={slider.label} description={slider.description} tooltip={slider.tooltip} icon={slider.icon}
-                  value={activePolicy[slider.key]} onChange={v => setPolicy({ [slider.key]: v })}
-                  onExplain={() => setExplainSlider(slider.key)}
-                />
-              </motion.div>
+          <div className="flex-1 overflow-y-auto px-5 custom-scrollbar">
+            {SLIDERS.map(s => (
+              <PolicySlider key={s.key} label={s.label} description={s.description} icon={s.icon} value={activePolicy[s.key]} onChange={v => setPolicy({ [s.key]: v })} onExplain={() => setExplainSlider(s.key)} />
             ))}
           </div>
-
-          {/* Explain Panel Overlay */}
-          <AnimatePresence>
-            {explainSlider && (
-              <ExplainPanel sliderKey={explainSlider} onClose={() => setExplainSlider(null)} />
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* RIGHT PANEL — Main Visualization Area */}
-        <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }} className="hide-scrollbar">
-
-          {/* Section: Impact Assessment */}
-          <motion.div custom={0} variants={sectionVariants} initial="hidden" animate="visible">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Impact Assessment</h2>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                {results.methodology.slice(0, 3).map(m => (
-                  <span key={m} className="badge badge-navy" style={{ fontSize: '9px' }}>{m.split('(')[0].trim()}</span>
-                ))}
+        {/* Right: Outputs */}
+        <div className="flex-1 overflow-y-auto p-6 bg-[var(--slate-50)] custom-scrollbar">
+          <div className="max-w-[1200px] mx-auto space-y-6">
+            
+            {/* Impact Cards */}
+            <div>
+              <h2 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Play size={14} className="text-[var(--accent-blue)]" /> Predicted Impact Analysis
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricDelta label="Traffic Congestion" before={results.traffic.before} after={results.traffic.after} delta={results.traffic.delta} unit="%congestion" confidence={results.traffic.confidence} />
+                <MetricDelta label="CO₂ Emissions" before={results.co2.before} after={results.co2.after} delta={results.co2.delta} unit="ktCO2/yr" confidence={results.co2.confidence} />
+                <MetricDelta label="Air Quality" before={results.aqi.before} after={results.aqi.after} delta={results.aqi.delta} unit="AQI" confidence={results.aqi.confidence} />
+                <MetricDelta label="Water Demand Gap" before={results.water.before} after={results.water.after} delta={results.water.delta} unit="MLD" confidence={results.water.confidence} />
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-              <MetricDelta label="Traffic Congestion" before={results.traffic.before} after={results.traffic.after} delta={results.traffic.delta} unit="%congestion" confidence={results.traffic.confidence} />
-              <MetricDelta label="CO₂ Emissions" before={results.co2.before} after={results.co2.after} delta={results.co2.delta} unit="ktCO2/yr" confidence={results.co2.confidence} />
-              <MetricDelta label="Air Quality" before={results.aqi.before} after={results.aqi.after} delta={results.aqi.delta} unit="AQI" confidence={results.aqi.confidence} />
-              <MetricDelta label="Water Demand Gap" before={results.water.before} after={results.water.after} delta={results.water.delta} unit="MLD" confidence={results.water.confidence} />
-            </div>
-          </motion.div>
 
-          {/* Section: Timeline + Radar */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            {/* Timeline Chart */}
-            <motion.div custom={1} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>2025–2050 City Health Projection</h3>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {milestoneYears.filter(m => m.year <= 2050).map(m => (
-                    <span key={m.year} style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600, padding: '1px 6px', borderRadius: '4px', background: 'var(--bg-surface-2)' }}>
-                      {m.year}
-                    </span>
-                  ))}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Radar Chart */}
+              <div className="bg-white border border-[var(--slate-200)] rounded-xl p-5 shadow-sm">
+                <h3 className="text-xs font-bold text-[var(--slate-500)] uppercase tracking-widest mb-4">Vector Assessment</h3>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="var(--slate-200)" />
+                      <PolarAngleAxis dataKey="dimension" tick={{ fill: 'var(--slate-600)', fontSize: 11, fontWeight: 600 }} />
+                      <Radar dataKey="value" stroke="var(--accent-blue)" fill="var(--accent-blue)" fillOpacity={0.15} strokeWidth={2} />
+                    </RadarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={180}>
-                <AreaChart data={timelineChart} margin={{ top: 8, right: 8, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="healthGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent-navy)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="var(--accent-navy)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" strokeOpacity={0.4} />
-                  <XAxis dataKey="year" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickLine={false} axisLine={false} />
-                  <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<TimelineTooltip />} />
-                  {/* Year markers */}
-                  {milestoneYears.map(m => (
-                    <ReferenceLine
-                      key={m.year}
-                      x={m.year}
-                      stroke="var(--border-subtle)"
-                      strokeDasharray="4 4"
-                      label={{
-                        value: m.label,
-                        position: 'insideTopRight',
-                        fill: 'var(--text-muted)',
-                        fontSize: 9,
-                        fontWeight: 600,
-                      }}
-                    />
-                  ))}
-                  <Area type="monotone" dataKey="city_health" stroke="var(--accent-navy)" strokeWidth={2} fill="url(#healthGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </motion.div>
 
-            {/* Radar Chart */}
-            <motion.div custom={2} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>Performance Vector Analysis</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="var(--border-subtle)" strokeOpacity={0.5} />
-                  <PolarAngleAxis dataKey="dimension" tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} />
-                  <Radar dataKey="value" stroke="var(--accent-teal)" fill="var(--accent-teal)" fillOpacity={0.15} strokeWidth={2} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </motion.div>
-          </div>
-
-          {/* Section: Cascading Effects Tree */}
-          <motion.div custom={3} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Cascading Effects Network</h3>
-                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>How policies propagate through interconnected urban systems</p>
-              </div>
-              <button onClick={() => setShowCascade(o => !o)} className="btn-ghost" style={{ padding: '6px 12px', fontSize: '11px' }}>
-                {showCascade ? 'Collapse All' : 'Expand All'}
-              </button>
-            </div>
-            <div style={{ background: 'var(--bg-surface-2)', borderRadius: '12px', padding: '12px', border: '1px solid var(--border-subtle)' }}>
-              {showCascade && (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Cascade Network */}
+              <div className="bg-white border border-[var(--slate-200)] rounded-xl p-5 shadow-sm flex flex-col">
+                <h3 className="text-xs font-bold text-[var(--slate-500)] uppercase tracking-widest mb-4">Cascading Effects</h3>
+                <div className="flex-1 bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-lg p-3 overflow-y-auto max-h-[280px] custom-scrollbar">
                   {results.cascadingEffects.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                      Adjust policy sliders on the left to initialize computation
+                    <div className="h-full flex items-center justify-center text-sm text-[var(--slate-400)] font-medium">
+                      Adjust policy dials to simulate effects
                     </div>
                   ) : (
-                    results.cascadingEffects.map((node, i) => (
-                      <motion.div key={node.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-                        <CascadeNodeView key={node.id} node={node} depth={0} />
-                      </motion.div>
-                    ))
+                    results.cascadingEffects.map(node => <CascadeNodeView key={node.id} node={node} />)
                   )}
                 </div>
-              )}
+              </div>
+
             </div>
-          </motion.div>
 
+          </div>
         </div>
-      </div>
 
-      {isSaveScenarioOpen && <SaveScenarioModal onClose={closeSaveScenario} />}
+        {/* Explain Overlay */}
+        <AnimatePresence>
+          {explainSlider && <ExplainPanel sliderKey={explainSlider} onClose={() => setExplainSlider(null)} />}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

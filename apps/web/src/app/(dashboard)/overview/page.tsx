@@ -1,232 +1,56 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useCityDataStore, useSimulationStore, useUIStore, useAppStore, useDisasterStore } from '@/stores';
-import { generateSeededMetrics } from '@/lib/simulation';
-import { exportToPDF } from '@/lib/exportUtils';
+import { motion } from 'framer-motion';
+import { useCityDataStore, useUIStore, useDisasterStore } from '@/stores';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ShieldAlert, Zap, TrendingUp, TrendingDown, Layers, MapPin, CheckCircle2, Activity, ShieldCheck, ThermometerSun, Droplets, Brain } from 'lucide-react';
 
 const TakeActionDrawer = dynamic(() => import('@/components/ui/TakeActionDrawer').then(m => ({ default: m.TakeActionDrawer })), { ssr: false });
 
-// ===== Animation Variants =====
 const springTransition = { type: 'spring' as const, stiffness: 300, damping: 30 };
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } }
 };
-
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: springTransition
-  }
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: springTransition }
 };
 
-const staggerFast = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: springTransition
-  }
-};
-
-// ===== ALERT TICKER =====
+// ===== INCIDENT STREAM =====
 const ALERT_ITEMS = [
-  { type: 'critical', msg: '⚠ Grid overload — Electronic City Substation #11 — 4.1 GW peak demand', time: 'Now' },
-  { type: 'warning', msg: '↑ Congestion +34% — Silk Board Corridor — Speed: 8 km/h', time: '3m ago' },
-  { type: 'warning', msg: '↑ AQI 168 — Whitefield Industrial Zone — PM2.5 elevated', time: '7m ago' },
-  { type: 'info', msg: '✓ Metro Line 3 Phase 1 on schedule — Nagawara to Gottigere', time: '15m ago' },
-  { type: 'info', msg: '✓ Cauvery Stage 5 pumping resumed — +120 MLD capacity added', time: '22m ago' },
-  { type: 'critical', msg: '⚠ Bellandur waterlogging detected — 3,200 residents affected', time: '28m ago' },
+  { type: 'critical', msg: 'Grid overload — Electronic City Substation #11', val: '4.1 GW peak', time: 'Now' },
+  { type: 'warning', msg: 'Congestion +34% — Silk Board Corridor', val: '8 km/h', time: '3m ago' },
+  { type: 'warning', msg: 'AQI 168 — Whitefield Industrial Zone', val: 'PM2.5 elev', time: '7m ago' },
+  { type: 'info', msg: 'Metro Line 3 Phase 1 on schedule', val: 'On Track', time: '15m ago' },
+  { type: 'info', msg: 'Cauvery Stage 5 pumping resumed', val: '+120 MLD', time: '22m ago' },
 ];
 
-const severityDot: Record<string, string> = {
-  critical: '#ba1a1a',
-  warning: '#D97706',
-  info: '#006242',
-};
-
-function AlertTicker() {
-  const [paused, setPaused] = useState(false);
-
+function IncidentStream() {
   return (
-    <motion.div variants={itemVariants} className="glass-card" style={{ display: 'flex', alignItems: 'center', padding: '10px 20px', overflow: 'hidden', marginBottom: '16px' }} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div style={{ flexShrink: 0, paddingRight: '20px', borderRight: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-red)', animation: 'live-pulse 1.5s ease-in-out infinite' }} />
-        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent-red)' }}>Live Alerts</span>
-      </div>
-      <div style={{ flex: 1, overflow: 'hidden', marginLeft: '20px' }}>
-        <div style={{
-          display: 'flex', gap: '48px',
-          animation: paused ? 'none' : 'ticker-scroll 40s linear infinite',
-          whiteSpace: 'nowrap'
-        }}>
-          {[...ALERT_ITEMS, ...ALERT_ITEMS].map((item, i) => (
-            <span key={i} style={{
-              fontSize: '12px',
-              color: item.type === 'critical' ? 'var(--accent-red)' : item.type === 'warning' ? 'var(--accent-amber)' : 'var(--text-secondary)',
-              display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 500
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: severityDot[item.type] || 'var(--text-muted)', flexShrink: 0 }} />
-              {item.msg}
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{item.time}</span>
-            </span>
-          ))}
+    <div className="bg-white border border-[var(--slate-200)] rounded-xl flex flex-col overflow-hidden shadow-sm h-full">
+      <div className="bg-[var(--slate-50)] border-b border-[var(--slate-200)] px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <ShieldAlert size={14} className="text-[var(--accent-red)]" />
+          <span className="text-xs font-bold text-[var(--slate-700)] uppercase tracking-wider">Live Incident Stream</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-[var(--accent-red)] animate-pulse" />
+          <span className="text-[10px] font-bold text-[var(--accent-red)] uppercase">Live</span>
         </div>
       </div>
-    </motion.div>
-  );
-}
-
-// ===== KPI METRIC (Pulse Bar) =====
-function LiveMetric({ label, value, unit, status, trend, index = 0 }: { label: string, value: string|number, unit: string, status: 'good'|'warn'|'crit', trend?: string, index?: number }) {
-  const color = status === 'good' ? 'var(--accent-teal)' : status === 'warn' ? 'var(--accent-amber)' : 'var(--accent-red)';
-  const isGood = status === 'good';
-  const trendDir = trend?.startsWith('↑') ? '↑' : trend?.startsWith('↓') ? '↓' : '—';
-  const sparkWidth = 48;
-
-  return (
-    <motion.div
-      variants={staggerFast}
-      custom={index}
-      className="glass-card"
-      style={{ display: 'flex', flexDirection: 'column', padding: '12px 20px', minWidth: '150px', gap: '4px' }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-        <span className="micro-label">{label}</span>
-        <span style={{
-          width: '6px', height: '6px', borderRadius: '50%', background: color,
-          animation: status === 'crit' ? 'live-pulse 1.2s ease-in-out infinite' : 'none',
-          flexShrink: 0
-        }} />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-        <span className="data-value" style={{ fontSize: '26px', fontWeight: 700, color, lineHeight: 1.1 }}>{value}</span>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>{unit}</span>
-        {trend && (
-          <span style={{
-            fontSize: '11px', fontWeight: 600,
-            color: trendDir === '↑' ? 'var(--accent-red)' : trendDir === '↓' ? 'var(--accent-teal)' : 'var(--text-muted)',
-            marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '2px'
-          }}>
-            {trendDir === '↑' ? '↑' : trendDir === '↓' ? '↓' : '→'} {trend.replace(/^[↑↓]\s*/, '')}
-          </span>
-        )}
-      </div>
-      {/* Sparkline micro bar */}
-      <div style={{ marginTop: '6px', height: '3px', borderRadius: '2px', background: 'var(--border-subtle)', overflow: 'hidden', width: '100%' }}>
-        <div style={{
-          width: `${typeof value === 'number' ? Math.min(Number(value), 100) : 50}%`,
-          height: '100%', background: color, borderRadius: '2px',
-          transition: 'width 0.6s ease-out'
-        }} />
-      </div>
-    </motion.div>
-  );
-}
-
-// ===== AI FEED ITEM =====
-const categoryColors: Record<string, string> = {
-  'Power Grid': '#ba1a1a',
-  'Transport': '#D97706',
-  'Water': '#004ac6',
-  'Air Quality': '#006242',
-};
-const categoryBadge: Record<string, string> = {
-  'Power Grid': 'badge-red',
-  'Transport': 'badge-amber',
-  'Water': 'badge-violet',
-  'Air Quality': 'badge-green',
-};
-
-function AIFeedItem({ time, category, text, confidence }: { time: string; category: string; text: string; confidence: number }) {
-  const accentColor = categoryColors[category] || 'var(--accent-navy)';
-  return (
-    <motion.div variants={staggerFast} style={{
-      padding: '16px 16px 16px 20px',
-      borderBottom: '1px solid var(--border-subtle)',
-      display: 'flex', gap: '12px',
-      background: 'var(--bg-surface-1)',
-      transition: 'background 150ms ease',
-      cursor: 'pointer',
-      borderLeft: `3px solid ${accentColor}`,
-      position: 'relative'
-    }} className="hover:bg-[var(--bg-surface-2)]">
-      <div style={{
-        width: '32px', height: '32px', borderRadius: '8px',
-        background: 'var(--accent-navy-light)', border: '1px solid rgba(0,74,198,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        color: 'var(--accent-navy)', fontSize: '16px'
-      }}>🧠</div>
-      <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <span className={categoryBadge[category] || 'badge-gray'} style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{category}</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{time}</span>
-        </div>
-        <p style={{ fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.5, margin: '4px 0 8px' }}>{text}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
-            background: confidence >= 90 ? 'var(--accent-teal-light)' : confidence >= 75 ? 'var(--accent-amber-light)' : 'var(--accent-red-light)',
-            color: confidence >= 90 ? 'var(--accent-teal)' : confidence >= 75 ? 'var(--accent-amber)' : 'var(--accent-red)',
-            letterSpacing: '0.04em'
-          }}>
-            {confidence}% CONFIDENCE
-          </div>
-          <div style={{ flex: 1, height: '3px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden', maxWidth: '80px' }}>
-            <div style={{ width: `${confidence}%`, height: '100%', background: accentColor, borderRadius: '2px' }} />
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// ===== RADIAL HEALTH GAUGE =====
-const SUB_METRICS = [
-  { label: 'Transport', value: 62, color: 'var(--accent-amber)' },
-  { label: 'Environment', value: 78, color: 'var(--accent-teal)' },
-  { label: 'Infrastructure', value: 71, color: '#004ac6' },
-];
-
-function RadialGauge({ value }: { value: number }) {
-  const circumference = 2 * Math.PI * 42;
-  const strokeDashoffset = circumference - (value / 100) * circumference;
-  const color = value >= 75 ? 'var(--accent-teal)' : value >= 55 ? 'var(--accent-amber)' : 'var(--accent-red)';
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%' }}>
-      <div style={{ position: 'relative', width: '140px', height: '140px' }}>
-        <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="70" cy="70" r="42" fill="none" stroke="var(--border-subtle)" strokeWidth="10" />
-          <circle cx="70" cy="70" r="42" fill="none" stroke={color} strokeWidth="10" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease-out' }} />
-        </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span className="data-value" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{value}</span>
-          <span className="micro-label" style={{ marginTop: '2px' }}>Score</span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-        {SUB_METRICS.map(m => (
-          <div key={m.label} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>{m.label}</span>
-              <span className="data-value" style={{ fontSize: '11px', fontWeight: 700, color: m.color }}>{m.value}%</span>
+      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        {ALERT_ITEMS.map((item, i) => (
+          <div key={i} className={`p-3 rounded-lg border-l-4 ${item.type === 'critical' ? 'border-[var(--accent-red)] bg-[var(--accent-red)]/5' : item.type === 'warning' ? 'border-[var(--accent-amber)] bg-[var(--accent-amber)]/5' : 'border-[var(--accent-blue)] bg-[var(--slate-50)]'} flex flex-col gap-1`}>
+            <div className="flex justify-between items-start">
+              <span className="text-xs font-bold text-[var(--slate-800)] leading-tight">{item.msg}</span>
+              <span className="text-[9px] text-[var(--slate-500)] whitespace-nowrap ml-2">{item.time}</span>
             </div>
-            <div style={{ height: '4px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden' }}>
-              <div style={{ width: `${m.value}%`, height: '100%', background: m.color, borderRadius: '2px', transition: 'width 0.8s ease-out' }} />
-            </div>
+            <span className={`text-[10px] font-semibold ${item.type === 'critical' ? 'text-[var(--accent-red)]' : item.type === 'warning' ? 'text-[var(--accent-amber)]' : 'text-[var(--accent-blue)]'}`}>{item.val}</span>
           </div>
         ))}
       </div>
@@ -234,24 +58,81 @@ function RadialGauge({ value }: { value: number }) {
   );
 }
 
-// ===== FILTER CHIPS =====
-const FILTERS = ['All', 'Critical', 'Warnings', 'Info'] as const;
+// ===== SYSTEM STATUS BOARDS =====
+function SystemStatusBoard({ metrics }: { metrics: any }) {
+  return (
+    <div className="bg-white border border-[var(--slate-200)] rounded-xl p-4 shadow-sm h-full flex flex-col">
+      <div className="flex items-center gap-2 mb-4">
+        <Activity size={14} className="text-[var(--accent-blue)]" />
+        <span className="text-xs font-bold text-[var(--slate-700)] uppercase tracking-wider">System Status Boards</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 flex-1">
+        
+        {/* Traffic Status */}
+        <div className="p-3 rounded-lg border border-[var(--slate-200)] bg-[var(--slate-50)] flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-[10px] font-bold text-[var(--slate-500)] uppercase">Transport</span>
+            <TrendingUp size={12} className="text-[var(--accent-amber)]" />
+          </div>
+          <div>
+            <div className="text-xl font-bold text-[var(--slate-900)]">{metrics.congestionIndex}%</div>
+            <div className="text-[10px] text-[var(--slate-500)] mt-1">Congestion (Elevated)</div>
+          </div>
+        </div>
 
+        {/* Energy Status */}
+        <div className="p-3 rounded-lg border border-[var(--accent-red)]/30 bg-[var(--accent-red)]/5 flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-[10px] font-bold text-[var(--accent-red)] uppercase">Grid Load</span>
+            <Zap size={12} className="text-[var(--accent-red)]" />
+          </div>
+          <div>
+            <div className="text-xl font-bold text-[var(--accent-red)]">{metrics.gridLoad.toFixed(1)} GW</div>
+            <div className="text-[10px] text-[var(--accent-red)] mt-1">Peak Demand Warning</div>
+          </div>
+        </div>
+
+        {/* Environment Status */}
+        <div className="p-3 rounded-lg border border-[var(--slate-200)] bg-[var(--slate-50)] flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-[10px] font-bold text-[var(--slate-500)] uppercase">Air Quality</span>
+            <ThermometerSun size={12} className="text-[var(--accent-amber)]" />
+          </div>
+          <div>
+            <div className="text-xl font-bold text-[var(--slate-900)]">{metrics.aqi}</div>
+            <div className="text-[10px] text-[var(--slate-500)] mt-1">AQI (Moderate)</div>
+          </div>
+        </div>
+
+        {/* Water Status */}
+        <div className="p-3 rounded-lg border border-[var(--accent-teal)]/30 bg-[var(--accent-teal)]/5 flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-[10px] font-bold text-[var(--accent-teal)] uppercase">Water Supply</span>
+            <Droplets size={12} className="text-[var(--accent-teal)]" />
+          </div>
+          <div>
+            <div className="text-xl font-bold text-[var(--accent-teal)]">Nominal</div>
+            <div className="text-[10px] text-[var(--accent-teal)] mt-1">Reservoirs at 78%</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ===== MAIN PAGE =====
 export default function OverviewPage() {
   const cityData = useCityDataStore();
-  const sim = useSimulationStore();
-  const { openTakeAction, isTakeActionOpen } = useUIStore();
+  const { openTakeAction } = useUIStore();
   const disasters = useDisasterStore();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [activeLayer, setActiveLayer] = useState<'traffic' | 'incidents'>('traffic');
-  const [activeFilter, setActiveFilter] = useState<string>('All');
 
   const metrics = cityData.metrics;
 
-  // Mapbox Init
   useEffect(() => {
     let map: MapboxMap | null = null;
     import('mapbox-gl').then(m => {
@@ -263,8 +144,8 @@ export default function OverviewPage() {
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [77.5946, 12.9716],
-        zoom: 11,
-        pitch: 45,
+        zoom: 12,
+        pitch: 50,
         bearing: -17.6,
         attributionControl: false,
       });
@@ -274,7 +155,6 @@ export default function OverviewPage() {
         if (!map) return;
         setMapLoaded(true);
 
-        // Mapbox 3D buildings (Stitch style)
         if (map.getSource('composite')) {
           map.addLayer({
             'id': '3d-buildings',
@@ -284,55 +164,13 @@ export default function OverviewPage() {
             'type': 'fill-extrusion',
             'minzoom': 14,
             'paint': {
-              'fill-extrusion-color': '#f8f9ff',
+              'fill-extrusion-color': '#f1f5f9',
               'fill-extrusion-height': ['get', 'height'],
               'fill-extrusion-base': ['get', 'min_height'],
               'fill-extrusion-opacity': 0.8
             }
           });
         }
-
-        fetch('/data/metro_stations.geojson')
-          .then(r => r.json())
-          .then(data => {
-            if (!map) return;
-            if (!map.getSource('metro-heat')) {
-              map.addSource('metro-heat', { type: 'geojson', data });
-              map.addLayer({
-                id: 'metro-heat-layer',
-                type: 'heatmap',
-                source: 'metro-heat',
-                maxzoom: 15,
-                paint: {
-                  'heatmap-intensity': 1,
-                  'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
-                    0, 'rgba(0,0,0,0)', 0.2, 'rgba(0,74,198,0.2)', 0.6, 'rgba(0,74,198,0.5)', 1, 'rgba(0,74,198,0.8)'
-                  ],
-                  'heatmap-radius': 30,
-                  'heatmap-opacity': 0.6,
-                },
-              });
-            }
-          }).catch(() => {});
-
-        disasters.activeIncidents.forEach(incident => {
-          const el = document.createElement('div');
-          el.style.cssText = `
-            width:20px;height:20px;border-radius:50%;
-            background:rgba(186,26,26,0.8);border:2px solid #ffffff;
-            box-shadow: 0 0 12px rgba(186,26,26,0.6);
-            cursor:pointer;
-          `;
-          new mapboxgl.Marker(el)
-            .setLngLat(incident.coordinates)
-            .setPopup(new mapboxgl.Popup({ offset: 12 }).setHTML(`
-              <div style="font-family:Inter,sans-serif;padding:8px;">
-                <div style="font-size:10px;color:#ba1a1a;font-weight:700;text-transform:uppercase;">Active Incident</div>
-                <div style="font-size:13px;font-weight:700;margin:4px 0;">${incident.name}</div>
-              </div>
-            `))
-            .addTo(map!);
-        });
       });
     });
 
@@ -341,164 +179,101 @@ export default function OverviewPage() {
 
   return (
     <motion.div
-      className="page-shell page-container"
-      style={{ padding: 'var(--spacing-3)', gap: 'var(--spacing-3)', overflow: 'hidden', background: 'var(--bg-surface-2)' }}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+      className="flex flex-col h-full bg-[var(--slate-100)] p-4 overflow-hidden"
+      variants={containerVariants} initial="hidden" animate="visible"
     >
-      {/* Live Pulse Bar - Hero Layer */}
-      <motion.div variants={itemVariants} className="glass-card" style={{
-        display: 'flex', alignItems: 'center', padding: '20px 0', borderRadius: '20px', background: 'var(--bg-surface-1)',
-        boxShadow: 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.8)'
-      }}>
-        <div style={{ padding: '0 28px', borderRight: '1px solid var(--border-subtle)', minWidth: '200px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>Urban Command</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-teal)', animation: 'live-pulse 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent-teal)', letterSpacing: '0.02em' }}>System Active — Bengaluru Urban</span>
+      
+      {/* Top Header Bar */}
+      <motion.div variants={itemVariants} className="bg-white border border-[var(--slate-200)] rounded-xl p-4 flex justify-between items-center mb-4 shadow-sm shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="bg-[var(--slate-900)] text-white p-2.5 rounded-lg shadow-md">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-[var(--slate-900)] leading-tight tracking-tight">Urban Command Center</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-teal)] animate-pulse" />
+              <span className="text-[11px] font-semibold text-[var(--slate-500)] uppercase tracking-wider">System Active — Bengaluru Urban</span>
+            </div>
           </div>
         </div>
-
-        <motion.div style={{ display: 'flex', flex: 1, gap: '4px' }} variants={containerVariants}>
-          <LiveMetric label="Traffic Congestion" value={metrics.congestionIndex} unit="%" status={metrics.congestionIndex > 75 ? 'crit' : metrics.congestionIndex > 55 ? 'warn' : 'good'} trend="↑ 4% vs yday" index={0} />
-          <LiveMetric label="Air Quality (AQI)" value={metrics.aqi} unit="" status={metrics.aqi > 150 ? 'crit' : metrics.aqi > 100 ? 'warn' : 'good'} trend="↓ 8 pts vs wk" index={1} />
-          <LiveMetric label="Power Grid Load" value={metrics.gridLoad.toFixed(1)} unit="GW" status="warn" trend="Stable (4.8 GW cap)" index={2} />
-          <LiveMetric label="Water Demand Gap" value={350} unit="MLD" status="crit" trend="Critical shortage" index={3} />
-        </motion.div>
-
-        <div style={{ flexShrink: 0, padding: '0 28px', display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={openTakeAction} className="btn-primary" style={{ padding: '12px 24px', fontSize: '14px', borderRadius: '12px', background: 'var(--accent-red)', boxShadow: '0 4px 12px rgba(186,26,26,0.25)' }}>
-            ⚠ Resolve {metrics.activeIncidents} Alerts
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right border-r border-[var(--slate-200)] pr-4">
+            <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1">Overall Health</div>
+            <div className="text-2xl font-bold text-[var(--accent-teal)] leading-none">{metrics.cityHealthScore}/100</div>
+          </div>
+          <button onClick={openTakeAction} className="btn-danger shadow-md px-6 py-2.5">
+            Resolve {metrics.activeIncidents} Active Alerts
           </button>
         </div>
       </motion.div>
 
-      {/* Alert Ticker */}
-      <AlertTicker />
-
-      {/* Main Split Content */}
-      <motion.div variants={itemVariants} style={{ display: 'flex', flex: 1, gap: 'var(--spacing-3)', overflow: 'hidden', minHeight: 0 }}>
-
-        {/* 75% Map Centerpiece */}
-        <motion.div variants={itemVariants} style={{
-          flex: '7.5', position: 'relative', borderRadius: '20px', overflow: 'hidden', padding: 0,
-          boxShadow: '0 0 0 1px rgba(0,74,198,0.15), 0 8px 32px rgba(0,74,198,0.08)',
-          background: 'var(--bg-surface-2)'
-        }}>
-          {!mapLoaded && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, background: 'var(--bg-surface-2)' }}>
-              <span className="micro-label">Loading Simulation Map...</span>
+      {/* Main Split: 60% Map / 40% Intel */}
+      <div className="flex-1 flex gap-4 min-h-0">
+        
+        {/* 60% MAP CONTAINER */}
+        <motion.div variants={itemVariants} className="flex-[6] bg-white border border-[var(--slate-200)] rounded-xl relative overflow-hidden shadow-sm flex flex-col">
+          
+          <div className="absolute top-4 left-4 z-10 flex gap-2">
+            <div className="bg-white/90 backdrop-blur-md border border-[var(--slate-200)] text-[var(--slate-700)] text-xs font-bold px-4 py-2 rounded-md shadow-sm flex items-center gap-2">
+              <Layers size={14} className="text-[var(--accent-blue)]" /> Map Layers
             </div>
-          )}
-          <div ref={mapContainerRef} style={{ width: '100%', height: '100%', borderRadius: '20px' }} />
-
-          {/* Map Overlays */}
-          <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, display: 'flex', gap: '8px' }}>
-            <button className="glass" style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, color: 'var(--accent-navy)', cursor: 'pointer', backdropFilter: 'blur(12px)' }}>Traffic Density</button>
-            <button className="glass" style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', backdropFilter: 'blur(12px)' }}>Public Transit</button>
-            <button className="glass" style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', backdropFilter: 'blur(12px)' }}>Utilities Grid</button>
           </div>
 
-          {/* Glass overlay with real-time stats */}
-          <div className="glass" style={{
-            position: 'absolute', bottom: '0', left: '0', right: '0', zIndex: 10,
-            padding: '16px 24px', display: 'flex', alignItems: 'center', gap: '24px',
-            borderTop: '1px solid rgba(255,255,255,0.5)',
-            backdropFilter: 'blur(20px)',
-            borderBottomLeftRadius: '20px',
-            borderBottomRightRadius: '20px',
-          }}>
-            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent-navy)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-teal)', animation: 'live-pulse 2s ease-in-out infinite' }} />
-              City Pulse
-            </span>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Active Sectors: <strong style={{ color: 'var(--text-primary)' }}>14/16</strong></span>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Response Time: <strong style={{ color: 'var(--accent-teal)' }}>2.4s</strong></span>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Network Status: <strong style={{ color: 'var(--accent-teal)' }}>Operational</strong></span>
-          </div>
-        </motion.div>
-
-        {/* 25% Intelligence Feed */}
-        <motion.div variants={itemVariants} style={{ flex: '2.5', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', overflowY: 'auto', minHeight: 0 }} className="hide-scrollbar">
-
-          {/* City Health Gauge */}
-          <motion.div variants={itemVariants} className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.01em' }}>City Health Score</h3>
-            <RadialGauge value={metrics.cityHealthScore} />
-            <p style={{
-              fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', margin: 0, lineHeight: 1.6,
-              padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: '8px', width: '100%'
-            }}>
-              Operating at a moderate efficiency level. Transportation bottlenecks remain the primary drag on overall performance.
-            </p>
-          </motion.div>
-
-          {/* Recommendation Engine Snippet - Mission Briefing */}
-          <motion.div variants={itemVariants} className="glass-card" style={{ padding: '20px', borderTop: '3px solid var(--accent-navy)', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,74,198,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="micro-label" style={{ color: 'var(--accent-navy)', fontSize: '9px' }}>Recommended Action</span>
-              <span style={{
-                fontSize: '11px', fontWeight: 700, color: '#FFFFFF',
-                background: 'var(--accent-teal)', padding: '2px 10px', borderRadius: '6px',
-                letterSpacing: '0.02em'
-              }}>94% Success Probability</span>
-            </div>
-            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px 0' }}>Activate ORR Traffic Sync</h4>
-            <p style={{
-              fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.6,
-              padding: '8px 12px', background: 'var(--bg-surface-2)', borderRadius: '8px'
-            }}>
-              Synchronizing 12 major intersections along the Outer Ring Road corridor will alleviate localized congestion by 18%.
-            </p>
-            <button className="btn-primary" style={{ width: '100%' }} onClick={openTakeAction}>Execute Protocol</button>
-          </motion.div>
-
-          {/* Live Intelligence Feed */}
-          <motion.div variants={itemVariants} className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'linear-gradient(180deg, var(--bg-surface-1) 0%, rgba(239,244,255,0.4) 100%)' }}>
-            <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Live Intelligence</h3>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {FILTERS.map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setActiveFilter(f)}
-                    style={{
-                      fontSize: '10px', fontWeight: 600, padding: '4px 12px', borderRadius: '14px',
-                      border: 'none', cursor: 'pointer',
-                      background: activeFilter === f ? 'var(--accent-navy)' : 'var(--bg-surface-3)',
-                      color: activeFilter === f ? '#FFFFFF' : 'var(--text-secondary)',
-                      transition: 'all 120ms ease',
-                      letterSpacing: '0.02em'
-                    }}
-                  >{f}</button>
-                ))}
+          <div className="flex-1 w-full h-full relative">
+            {!mapLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--slate-50)] z-10">
+                <span className="text-[var(--slate-500)] text-xs font-semibold uppercase tracking-wider">Loading Infrastructure Map...</span>
               </div>
+            )}
+            <div ref={mapContainerRef} className="w-full h-full" />
+          </div>
+
+          <div className="bg-white border-t border-[var(--slate-200)] p-3 flex justify-between items-center">
+            <div className="flex gap-4 text-xs font-semibold text-[var(--slate-600)]">
+              <span className="flex items-center gap-1.5"><MapPin size={12} className="text-[var(--accent-blue)]" /> Tracked Assets: 42,109</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-[var(--accent-teal)]" /> Sensor Network: 99.8% Uptime</span>
             </div>
-            <motion.div style={{ flex: 1, overflowY: 'auto' }} variants={containerVariants}>
-              <AIFeedItem
-                time="Just now" category="Power Grid" confidence={92}
-                text="Electronic City Substation #11 approaching critical load. Recommend load-shedding protocol in adjacent non-critical sectors."
-              />
-              <AIFeedItem
-                time="14m ago" category="Transport" confidence={88}
-                text="Metro Line 3 Phase 1 on schedule. Anticipate 4% modal shift from road to rail once fully operational."
-              />
-              <AIFeedItem
-                time="32m ago" category="Water" confidence={96}
-                text="Cauvery Stage 5 pumping stabilized. Supply gap narrowed by 120 MLD, improving eastern district pressure."
-              />
-              <AIFeedItem
-                time="1h ago" category="Air Quality" confidence={81}
-                text="Sustained PM2.5 elevation in Whitefield industrial cluster. Construction dust suppression highly recommended."
-              />
-            </motion.div>
-          </motion.div>
+            <span className="text-[10px] font-bold text-[var(--slate-400)] uppercase tracking-widest">Live GIS Feed</span>
+          </div>
 
         </motion.div>
-      </motion.div>
 
+        {/* 40% INTELLIGENCE PANELS */}
+        <motion.div variants={itemVariants} className="flex-[4] flex flex-col gap-4 min-h-0 overflow-y-auto hide-scrollbar">
+          
+          {/* Status Boards */}
+          <div className="shrink-0 h-48">
+            <SystemStatusBoard metrics={metrics} />
+          </div>
+
+          {/* Infrastructure Alerts Stream */}
+          <div className="flex-1 min-h-[300px]">
+            <IncidentStream />
+          </div>
+
+          {/* AI Intelligence Widget */}
+          <div className="shrink-0 bg-[var(--slate-900)] text-white rounded-xl p-5 shadow-lg border border-[var(--slate-800)] relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-[var(--accent-blue)]/20 blur-2xl rounded-full" />
+            <div className="flex justify-between items-start mb-3">
+              <div className="text-[10px] font-bold text-[var(--accent-blue-light)] uppercase tracking-widest flex items-center gap-2">
+                <Brain size={12} /> Proactive AI Insight
+              </div>
+              <span className="bg-[var(--accent-teal)]/20 text-[var(--accent-teal)] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">92% Confidence</span>
+            </div>
+            <h3 className="text-sm font-bold mb-2">Automated Rerouting Recommended</h3>
+            <p className="text-xs text-[var(--slate-300)] mb-4 leading-relaxed">
+              Anomaly detected in traffic patterns at Silk Board. Immediate signal cycle sync will prevent gridlock.
+            </p>
+            <button onClick={openTakeAction} className="w-full py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+              Execute Protocol
+            </button>
+          </div>
+
+        </motion.div>
+
+      </div>
       <TakeActionDrawer />
     </motion.div>
   );

@@ -2,21 +2,20 @@
 
 import React, { useMemo, useState } from 'react';
 import { useSimulationStore, useCityDataStore } from '@/stores';
-import { ChevronRight } from 'lucide-react';
+import { Briefcase, TrendingDown, TrendingUp, AlertTriangle, ChevronRight, Download, Filter, FileSpreadsheet } from 'lucide-react';
 
 export default function ImpactPage() {
   const { results, activePolicy } = useSimulationStore();
   const cityData = useCityDataStore();
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
-  // 1. Dynamic District Rankings calculation
   const districtRankings = useMemo(() => {
     const districts = [
-      { name: 'Whitefield', baseCong: 94, baseStress: 82, baseWater: 90 },
-      { name: 'Electronic City', baseCong: 62, baseStress: 68, baseWater: 78 },
-      { name: 'Koramangala', baseCong: 92, baseStress: 76, baseWater: 70 },
-      { name: 'Hebbal', baseCong: 65, baseStress: 58, baseWater: 52 },
-      { name: 'Indiranagar', baseCong: 88, baseStress: 62, baseWater: 48 },
+      { name: 'Whitefield', baseCong: 94, baseStress: 82, baseWater: 90, budgetImpact: 45000000 },
+      { name: 'Electronic City', baseCong: 62, baseStress: 68, baseWater: 78, budgetImpact: 12000000 },
+      { name: 'Koramangala', baseCong: 92, baseStress: 76, baseWater: 70, budgetImpact: 28000000 },
+      { name: 'Hebbal', baseCong: 65, baseStress: 58, baseWater: 52, budgetImpact: 8500000 },
+      { name: 'Indiranagar', baseCong: 88, baseStress: 62, baseWater: 48, budgetImpact: 19000000 },
     ];
 
     const trafficFactor = results.traffic.delta / 67;
@@ -28,6 +27,8 @@ export default function ImpactPage() {
       const currentWater = Math.round(Math.min(100, Math.max(10, d.baseWater * (1 + waterFactor))));
       const currentStress = Math.round(Math.min(100, Math.max(10, d.baseStress * (1 + energyFactor))));
       const compositeScore = Math.round((currentCong + currentWater + currentStress) / 3);
+      
+      const newBudgetImpact = Math.round(d.budgetImpact * (1 + (compositeScore - 70)/100));
 
       return {
         name: d.name,
@@ -35,205 +36,227 @@ export default function ImpactPage() {
         waterStress: currentWater,
         energyStress: currentStress,
         score: compositeScore,
-        status: compositeScore > 75 ? 'Critical' : compositeScore > 55 ? 'Vulnerable' : 'Stable'
+        budgetBase: d.budgetImpact,
+        budgetProjected: newBudgetImpact,
+        status: compositeScore > 75 ? 'Critical Risk' : compositeScore > 55 ? 'Elevated Risk' : 'Nominal'
       };
-    }).sort((a, b) => b.score - a.score); // Highest vulnerability rank first
+    }).sort((a, b) => b.score - a.score);
   }, [results]);
 
-  // 2. SVG-based Interactive Sankey Diagram representing policy flow
   const policyFlowWidths = useMemo(() => {
     return {
-      metroToTraffic: Math.max(2, (activePolicy.metroExpansion / 100) * 45),
-      roadToTraffic: Math.max(2, (activePolicy.roadCapacity / 100) * 35),
-      evToCarbon: Math.max(2, (activePolicy.evAdoptionRate / 100) * 40),
-      renewToEnergy: Math.max(2, (activePolicy.renewableShare / 100) * 50),
-      waterToResource: Math.max(2, (activePolicy.waterInfrastructure / 100) * 40),
-      trafficToCarbon: Math.max(2, Math.abs(results.traffic.delta) * 1.5),
-      energyToCarbon: Math.max(2, (results.energy.after / 10000) * 12),
-      carbonToHealth: Math.max(2, (100 - results.aqi.after) * 0.4),
-      trafficToHealth: Math.max(2, (100 - results.traffic.after) * 0.4),
+      metroToTraffic: Math.max(1, (activePolicy.metroExpansion / 100) * 12),
+      roadToTraffic: Math.max(1, (activePolicy.roadCapacity / 100) * 10),
+      evToCarbon: Math.max(1, (activePolicy.evAdoptionRate / 100) * 12),
+      renewToEnergy: Math.max(1, (activePolicy.renewableShare / 100) * 14),
+      waterToResource: Math.max(1, (activePolicy.waterInfrastructure / 100) * 12),
+      trafficToCarbon: Math.max(1, Math.abs(results.traffic.delta) * 0.5),
+      energyToCarbon: Math.max(1, (results.energy.after / 10000) * 4),
+      carbonToHealth: Math.max(1, (100 - results.aqi.after) * 0.15),
+      trafficToHealth: Math.max(1, (100 - results.traffic.after) * 0.15),
     };
   }, [activePolicy, results]);
 
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+  };
+
+  const totalCapex = (activePolicy.metroExpansion * 150000000) + (activePolicy.roadCapacity * 45000000) + (activePolicy.waterInfrastructure * 85000000);
+  const totalOpexReduction = Math.abs(results.traffic.delta) * 12000000 + Math.abs(results.energy.delta) * 8000;
+  const roiYears = totalOpexReduction > 0 ? (totalCapex / totalOpexReduction).toFixed(1) : '∞';
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-[var(--slate-50)] text-[var(--slate-800)]">
       
-      {/* Header */}
-      <div>
-        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
-          <span>Impact Analysis</span>
-          <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
-          <span style={{ color: '#00D4FF', fontWeight: 600 }}>Urban Cascades</span>
-        </nav>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>Impact Cascades Matrix</h1>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
-          Evaluate cascading feedback loops, policy flow networks, and district vulnerability indices.
-        </p>
-      </div>
-
-      {/* Main Analysis Panels */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: '16px', alignItems: 'start' }}>
-        
-        {/* Left Side: Sankey and Force-Link Graphs */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Sankey Flow Card */}
-          <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Policy Impact Sankey Flow</h3>
-            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '0 0 16px' }}>
-              Tracks volumetric policy inputs flow to output metrics and overall city index.
-            </p>
-
-            {/* SVG Sankey Diagram */}
-            <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px' }}>
-              <svg viewBox="0 0 600 240" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-                {/* Node Columns */}
-                {/* Col 1: Policies */}
-                <rect x="10" y="10" width="12" height="30" fill="#7C3AED" rx="2" />
-                <text x="30" y="28" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Metro Expansion</text>
-
-                <rect x="10" y="55" width="12" height="30" fill="#3B82F6" rx="2" />
-                <text x="30" y="73" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Road Capacity</text>
-
-                <rect x="10" y="100" width="12" height="30" fill="#EF4444" rx="2" />
-                <text x="30" y="118" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">EV Fleet Rate</text>
-
-                <rect x="10" y="145" width="12" height="30" fill="#F59E0B" rx="2" />
-                <text x="30" y="163" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Renewables</text>
-
-                <rect x="10" y="190" width="12" height="30" fill="#10B981" rx="2" />
-                <text x="30" y="208" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Water Network</text>
-
-                {/* Col 2: Intermediate indicators */}
-                <rect x="250" y="20" width="12" height="50" fill="#00D4FF" rx="2" />
-                <text x="272" y="48" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Traffic Vol</text>
-
-                <rect x="250" y="90" width="12" height="50" fill="#8B5CF6" rx="2" />
-                <text x="272" y="118" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Carbon Level</text>
-
-                <rect x="250" y="160" width="12" height="50" fill="#38BDF8" rx="2" />
-                <text x="272" y="188" fill="rgba(255,255,255,0.7)" fontSize="10" fontWeight="600">Resource Load</text>
-
-                {/* Col 3: Outflow Health index */}
-                <rect x="500" y="80" width="12" height="70" fill="#10B981" rx="2" />
-                <text x="522" y="120" fill="#10B981" fontSize="11" fontWeight="700">City Health</text>
-
-                {/* Flow lines (Bezier Curves) */}
-                {/* Metro -> Traffic */}
-                <path d="M 22 25 C 130 25, 130 35, 250 35" fill="none" stroke="rgba(124,90,237,0.15)" strokeWidth={policyFlowWidths.metroToTraffic} />
-                {/* Road -> Traffic */}
-                <path d="M 22 70 C 130 70, 130 55, 250 55" fill="none" stroke="rgba(59,130,246,0.15)" strokeWidth={policyFlowWidths.roadToTraffic} />
-                {/* EV -> Carbon */}
-                <path d="M 22 115 C 130 115, 130 100, 250 100" fill="none" stroke="rgba(239,68,68,0.15)" strokeWidth={policyFlowWidths.evToCarbon} />
-                {/* Renewables -> Carbon */}
-                <path d="M 22 160 C 130 160, 130 115, 250 115" fill="none" stroke="rgba(245,158,11,0.15)" strokeWidth={policyFlowWidths.renewToEnergy} />
-                {/* Water -> Resource */}
-                <path d="M 22 205 C 130 205, 130 185, 250 185" fill="none" stroke="rgba(16,185,129,0.15)" strokeWidth={policyFlowWidths.waterToResource} />
-
-                {/* Traffic -> Health */}
-                <path d="M 262 45 C 380 45, 380 95, 500 95" fill="none" stroke="rgba(0,212,255,0.2)" strokeWidth={policyFlowWidths.trafficToHealth} />
-                {/* Carbon -> Health */}
-                <path d="M 262 115 C 380 115, 380 115, 500 115" fill="none" stroke="rgba(139,92,246,0.2)" strokeWidth={policyFlowWidths.energyToCarbon} />
-                {/* Resource -> Health */}
-                <path d="M 262 185 C 380 185, 380 135, 500 135" fill="none" stroke="rgba(56,189,248,0.2)" strokeWidth={policyFlowWidths.carbonToHealth} />
-              </svg>
-            </div>
+      {/* Header Bar */}
+      <div className="bg-white border-b border-[var(--slate-200)] px-8 py-4 flex justify-between items-center shrink-0 z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded bg-[var(--accent-navy)] text-white flex items-center justify-center">
+            <Briefcase size={20} />
           </div>
-
-          {/* Network Connection Loop Card */}
-          <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Feedback Loop Network</h3>
-            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '0 0 16px' }}>
-              Interconnected system variables showing positive/negative feedback links. Click on nodes to isolate relations.
-            </p>
-
-            {/* SVG Force-Directed graph look */}
-            <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px' }}>
-              <svg viewBox="0 0 600 220" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-                {/* Connections (Links) */}
-                <line x1="100" y1="110" x2="220" y2="60" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-                <line x1="100" y1="110" x2="220" y2="160" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-                <line x1="220" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-                <line x1="220" y1="160" x2="380" y2="160" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-                <line x1="380" y1="60" x2="500" y2="110" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-                <line x1="380" y1="160" x2="500" y2="110" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-                <line x1="220" y1="60" x2="220" y2="160" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <line x1="380" y1="60" x2="380" y2="160" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" strokeDasharray="3 3" />
-
-                {/* Nodes (Circles) */}
-                <circle cx="100" cy="110" r="24" fill="#0A1628" stroke="#00D4FF" strokeWidth="2.5" style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('population')} />
-                <text x="100" y="113" fill="#fff" fontSize="9" fontWeight="600" textAnchor="middle" pointerEvents="none">Population</text>
-
-                <circle cx="220" cy="60" r="20" fill="#0A1628" stroke="#7C3AED" strokeWidth="2" style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('traffic')} />
-                <text x="220" y="63" fill="#fff" fontSize="9" fontWeight="600" textAnchor="middle" pointerEvents="none">Traffic</text>
-
-                <circle cx="220" cy="160" r="20" fill="#0A1628" stroke="#3B82F6" strokeWidth="2" style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('energy')} />
-                <text x="220" y="163" fill="#fff" fontSize="9" fontWeight="600" textAnchor="middle" pointerEvents="none">Energy</text>
-
-                <circle cx="380" cy="60" r="20" fill="#0A1628" stroke="#EF4444" strokeWidth="2" style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('co2')} />
-                <text x="380" y="63" fill="#fff" fontSize="9" fontWeight="600" textAnchor="middle" pointerEvents="none">Emissions</text>
-
-                <circle cx="380" cy="160" r="20" fill="#0A1628" stroke="#F59E0B" strokeWidth="2" style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('water')} />
-                <text x="380" y="163" fill="#fff" fontSize="9" fontWeight="600" textAnchor="middle" pointerEvents="none">Water</text>
-
-                <circle cx="500" cy="110" r="24" fill="#0A1628" stroke="#10B981" strokeWidth="2.5" style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('gdp')} />
-                <text x="500" y="113" fill="#fff" fontSize="9" fontWeight="600" textAnchor="middle" pointerEvents="none">Economy</text>
-              </svg>
-            </div>
-
-            {selectedNode && (
-              <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>
-                  Active isolate: <strong style={{ color: '#00D4FF', textTransform: 'capitalize' }}>{selectedNode}</strong> Loop Specs
-                </span>
-                <button onClick={() => setSelectedNode(null)} style={{ background: 'none', border: 'none', color: '#00D4FF', fontSize: '11px', cursor: 'pointer' }}>Reset</button>
-              </div>
-            )}
+          <div>
+            <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-0.5">Financial & Operational Analysis</div>
+            <h1 className="text-lg font-bold text-[var(--slate-900)]">Impact Breakdown Report</h1>
           </div>
         </div>
 
-        {/* Right Side: District rankings vulnerabilities */}
-        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>District Vulnerability Rankings</h3>
-            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>
-              Ranked by composite index: Traffic congestion + grid load + water drawdown.
-            </p>
+        <div className="flex gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[var(--slate-200)] hover:bg-[var(--slate-50)] text-sm font-bold text-[var(--slate-700)] transition-colors">
+            <Filter size={16} /> Filter
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[var(--slate-200)] hover:bg-[var(--slate-50)] text-sm font-bold text-[var(--slate-700)] transition-colors">
+            <FileSpreadsheet size={16} /> Export CSV
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navy)] hover:bg-[var(--accent-navy)]/90 text-white text-sm font-bold transition-colors">
+            <Download size={16} /> Download PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="max-w-[1400px] mx-auto space-y-8">
+          
+          {/* Top Financial Summary */}
+          <div className="bg-white border border-[var(--slate-200)] shadow-sm flex flex-col md:flex-row">
+            <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-[var(--slate-200)]">
+              <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-2">Total CAPEX Requirement</div>
+              <div className="text-3xl font-bold text-[var(--slate-900)] font-serif tracking-tight">{formatCurrency(totalCapex)}</div>
+              <div className="text-xs text-[var(--slate-500)] mt-2">Capital expenditure for active infrastructure policies</div>
+            </div>
+            <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-[var(--slate-200)]">
+              <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-2">Projected Annual OPEX Savings</div>
+              <div className="text-3xl font-bold text-[var(--accent-teal)] font-serif tracking-tight">{formatCurrency(totalOpexReduction)}</div>
+              <div className="text-xs text-[var(--slate-500)] mt-2">Operational savings from efficiency gains</div>
+            </div>
+            <div className="flex-1 p-6">
+              <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-2">Est. Return on Investment</div>
+              <div className="text-3xl font-bold text-[var(--slate-900)] font-serif tracking-tight">{roiYears} <span className="text-lg text-[var(--slate-500)]">Years</span></div>
+              <div className="text-xs text-[var(--slate-500)] mt-2">Time to recoup capital expenditure</div>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {districtRankings.map((d, index) => {
-              const statusColor = d.status === 'Critical' ? '#EF4444' : d.status === 'Vulnerable' ? '#F59E0B' : '#10B981';
-              return (
-                <div key={d.name} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>#{index + 1}</span>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{d.name}</span>
-                    </div>
-                    <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: `${statusColor}18`, color: statusColor, border: `1px solid ${statusColor}30` }}>
-                      {d.status.toUpperCase()}
-                    </span>
-                  </div>
-                  
-                  {/* Vulnerability progress index bar */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
-                    <span>Vulnerability Index</span>
-                    <span style={{ fontWeight: 600, color: '#fff' }}>{d.score}/100</span>
-                  </div>
-                  <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden', marginBottom: '8px' }}>
-                    <div style={{ height: '100%', width: `${d.score}%`, background: statusColor, borderRadius: '2px' }} />
-                  </div>
-
-                  {/* Sub metrics breakdown */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.35)' }}>
-                    <div>Traffic: <strong style={{ color: '#fff' }}>{d.congestion}%</strong></div>
-                    <div>Water: <strong style={{ color: '#fff' }}>{d.waterStress}%</strong></div>
-                    <div>Grid: <strong style={{ color: '#fff' }}>{d.energyStress}%</strong></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Left: Flow Diagram */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white border border-[var(--slate-200)] shadow-sm p-6">
+                <div className="flex justify-between items-end mb-6 border-b border-[var(--slate-200)] pb-4">
+                  <div>
+                    <h2 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest">Policy Volumetric Flow</h2>
+                    <p className="text-xs text-[var(--slate-500)] mt-1">Traces the allocation of resources through operational vectors.</p>
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="bg-[var(--slate-50)] border border-[var(--slate-200)] p-4 relative h-[320px]">
+                  <svg viewBox="0 0 600 240" className="w-full h-full overflow-visible">
+                    {/* Source Nodes */}
+                    <rect x="10" y="20" width="16" height="30" fill="var(--slate-800)" />
+                    <text x="36" y="38" fill="var(--slate-800)" fontSize="10" fontWeight="bold">Metro CAPEX</text>
+
+                    <rect x="10" y="65" width="16" height="30" fill="var(--slate-700)" />
+                    <text x="36" y="83" fill="var(--slate-700)" fontSize="10" fontWeight="bold">Road CAPEX</text>
+
+                    <rect x="10" y="110" width="16" height="30" fill="var(--slate-600)" />
+                    <text x="36" y="128" fill="var(--slate-600)" fontSize="10" fontWeight="bold">EV Subsidies</text>
+
+                    <rect x="10" y="155" width="16" height="30" fill="var(--slate-500)" />
+                    <text x="36" y="173" fill="var(--slate-500)" fontSize="10" fontWeight="bold">Grid Renewables</text>
+
+                    <rect x="10" y="200" width="16" height="30" fill="var(--slate-400)" />
+                    <text x="36" y="218" fill="var(--slate-400)" fontSize="10" fontWeight="bold">Water CAPEX</text>
+
+                    {/* Intermediate Nodes */}
+                    <rect x="250" y="40" width="16" height="50" fill="var(--slate-300)" />
+                    <text x="276" y="68" fill="var(--slate-800)" fontSize="10" fontWeight="bold">Mobility Network</text>
+
+                    <rect x="250" y="110" width="16" height="50" fill="var(--slate-300)" />
+                    <text x="276" y="138" fill="var(--slate-800)" fontSize="10" fontWeight="bold">Emissions Factor</text>
+
+                    <rect x="250" y="180" width="16" height="50" fill="var(--slate-300)" />
+                    <text x="276" y="208" fill="var(--slate-800)" fontSize="10" fontWeight="bold">Resource Grid</text>
+
+                    {/* Final Node */}
+                    <rect x="520" y="90" width="20" height="90" fill="var(--accent-navy)" />
+                    <text x="550" y="140" fill="var(--accent-navy)" fontSize="12" fontWeight="bold">Net OPEX</text>
+
+                    {/* Links */}
+                    <path d="M 26 35 C 130 35, 130 55, 250 55" fill="none" stroke="var(--slate-800)" strokeOpacity="0.15" strokeWidth={policyFlowWidths.metroToTraffic * 2} />
+                    <path d="M 26 80 C 130 80, 130 75, 250 75" fill="none" stroke="var(--slate-700)" strokeOpacity="0.15" strokeWidth={policyFlowWidths.roadToTraffic * 2} />
+                    <path d="M 26 125 C 130 125, 130 120, 250 120" fill="none" stroke="var(--slate-600)" strokeOpacity="0.15" strokeWidth={policyFlowWidths.evToCarbon * 2} />
+                    <path d="M 26 170 C 130 170, 130 145, 250 145" fill="none" stroke="var(--slate-500)" strokeOpacity="0.15" strokeWidth={policyFlowWidths.renewToEnergy * 2} />
+                    <path d="M 26 215 C 130 215, 130 205, 250 205" fill="none" stroke="var(--slate-400)" strokeOpacity="0.15" strokeWidth={policyFlowWidths.waterToResource * 2} />
+
+                    <path d="M 266 65 C 390 65, 390 115, 520 115" fill="none" stroke="var(--accent-navy)" strokeOpacity="0.1" strokeWidth={policyFlowWidths.trafficToHealth * 3} />
+                    <path d="M 266 135 C 390 135, 390 135, 520 135" fill="none" stroke="var(--accent-navy)" strokeOpacity="0.1" strokeWidth={policyFlowWidths.energyToCarbon * 3} />
+                    <path d="M 266 205 C 390 205, 390 155, 520 155" fill="none" stroke="var(--accent-navy)" strokeOpacity="0.1" strokeWidth={policyFlowWidths.carbonToHealth * 3} />
+                  </svg>
+                </div>
+              </div>
+
+              {/* District Budget Table */}
+              <div className="bg-white border border-[var(--slate-200)] shadow-sm">
+                <div className="p-6 border-b border-[var(--slate-200)]">
+                  <h2 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest">District Operations Ledger</h2>
+                  <p className="text-xs text-[var(--slate-500)] mt-1">Projected OPEX requirements per district based on simulation outcomes.</p>
+                </div>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[var(--slate-50)] text-[10px] uppercase font-bold text-[var(--slate-500)] border-b border-[var(--slate-200)]">
+                      <th className="py-3 px-6">District</th>
+                      <th className="py-3 px-6">Risk Profile</th>
+                      <th className="py-3 px-6 text-right">Base OPEX</th>
+                      <th className="py-3 px-6 text-right">Projected OPEX</th>
+                      <th className="py-3 px-6 text-right">Variance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {districtRankings.map(d => {
+                      const variance = d.budgetProjected - d.budgetBase;
+                      const isOver = variance > 0;
+                      return (
+                        <tr key={d.name} className="border-b border-[var(--slate-100)] hover:bg-[var(--slate-50)] transition-colors">
+                          <td className="py-4 px-6 text-sm font-bold text-[var(--slate-800)]">{d.name}</td>
+                          <td className="py-4 px-6">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              d.status === 'Critical Risk' ? 'bg-[var(--accent-red)]/10 text-[var(--accent-red)]' :
+                              d.status === 'Elevated Risk' ? 'bg-[var(--accent-amber)]/10 text-[var(--accent-amber)]' :
+                              'bg-[var(--slate-200)] text-[var(--slate-600)]'
+                            }`}>
+                              {d.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-right text-sm font-medium text-[var(--slate-500)] font-mono">{formatCurrency(d.budgetBase)}</td>
+                          <td className="py-4 px-6 text-right text-sm font-bold text-[var(--slate-900)] font-mono">{formatCurrency(d.budgetProjected)}</td>
+                          <td className="py-4 px-6 text-right text-sm font-bold font-mono">
+                            <span className={isOver ? 'text-[var(--accent-red)]' : 'text-[var(--accent-teal)]'}>
+                              {isOver ? '+' : ''}{formatCurrency(variance)}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Right: Operational Risks */}
+            <div className="space-y-6">
+              <div className="bg-white border border-[var(--slate-200)] shadow-sm p-6">
+                <h2 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-6">Operational Risk Matrix</h2>
+                
+                <div className="space-y-4">
+                  {districtRankings.slice(0, 3).map((d, i) => (
+                    <div key={d.name} className="border border-[var(--slate-200)] p-4 relative overflow-hidden bg-[var(--slate-50)]">
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${d.status === 'Critical Risk' ? 'bg-[var(--accent-red)]' : 'bg-[var(--accent-amber)]'}`} />
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="text-xs font-bold text-[var(--slate-900)]">{d.name}</div>
+                        <div className="text-[10px] font-bold text-[var(--slate-500)]">Rank {i+1}</div>
+                      </div>
+                      <div className="text-[10px] text-[var(--slate-600)] mb-3 leading-relaxed">
+                        Composite risk elevated by {d.congestion > 80 ? 'severe congestion liabilities' : d.waterStress > 80 ? 'critical water shortages' : 'grid overloads'}. Action required.
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--slate-500)] border-t border-[var(--slate-200)] pt-2">
+                        <span>Risk Index</span>
+                        <span className="text-[var(--slate-900)]">{d.score} / 100</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[var(--accent-navy)] text-white p-6 shadow-sm">
+                <h2 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-[var(--accent-amber)]" /> Auditor Notes
+                </h2>
+                <div className="text-xs text-[var(--slate-300)] space-y-4 leading-relaxed">
+                  <p>Model relies on static population growth bounds (±2%). Macroeconomic shocks are not priced into OPEX projections.</p>
+                  <p>Water infrastructure CAPEX estimates assume standard right-of-way acquisition costs. Delays may inflate capital requirements by up to 14% YoY.</p>
+                  <p>Renewable subsidies present the highest variance in ROI timelines depending on central government block grants.</p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

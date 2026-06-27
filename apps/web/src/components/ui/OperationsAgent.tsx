@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { ArrowRight, Bot, Brain, Send, X, Zap, Activity, Clock, MapPin, Target, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Terminal, Send, X, Zap, Activity, Clock, Crosshair, ChevronRight } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -29,37 +29,38 @@ export function OperationsAgent() {
     // Generate an intelligent, context-aware greeting based on CURRENT store metrics
     const { metrics, popGrowth } = store;
     
-    let proactiveMessage = "Good Morning Rajesh. System nominal.";
+    let proactiveMessage = "SYS_INIT_SUCCESS. COMMAND NODE ONLINE. WAITING FOR DIRECTIVE...";
     let actions: { label: string; onClick: () => void }[] = [];
 
     if (metrics.trafficCongestion > 15) {
-      proactiveMessage = `Good Morning Rajesh.\nWhitefield and ORR congestion expected to increase by ${Math.round(metrics.trafficCongestion)}% due to ${popGrowth}% population influx.\n\nSuggested Actions:\n✓ Increase ORR signal cycle by 8%\n✓ Deploy 4 additional BMTC feeder buses\n✓ Accelerate Metro Phase 3 funding`;
+      proactiveMessage = `CRITICAL ALERT: SECTOR 4 CONGESTION ANOMALY DETECTED.\nProjected increase: ${Math.round(metrics.trafficCongestion)}% (Driven by ${popGrowth}% pop influx).\n\nRECOMMENDED COUNTERMEASURES:\n> Adjust ORR signal cycle timing (+8%)\n> Mobilize rapid transit reserves (4 units)\n> Expedite Metro Phase 3 funding authorization`;
       actions = [
-        { label: "Simulate Metro Expansion", onClick: () => { store.setInputs({ metroExpansion: 10 }); store.runSimulation(); } }
+        { label: "EXECUTE: METRO_EXPANSION_PROTOCOL", onClick: () => { store.setInputs({ metroExpansion: 10 }); store.runSimulation(); } }
       ];
     } else if (metrics.energyDemand > 20) {
-      proactiveMessage = `Good Morning Rajesh.\nCritical grid load detected. Substation capacity at 94% due to rapid EV adoption.\n\nSuggested Actions:\n✓ Enable smart-grid load shedding in East Zone\n✓ Route 400MW from Solar Park\n✓ Issue emergency conservation alert`;
+      proactiveMessage = `CRITICAL ALERT: GRID LOAD EXCEEDING SAFE PARAMETERS.\nSubstation Beta capacity at 94%.\n\nRECOMMENDED COUNTERMEASURES:\n> Initiate smart-grid load shedding\n> Reroute 400MW from Solar Node Alpha\n> Broadcast emergency conservation directive`;
       actions = [
-        { label: "Simulate Grid Balancing", onClick: () => { store.setInputs({ renewableGrowth: 50 }); store.runSimulation(); } }
+        { label: "EXECUTE: GRID_BALANCING_PROTOCOL", onClick: () => { store.setInputs({ renewableGrowth: 50 }); store.runSimulation(); } }
       ];
     } else if (metrics.waterDemand > 15) {
-      proactiveMessage = `Good Morning Rajesh.\nWater reserve depletion accelerated. Cauvery Stage V supply insufficient for current growth.\n\nSuggested Actions:\n✓ Mandate STP water for construction\n✓ Reduce industrial quota by 5%\n✓ Deploy pressure valving`;
+      proactiveMessage = `WARNING: RESOURCE DEPLETION VECTOR ACCELERATED.\nCauvery Stage V supply insufficient for projected growth phase.\n\nRECOMMENDED COUNTERMEASURES:\n> Mandate STP water reclamation\n> Throttle industrial quota (-5%)\n> Deploy automated pressure valving`;
       actions = [
-        { label: "Apply Conservation Policy", onClick: () => { store.setInputs({ indExpansion: -5 }); store.runSimulation(); } }
+        { label: "EXECUTE: RESOURCE_CONSERVATION_PROTOCOL", onClick: () => { store.setInputs({ indExpansion: -5 }); store.runSimulation(); } }
       ];
-    } else {
-      proactiveMessage = `Good Morning Rajesh.\nAll city infrastructure operating within optimal parameters. No severe anomalies detected across 428 monitored nodes.`;
     }
 
-    setMessages([
-      {
-        id: 'init',
-        role: 'agent',
-        content: proactiveMessage,
-        timestamp: new Date().toISOString(),
-        actions
-      }
-    ]);
+    const timer = setTimeout(() => {
+      setMessages([
+        {
+          id: 'init',
+          role: 'agent',
+          content: proactiveMessage,
+          timestamp: new Date().toISOString(),
+          actions
+        }
+      ]);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [store.metrics, store.popGrowth]);
 
   useEffect(() => {
@@ -85,269 +86,156 @@ export function OperationsAgent() {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'agent',
-        content: "I have queried the BBMP DPRs and Smart City planning docs. Implementing that policy requires city council approval and a 30-day notice period. Would you like me to draft the proposal?",
+        content: "QUERY RECEIVED. CROSS-REFERENCING BBMP DPR ARCHIVES.\n\nANALYSIS COMPLETE. Implementation requires council authorization (30-day holds). Would you like to draft the operational proposal?",
         timestamp: new Date().toISOString()
       }]);
-    }, 1500);
+    }, 1200);
   };
 
   return (
     <>
-      {/* Floating Action Button */}
+      {/* Drawer Toggle Button */}
       <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.92 }}
-        onClick={() => setIsOpen(true)}
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '96px',
-          zIndex: 9990,
-          padding: '12px 20px 12px 16px',
-          borderRadius: '28px',
-          background: 'linear-gradient(135deg, #00D4FF, #7C3AED)',
-          border: 'none',
-          boxShadow: '0 4px 24px rgba(0,212,255,0.3), 0 8px 40px rgba(124,58,237,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          cursor: 'pointer',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: '13px',
-        }}
+        whileHover={{ x: -4 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-[9990] bg-[var(--slate-900)] border border-[var(--slate-700)] border-r-0 py-4 px-2 rounded-l-lg shadow-lg flex flex-col items-center gap-2 cursor-pointer transition-colors hover:bg-[var(--slate-800)]"
       >
-        <Activity size={18} />
-        <span>Operations Agent</span>
+        <Terminal size={16} className="text-[var(--accent-teal)]" />
+        <span className="text-[9px] font-mono font-bold text-[var(--slate-400)]" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+          COMMAND CONSOLE
+        </span>
+        {isOpen ? <ChevronRight size={14} className="text-[var(--slate-500)] mt-2" /> : <div className="w-2 h-2 rounded-full bg-[var(--accent-red)] animate-pulse mt-2" />}
       </motion.button>
 
-      {/* Copilot Window */}
+      {/* Side Drawer Console */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            style={{
-              position: 'fixed',
-              bottom: '24px',
-              right: '96px',
-              zIndex: 9990,
-              width: '420px',
-              height: '600px',
-              background: 'linear-gradient(170deg, var(--bg-surface-1) 0%, color-mix(in srgb, var(--bg-surface-1) 95%, #000) 100%)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '16px',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              padding: '14px 16px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: 'rgba(0,0,0,0.15)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,58,237,0.2))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid rgba(0,212,255,0.15)',
-                }}>
-                  <Brain size={18} color="#00D4FF" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>Bhavora AI Command</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(0,212,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Proactive Agent</div>
-                </div>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsOpen(false)}
-                style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '18px', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px' }}
-              >
-                <X size={14} />
-              </motion.button>
-            </div>
-
-            {/* Messages Area */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              background: 'rgba(0,0,0,0.1)',
-            }}>
-              <AnimatePresence initial={false}>
-                {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
-                      gap: '10px',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    {msg.role === 'agent' && (
-                      <div style={{
-                        width: '30px',
-                        height: '30px',
-                        borderRadius: '10px',
-                        background: 'rgba(0,212,255,0.12)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        border: '1px solid rgba(0,212,255,0.15)',
-                      }}>
-                        <Brain size={16} color="#00D4FF" />
-                      </div>
-                    )}
-                    
-                    <div style={{
-                      maxWidth: '85%',
-                      padding: msg.role === 'user' ? '10px 14px' : '12px 14px',
-                      borderRadius: msg.role === 'user' ? '14px 14px 6px 14px' : '14px 14px 14px 6px',
-                      background: msg.role === 'user'
-                        ? 'linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.12))'
-                        : 'rgba(255,255,255,0.03)',
-                      border: msg.role === 'user'
-                        ? '1px solid rgba(0,212,255,0.15)'
-                        : '1px solid rgba(255,255,255,0.06)',
-                      backdropFilter: msg.role === 'agent' ? 'blur(8px)' : 'none',
-                      boxShadow: msg.role === 'agent' ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                    }}>
-                      <p style={{
-                        fontSize: '13px',
-                        color: msg.role === 'user' ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.8)',
-                        lineHeight: 1.7,
-                        whiteSpace: 'pre-wrap',
-                        margin: 0,
-                      }}>{msg.content}</p>
-                      
-                      {/* Action Buttons */}
-                      {msg.actions && msg.actions.length > 0 && (
-                        <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>Recommended Action</div>
-                          {msg.actions.map((action, idx) => (
-                            <motion.button
-                              key={idx}
-                              whileHover={{ scale: 1.02, x: 2 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={action.onClick}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                background: 'rgba(0,212,255,0.06)',
-                                border: '1px solid rgba(0,212,255,0.1)',
-                                color: '#00D4FF',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 120ms',
-                                textAlign: 'left',
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Zap size={12} />
-                                <span>{action.label}</span>
-                              </div>
-                              <ArrowRight size={12} style={{ opacity: 0.6 }} />
-                            </motion.button>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {/* Timestamp */}
-                      <div style={{
-                        fontSize: '9px',
-                        color: msg.role === 'user' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)',
-                        marginTop: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      }}>
-                        <Clock size={8} />
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.3 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-black z-[9980] lg:hidden"
+            />
+            
+            {/* Console Panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed right-0 top-0 bottom-0 w-[420px] bg-[var(--slate-900)] border-l border-[var(--slate-700)] z-[9990] flex flex-col shadow-2xl font-mono text-sm"
+            >
+              {/* Header */}
+              <div className="p-4 border-b border-[var(--slate-700)] bg-[var(--slate-800)] flex justify-between items-center shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[var(--slate-900)] border border-[var(--slate-700)]">
+                    <Crosshair size={18} className="text-[var(--accent-teal)]" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs font-bold text-white tracking-widest">TACTICAL COPILOT</h2>
+                    <div className="flex items-center gap-2 text-[10px] text-[var(--accent-teal)] mt-1">
+                      <span className="w-1.5 h-1.5 bg-[var(--accent-teal)] animate-pulse" /> LINK ESTABLISHED
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}>
-              <form onSubmit={handleSend} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask Bhavora AI..."
-                  style={{
-                    flex: 1,
-                    background: 'rgba(0,0,0,0.25)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '24px',
-                    padding: '10px 16px',
-                    color: 'rgba(255,255,255,0.85)',
-                    fontSize: '13px',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                  }}
-                />
-                <motion.button
-                  whileHover={input.trim() ? { scale: 1.04 } : {}}
-                  whileTap={input.trim() ? { scale: 0.96 } : {}}
-                  type="submit"
-                  disabled={!input.trim()}
-                  style={{
-                    padding: '10px',
-                    background: !input.trim() ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00D4FF, #7C3AED)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    color: '#FFFFFF',
-                    cursor: input.trim() ? 'pointer' : 'not-allowed',
-                    opacity: input.trim() ? 1 : 0.3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '38px',
-                    height: '38px',
-                    flexShrink: 0,
-                  }}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 text-[var(--slate-400)] hover:text-white transition-colors"
                 >
-                  <Send size={14} />
-                </motion.button>
-              </form>
-            </div>
-          </motion.div>
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Messages Log */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar bg-[#0f141e]">
+                <div className="text-[10px] text-[var(--slate-500)] text-center mb-4 tracking-widest border-b border-[var(--slate-800)] pb-2">
+                  SECURE CONNECTION // ENCRYPTION LEVEL ALPHA
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                    >
+                      <div className="flex items-center gap-2 text-[10px] text-[var(--slate-500)] mb-1">
+                        {msg.role === 'agent' ? <><Terminal size={10} className="text-[var(--accent-teal)]"/> SYSTEM</> : <>OPERATOR <UserIcon/></>}
+                        <span className="text-[var(--slate-600)]">[{new Date(msg.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                      </div>
+                      
+                      <div className={`max-w-[90%] p-3 text-xs leading-relaxed border ${
+                        msg.role === 'user' 
+                          ? 'bg-[var(--slate-800)] border-[var(--slate-700)] text-[var(--slate-200)]' 
+                          : 'bg-[#15202b] border-[var(--accent-teal)]/30 text-[var(--accent-teal)] shadow-[0_0_15px_rgba(20,184,166,0.05)]'
+                      }`}>
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                        
+                        {msg.actions && msg.actions.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-[var(--accent-teal)]/20 flex flex-col gap-2">
+                            {msg.actions.map((action, idx) => (
+                              <button
+                                key={idx}
+                                onClick={action.onClick}
+                                className="text-left px-3 py-2 bg-[var(--accent-teal)]/10 hover:bg-[var(--accent-teal)]/20 border border-[var(--accent-teal)]/40 text-[10px] font-bold tracking-wider text-[var(--accent-teal)] flex items-center justify-between transition-colors uppercase"
+                              >
+                                <span>{action.label}</span>
+                                <ArrowRight size={12} />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input Console */}
+              <div className="p-4 border-t border-[var(--slate-700)] bg-[var(--slate-800)] shrink-0">
+                <form onSubmit={handleSend} className="flex gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--accent-teal)] font-bold">{'>'}</div>
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="ENTER DIRECTIVE..."
+                      className="w-full bg-[var(--slate-900)] border border-[var(--slate-600)] pl-8 pr-4 py-3 text-xs text-white focus:outline-none focus:border-[var(--accent-teal)] transition-colors placeholder-[var(--slate-600)]"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    className={`px-4 flex items-center justify-center border transition-colors ${
+                      input.trim() 
+                        ? 'bg-[var(--accent-teal)]/10 border-[var(--accent-teal)] text-[var(--accent-teal)] hover:bg-[var(--accent-teal)]/20' 
+                        : 'bg-[var(--slate-800)] border-[var(--slate-700)] text-[var(--slate-600)]'
+                    }`}
+                  >
+                    <Send size={14} />
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
   );
 }

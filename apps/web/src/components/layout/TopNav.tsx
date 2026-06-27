@@ -76,35 +76,9 @@ export function TopNav() {
   const alertCount = unreadCount();
 
   return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '64px',
-      zIndex: 50,
-      background: '#FFFFFF',
-      borderBottom: '1px solid var(--border-subtle)',
-      backdropFilter: 'none',
-      display: 'flex',
-      alignItems: 'stretch',
-    }}>
-      {/* Logo zone (width matches sidebar) */}
-      <div style={{
-        width: '256px',
-        flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        paddingLeft: '16px',
-        borderRight: '1px solid var(--border-subtle)',
-      }}>
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <LogoLight size={24} />
-        </Link>
-      </div>
-
+    <header className="fixed top-0 right-0 h-16 z-30 bg-white border-b border-[var(--slate-200)] flex items-stretch transition-all" style={{ left: '256px' }}>
       {/* Main header content */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', gap: '16px' }}>
+      <div className="flex-1 flex items-center justify-between px-6 gap-4">
 
         {/* City Health Bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0 }}>

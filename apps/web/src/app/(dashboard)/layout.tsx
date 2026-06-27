@@ -12,25 +12,23 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ background: 'var(--bg-base)', minHeight: '100vh', position: 'relative' }}>
-      {/* Top Navigation Bar */}
-      <TopNav />
+    <div className="bg-[var(--bg-base)] min-h-screen relative flex">
+      {/* Sidebar - fixed left full height */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
-      {/* Sidebar */}
-      <Sidebar />
+      <div className="flex-1 flex flex-col lg:pl-[256px]">
+        {/* Top Navigation Bar */}
+        <TopNav />
 
-      {/* Main content area */}
-      <main
-        style={{
-          marginLeft: '256px',
-          marginTop: '64px',
-          minHeight: 'calc(100vh - 64px)',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        {children}
-      </main>
+        {/* Main content area */}
+        <main
+          className="flex-1 relative z-1 lg:mt-[64px] mt-[56px]"
+        >
+          {children}
+        </main>
+      </div>
 
       {/* AI Agent Hub FAB — portal renders on all pages */}
       <AgentHub />

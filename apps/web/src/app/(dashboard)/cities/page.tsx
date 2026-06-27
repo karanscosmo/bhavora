@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useMapStore, useUIStore, useCityDataStore, useSimulationStore } from '@/stores';
+import { useMapStore, useUIStore } from '@/stores';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Layers, MapPin, Maximize, Navigation, Minus, Plus, Search, ChevronDown, ChevronUp, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 const EV_STATIONS = [
   { name: 'Hope Farm EV Hub', coordinates: [77.7499, 12.9698], chargerCount: 12, capacity: '250 kW' },
@@ -44,11 +45,12 @@ const FLOOD_ZONES = [
 ];
 
 const LEGEND_ITEMS = [
-  { color: 'var(--accent-navy)', shape: 'circle' as const, label: 'EV Charging Stations' },
-  { color: 'var(--accent-teal)', shape: 'diamond' as const, label: 'Tech Parks' },
-  { color: 'var(--accent-amber)', shape: 'diamond' as const, label: 'Bus Depots' },
-  { color: 'var(--accent-violet)', shape: 'square' as const, label: 'Industrial Zones' },
-  { color: 'var(--accent-red)', shape: 'circle' as const, label: 'Flood Risk Zones' },
+  { color: 'var(--accent-navy)', shape: 'circle', label: 'EV Charging Stations' },
+  { color: 'var(--accent-teal)', shape: 'diamond', label: 'Tech Parks' },
+  { color: 'var(--accent-amber)', shape: 'diamond', label: 'Bus Depots' },
+  { color: 'var(--accent-violet)', shape: 'square', label: 'Industrial Zones' },
+  { color: 'var(--accent-red)', shape: 'circle', label: 'Flood Risk Zones', animated: true },
+  { color: 'rgba(0,0,0,0.1)', shape: 'building', label: '3D Extruded Buildings' },
 ];
 
 type TabType = 'layers' | 'legend';
@@ -56,6 +58,7 @@ type TabType = 'layers' | 'legend';
 export default function CitiesPage() {
   const { layers, toggleLayer, layerOpacity, setLayerOpacity, activeBasemap, setBasemap } = useMapStore();
   const { selectedMapAsset, setSelectedMapAsset } = useUIStore();
+  
   const [mapLoaded, setMapLoaded] = useState(false);
   const [activeAssetDetails, setActiveAssetDetails] = useState<any | null>(null);
   const [layerSearch, setLayerSearch] = useState('');
@@ -125,7 +128,7 @@ export default function CitiesPage() {
             'type': 'fill-extrusion',
             'minzoom': 14,
             'paint': {
-              'fill-extrusion-color': '#ffffff',
+              'fill-extrusion-color': '#f8f9ff',
               'fill-extrusion-height': ['get', 'height'],
               'fill-extrusion-base': ['get', 'min_height'],
               'fill-extrusion-opacity': 0.8
@@ -156,7 +159,7 @@ export default function CitiesPage() {
       if (isLayerEnabled('ev-stations')) {
         EV_STATIONS.forEach(ev => {
           const el = document.createElement('div');
-          el.style.cssText = 'width:12px;height:12px;border-radius:50%;background:var(--accent-navy);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:pointer;';
+          el.style.cssText = 'width:14px;height:14px;border-radius:50%;background:var(--accent-navy);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.3);cursor:pointer;';
           el.addEventListener('click', () => {
             setSelectedMapAsset(ev.name);
             setActiveAssetDetails({ type: 'EV Station', ...ev });
@@ -168,7 +171,7 @@ export default function CitiesPage() {
       if (isLayerEnabled('tech-parks')) {
         TECH_PARKS.forEach(park => {
           const el = document.createElement('div');
-          el.style.cssText = 'width:14px;height:14px;transform:rotate(45deg);background:var(--accent-teal);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:pointer;';
+          el.style.cssText = 'width:16px;height:16px;transform:rotate(45deg);background:var(--accent-teal);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.3);cursor:pointer;';
           el.addEventListener('click', () => {
             setSelectedMapAsset(park.name);
             setActiveAssetDetails({ type: 'Tech Park', ...park });
@@ -180,7 +183,7 @@ export default function CitiesPage() {
       if (isLayerEnabled('flood-zones')) {
         FLOOD_ZONES.forEach(flood => {
           const el = document.createElement('div');
-          el.style.cssText = 'width:16px;height:16px;border-radius:50%;background:rgba(186,26,26,0.5);border:2px solid var(--accent-red);animation:live-pulse 2s infinite;cursor:pointer;';
+          el.style.cssText = 'width:20px;height:20px;border-radius:50%;background:rgba(186,26,26,0.6);border:2px solid var(--accent-red);animation:live-pulse 2s infinite;cursor:pointer;';
           el.addEventListener('click', () => {
             setSelectedMapAsset(flood.name);
             setActiveAssetDetails({ type: 'Flood Risk Zone', ...flood });
@@ -211,77 +214,34 @@ export default function CitiesPage() {
 
   const activeLayerCount = layers.filter(l => l.enabled).length;
 
-  const getNearbyAssets = useCallback(() => {
-    if (!activeAssetDetails?.coordinates) return [];
-    const coords = activeAssetDetails.coordinates;
-    const allAssets = [
-      ...EV_STATIONS.map(a => ({ ...a, type: 'EV Station' })),
-      ...BUS_DEPOTS.map(a => ({ ...a, type: 'Bus Depot' })),
-      ...TECH_PARKS.map(a => ({ ...a, type: 'Tech Park' })),
-      ...INDUSTRIAL_ZONES.map(a => ({ ...a, type: 'Industrial Zone' })),
-      ...FLOOD_ZONES.map(a => ({ ...a, type: 'Flood Zone' })),
-    ].filter(a => a.name !== activeAssetDetails.name);
-
-    return allAssets
-      .map(a => ({
-        ...a,
-        distance: Math.sqrt(
-          Math.pow((a.coordinates[0] - coords[0]) * 111320 * Math.cos(coords[1] * Math.PI / 180), 2) +
-          Math.pow((a.coordinates[1] - coords[1]) * 111320, 2)
-        )
-      }))
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 3);
-  }, [activeAssetDetails]);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -8 },
-    visible: { opacity: 1, x: 0 },
-  };
-
   return (
-    <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
-
-      <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+    <div className="relative w-full h-[calc(100vh-64px)] overflow-hidden bg-[var(--slate-50)]">
+      
+      {/* Mapbox Container */}
+      <div className="absolute inset-0 z-0">
         {!mapLoaded && (
-          <div style={{ position: 'absolute', inset: 0, background: 'var(--bg-base)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="micro-label">Loading ArcGIS Engine...</span>
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--slate-100)]">
+            <span className="text-[var(--slate-500)] text-sm font-bold uppercase tracking-widest animate-pulse">Loading City Twin Engine...</span>
           </div>
         )}
-        <div ref={mapContainerRef} className="map-container" style={{ width: '100%', height: '100%' }} />
+        <div ref={mapContainerRef} className="w-full h-full" />
       </div>
 
+      {/* Main Control Panel (Left) */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="glass-card"
-        style={{ position: 'absolute', top: 24, left: 24, width: '300px', maxHeight: 'calc(100vh - 112px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 20 }}
+        className="absolute top-6 left-6 w-[320px] max-h-[calc(100vh-140px)] bg-white/95 backdrop-blur-xl border border-[var(--slate-200)] rounded-2xl shadow-xl z-20 flex flex-col overflow-hidden"
       >
-        <div style={{ display: 'flex', padding: '12px 12px 0', gap: '4px' }}>
-          {(['layers', 'legend'] as const).map(tab => (
+        {/* Tabs */}
+        <div className="flex bg-[var(--slate-100)] p-1.5 gap-1 border-b border-[var(--slate-200)] shrink-0">
+          {(['layers', 'legend'] as TabType[]).map(tab => (
             <button
               key={tab}
               onClick={() => setPanelTab(tab)}
-              style={{
-                flex: 1,
-                padding: '7px 12px',
-                border: 'none',
-                borderRadius: '8px 8px 0 0',
-                background: panelTab === tab ? 'var(--accent-navy)' : 'transparent',
-                color: panelTab === tab ? '#fff' : 'var(--text-muted)',
-                fontSize: '11px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 150ms ease',
-                textTransform: 'capitalize',
-                letterSpacing: '0.04em',
-              }}
+              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-colors ${
+                panelTab === tab ? 'bg-white text-[var(--slate-900)] shadow-sm' : 'text-[var(--slate-500)] hover:text-[var(--slate-800)]'
+              }`}
             >
               {tab}
             </button>
@@ -290,140 +250,95 @@ export default function CitiesPage() {
 
         {panelTab === 'layers' ? (
           <>
-            <div style={{ padding: '12px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
-              <input
-                type="text"
-                placeholder="Search layers..."
-                value={layerSearch}
-                onChange={e => setLayerSearch(e.target.value)}
-                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-2)', fontSize: '12px', color: 'var(--text-primary)', outline: 'none' }}
-              />
+            <div className="p-3 border-b border-[var(--slate-200)] shrink-0">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--slate-400)]" />
+                <input
+                  type="text"
+                  placeholder="Search layers..."
+                  value={layerSearch}
+                  onChange={e => setLayerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-[var(--slate-50)] border border-[var(--slate-200)] rounded-lg text-sm text-[var(--slate-800)] placeholder-[var(--slate-400)] focus:outline-none focus:border-[var(--accent-blue)] transition-colors"
+                />
+              </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px 12px' }} className="hide-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
               {Object.entries(groupedLayers).map(([groupName, groupLayers]) => (
                 groupLayers.length > 0 && (
-                  <motion.div key={groupName} layout style={{ marginBottom: '6px' }}>
+                  <div key={groupName} className="mb-4 last:mb-0">
                     <button
                       onClick={() => setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }))}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        width: '100%', padding: '8px 4px 4px', border: 'none', background: 'none', cursor: 'pointer',
-                        color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em',
-                        textTransform: 'uppercase',
-                      }}
+                      className="flex items-center justify-between w-full pb-2 mb-2 border-b border-[var(--slate-200)] group"
                     >
-                      <span>{groupName} Layers</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>{groupLayers.length}</span>
-                        <motion.span
-                          animate={{ rotate: expandedGroups[groupName] ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
-                          style={{ fontSize: '8px', color: 'var(--text-muted)', display: 'block', lineHeight: 1 }}
-                        >
-                          ▼
-                        </motion.span>
+                      <span className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest group-hover:text-[var(--slate-800)] transition-colors">
+                        {groupName} Layers
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[var(--slate-400)]">{groupLayers.length}</span>
+                        {expandedGroups[groupName] ? <ChevronUp size={12} className="text-[var(--slate-400)]" /> : <ChevronDown size={12} className="text-[var(--slate-400)]" />}
                       </div>
                     </button>
 
-                    <AnimatePresence initial={false}>
+                    <AnimatePresence>
                       {expandedGroups[groupName] && (
                         <motion.div
-                          key="content"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2, ease: 'easeInOut' }}
-                          style={{ overflow: 'hidden' }}
+                          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                          className="flex flex-col gap-2 overflow-hidden"
                         >
-                          <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '4px' }}
-                          >
-                            {groupLayers.map((layer) => (
-                              <motion.div key={layer.id} variants={itemVariants} layout>
-                                <label
-                                  style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: '7px 10px', borderRadius: '10px',
-                                    background: layer.enabled ? 'var(--accent-navy-light)' : 'var(--bg-surface-2)',
-                                    border: `1px solid ${layer.enabled ? 'var(--border-accent)' : 'transparent'}`,
-                                    cursor: 'pointer', transition: 'all 150ms ease'
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', minWidth: 0 }}>
-                                    <span style={{ fontSize: '13px', flexShrink: 0 }}>{layer.icon}</span>
-                                    <span style={{ fontSize: '12px', fontWeight: layer.enabled ? 600 : 400, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                      {layer.name}
-                                    </span>
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{layer.count}</span>
-                                    <button
-                                      onClick={(e) => { e.preventDefault(); toggleLayer(layer.id); }}
-                                      style={{
-                                        width: '32px', height: '18px', borderRadius: '9px',
-                                        background: layer.enabled ? 'var(--accent-navy)' : 'var(--border-subtle)',
-                                        position: 'relative', border: 'none', cursor: 'pointer',
-                                        transition: 'background 200ms ease', flexShrink: 0, padding: 0,
-                                      }}
-                                      aria-label={`Toggle ${layer.name}`}
-                                    >
-                                      <div style={{
-                                        width: '14px', height: '14px', borderRadius: '50%',
-                                        background: '#fff', position: 'absolute', top: '2px',
-                                        left: layer.enabled ? '16px' : '2px',
-                                        transition: 'left 200ms ease',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                                      }} />
-                                    </button>
-                                  </div>
-                                </label>
-                              </motion.div>
-                            ))}
-                          </motion.div>
+                          {groupLayers.map(layer => (
+                            <label key={layer.id} className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
+                              layer.enabled ? 'bg-[var(--accent-blue)]/5 border-[var(--accent-blue)]/30' : 'bg-transparent border-transparent hover:bg-[var(--slate-50)]'
+                            }`}>
+                              <div className="flex items-center gap-3">
+                                <span className="text-base">{layer.icon}</span>
+                                <span className={`text-sm ${layer.enabled ? 'font-bold text-[var(--accent-blue)]' : 'font-medium text-[var(--slate-700)]'}`}>
+                                  {layer.name}
+                                </span>
+                              </div>
+                              <div className={`w-9 h-5 rounded-full relative transition-colors ${layer.enabled ? 'bg-[var(--accent-blue)]' : 'bg-[var(--slate-300)]'}`}>
+                                <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${layer.enabled ? 'translate-x-4' : 'translate-x-0'}`} />
+                              </div>
+                            </label>
+                          ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </motion.div>
+                  </div>
                 )
               ))}
             </div>
-
-            <div style={{ padding: '10px 12px', borderTop: '1px solid var(--border-subtle)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span className="micro-label" style={{ fontSize: '9px' }}>Layer Opacity</span>
-                <span className="data-value" style={{ fontSize: '10px', fontWeight: 600 }}>{Math.round(layerOpacity)}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={layerOpacity}
-                onChange={e => setLayerOpacity(Number(e.target.value))}
-                style={{ width: '100%', height: '4px', accentColor: 'var(--accent-navy)', cursor: 'pointer' }}
-              />
+            
+            {/* Opacity slider */}
+            <div className="p-4 bg-[var(--slate-50)] border-t border-[var(--slate-200)] shrink-0">
+               <div className="flex justify-between items-center mb-2">
+                 <span className="text-xs font-bold text-[var(--slate-600)] uppercase tracking-wider">Layer Opacity</span>
+                 <span className="text-xs font-bold text-[var(--accent-blue)]">{Math.round(layerOpacity)}%</span>
+               </div>
+               <input
+                 type="range" min="0" max="100" step="1"
+                 value={layerOpacity} onChange={e => setLayerOpacity(Number(e.target.value))}
+                 className="w-full accent-[var(--accent-blue)]"
+               />
             </div>
           </>
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }} className="hide-scrollbar">
-            <span className="micro-label" style={{ display: 'block', marginBottom: '14px' }}>Map Legend</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+            <h3 className="text-xs font-bold text-[var(--slate-500)] uppercase tracking-widest mb-4">Symbology</h3>
+            <div className="flex flex-col gap-4">
               {LEGEND_ITEMS.map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: '12px', height: item.shape === 'diamond' ? '12px' : '12px',
-                    borderRadius: item.shape === 'circle' ? '50%' : item.shape === 'diamond' ? '2px' : '3px',
-                    background: item.color,
-                    transform: item.shape === 'diamond' ? 'rotate(45deg)' : 'none',
-                    border: '2px solid rgba(255,255,255,0.8)',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                    flexShrink: 0,
-                  }} />
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.label}</span>
+                <div key={item.label} className="flex items-center gap-4 p-2 rounded-lg hover:bg-[var(--slate-50)] transition-colors">
+                  <div className="w-8 flex justify-center shrink-0">
+                    {item.shape === 'building' ? (
+                      <div className="w-5 h-5 bg-[var(--slate-200)] border border-[var(--slate-300)] shadow-inner transform -skew-y-6" />
+                    ) : (
+                      <div className={`
+                        ${item.shape === 'circle' ? 'w-4 h-4 rounded-full' : item.shape === 'diamond' ? 'w-3.5 h-3.5 rotate-45' : 'w-4 h-4 rounded-sm'}
+                        ${item.animated ? 'animate-pulse' : ''}
+                      `} style={{ background: item.color, border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-[var(--slate-700)]">{item.label}</span>
                 </div>
               ))}
             </div>
@@ -431,303 +346,152 @@ export default function CitiesPage() {
         )}
       </motion.div>
 
+      {/* Map Tools Floating (Right) */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.1 }}
-        className="glass-card"
-        style={{
-          position: 'absolute', bottom: 80, left: 24,
-          padding: '8px', display: 'flex', gap: '4px', zIndex: 20,
-        }}
+        initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+        className="absolute top-6 right-6 flex flex-col gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-[var(--slate-200)] shadow-lg z-20"
+      >
+        <button onClick={() => mapRef.current?.zoomIn()} className="w-10 h-10 flex items-center justify-center text-[var(--slate-600)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition-colors">
+          <Plus size={20} />
+        </button>
+        <div className="h-px w-full bg-[var(--slate-200)]" />
+        <button onClick={() => mapRef.current?.zoomOut()} className="w-10 h-10 flex items-center justify-center text-[var(--slate-600)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition-colors">
+          <Minus size={20} />
+        </button>
+        <div className="h-px w-full bg-[var(--slate-200)]" />
+        <button onClick={() => mapRef.current?.flyTo({ bearing: 0, pitch: 0 })} className="w-10 h-10 flex items-center justify-center text-[var(--slate-600)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition-colors" title="Reset North">
+          <Navigation size={18} />
+        </button>
+        <div className="h-px w-full bg-[var(--slate-200)]" />
+        <button onClick={toggleFullscreen} className="w-10 h-10 flex items-center justify-center text-[var(--slate-600)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition-colors" title="Fullscreen">
+          <Maximize size={18} />
+        </button>
+      </motion.div>
+
+      {/* Status Bar (Bottom Center) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-2.5 rounded-full border border-[var(--slate-200)] shadow-lg z-20"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[var(--slate-400)] uppercase">Lat</span>
+          <span className="text-xs font-bold text-[var(--slate-800)]">{cursorCoords.lat}</span>
+        </div>
+        <div className="w-px h-4 bg-[var(--slate-300)]" />
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[var(--slate-400)] uppercase">Lng</span>
+          <span className="text-xs font-bold text-[var(--slate-800)]">{cursorCoords.lng}</span>
+        </div>
+        <div className="w-px h-4 bg-[var(--slate-300)]" />
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[var(--slate-400)] uppercase">Zoom</span>
+          <span className="text-xs font-bold text-[var(--slate-800)]">{currentZoom}</span>
+        </div>
+        <div className="w-px h-4 bg-[var(--slate-300)]" />
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[var(--slate-400)] uppercase">Active Layers</span>
+          <span className="text-xs font-bold text-[var(--accent-blue)]">{activeLayerCount}</span>
+        </div>
+      </motion.div>
+
+      {/* Basemap Switcher (Bottom Left) */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+        className="absolute bottom-6 left-6 flex bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-[var(--slate-200)] shadow-lg z-20"
       >
         {([
-          { id: 'light', label: 'Light', color: '#f8f9ff' },
-          { id: 'dark', label: 'Dark', color: '#1a1a2e' },
-          { id: 'satellite', label: 'Sat', color: '#2d4a3e' },
-        ] as { id: 'dark' | 'satellite'; label: string; color: string }[]).map(b => (
+          { id: 'light', label: 'Light', preview: '#f8f9ff' },
+          { id: 'dark', label: 'Dark', preview: '#1a1a2e' },
+          { id: 'satellite', label: 'Sat', preview: '#2d4a3e' },
+        ] as const).map(b => (
           <button
             key={b.id}
             onClick={() => setBasemap(b.id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '5px 10px', borderRadius: '10px',
-              border: `1.5px solid ${activeBasemap === b.id ? 'var(--accent-navy)' : 'transparent'}`,
-              background: activeBasemap === b.id ? 'var(--accent-navy-light)' : 'var(--bg-surface-2)',
-              cursor: 'pointer', transition: 'all 150ms ease', fontSize: '11px',
-              fontWeight: activeBasemap === b.id ? 600 : 400,
-              color: 'var(--text-primary)',
-            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+              activeBasemap === b.id ? 'bg-[var(--accent-blue)] text-white' : 'text-[var(--slate-600)] hover:bg-[var(--slate-100)]'
+            }`}
           >
-            <div style={{
-              width: '10px', height: '10px', borderRadius: '50%',
-              background: b.color, border: '1px solid var(--border-subtle)',
-              flexShrink: 0,
-            }} />
+            <div className={`w-2.5 h-2.5 rounded-full border border-white/50`} style={{ background: b.preview }} />
             {b.label}
           </button>
         ))}
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.15 }}
-        className="glass"
-        style={{
-          position: 'absolute', top: 24,
-          right: selectedMapAsset ? 448 : 24,
-          display: 'flex', flexDirection: 'column', gap: '2px',
-          padding: '6px', borderRadius: '14px', zIndex: 20,
-          transition: 'right 300ms ease',
-        }}
-      >
-        <button
-          onClick={() => mapRef.current?.zoomIn()}
-          style={{
-            width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: 'none', background: 'transparent', borderRadius: '10px', cursor: 'pointer',
-            color: 'var(--text-primary)', fontSize: '20px', fontWeight: 500,
-            transition: 'background 150ms ease',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          title="Zoom in"
-        >
-          +
-        </button>
-        <div style={{ width: '100%', height: '1px', background: 'var(--border-subtle)' }} />
-        <button
-          onClick={() => mapRef.current?.zoomOut()}
-          style={{
-            width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: 'none', background: 'transparent', borderRadius: '10px', cursor: 'pointer',
-            color: 'var(--text-primary)', fontSize: '20px', fontWeight: 500,
-            transition: 'background 150ms ease',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          title="Zoom out"
-        >
-          −
-        </button>
-        <div style={{ width: '100%', height: '1px', background: 'var(--border-subtle)' }} />
-        <button
-          onClick={() => mapRef.current?.flyTo({ bearing: 0, pitch: 0 })}
-          style={{
-            width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: 'none', background: 'transparent', borderRadius: '10px', cursor: 'pointer',
-            color: 'var(--text-primary)', fontSize: '16px',
-            transition: 'background 150ms ease',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          title="Reset bearing"
-        >
-          🧭
-        </button>
-        <div style={{ width: '100%', height: '1px', background: 'var(--border-subtle)' }} />
-        <button
-          onClick={toggleFullscreen}
-          style={{
-            width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: 'none', background: 'transparent', borderRadius: '10px', cursor: 'pointer',
-            color: 'var(--text-primary)', fontSize: '16px',
-            transition: 'background 150ms ease',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          title="Toggle fullscreen"
-        >
-          ⛶
-        </button>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 26 }}
-        className="glass"
-        style={{
-          position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          padding: '7px 20px', borderRadius: '12px', zIndex: 20,
-          display: 'flex', alignItems: 'center', gap: '16px',
-          fontSize: '11px', color: 'var(--text-secondary)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        <div className="data-value" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Lat:</span>
-          <span>{cursorCoords.lat}</span>
-        </div>
-        <div className="data-value" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Lng:</span>
-          <span>{cursorCoords.lng}</span>
-        </div>
-        <div style={{ width: '1px', height: '12px', background: 'var(--border-subtle)' }} />
-        <div className="data-value" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Zoom:</span>
-          <span>{currentZoom}</span>
-        </div>
-        <div style={{ width: '1px', height: '12px', background: 'var(--border-subtle)' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Layers:</span>
-          <span className="data-value" style={{ fontWeight: 600, color: activeLayerCount > 0 ? 'var(--accent-navy)' : 'var(--text-muted)' }}>{activeLayerCount}</span>
-        </div>
-      </motion.div>
-
+      {/* Asset Inspection Panel */}
       <AnimatePresence>
         {selectedMapAsset && activeAssetDetails && (
           <motion.div
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="glass-card"
-            style={{ position: 'absolute', top: 24, right: 24, bottom: 24, width: '400px', display: 'flex', flexDirection: 'column', zIndex: 20, overflow: 'hidden' }}
+            initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
+            className="absolute top-6 right-[88px] bottom-6 w-[420px] bg-white border border-[var(--slate-200)] shadow-2xl rounded-2xl z-30 flex flex-col overflow-hidden"
           >
-            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="bg-[var(--slate-50)] p-5 border-b border-[var(--slate-200)] flex justify-between items-start shrink-0">
               <div>
-                <span className="micro-label" style={{ color: 'var(--accent-navy)' }}>{activeAssetDetails.type}</span>
-                <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: '4px 0 0' }}>{activeAssetDetails.name}</h2>
+                <span className="text-[10px] font-bold text-[var(--accent-blue)] uppercase tracking-widest">{activeAssetDetails.type}</span>
+                <h2 className="text-xl font-bold text-[var(--slate-900)] mt-1">{activeAssetDetails.name}</h2>
               </div>
-              <button onClick={() => setSelectedMapAsset(null)} style={{ background: 'none', border: 'none', fontSize: '24px', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, lineHeight: 1 }}>×</button>
+              <button onClick={() => setSelectedMapAsset(null)} className="w-8 h-8 flex items-center justify-center bg-white border border-[var(--slate-200)] rounded-full text-[var(--slate-500)] hover:text-[var(--accent-red)] hover:border-[var(--accent-red)] transition-colors">
+                ✕
+              </button>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }} className="hide-scrollbar">
-
+            <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
               {assetLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '8px' }}>
-                  <div className="skeleton" style={{ height: '14px', width: '60%' }} />
-                  <div className="skeleton" style={{ height: '11px', width: '40%' }} />
-                  <div className="skeleton" style={{ height: '180px', width: '100%', borderRadius: '12px' }} />
-                  <div className="skeleton" style={{ height: '14px', width: '80%' }} />
-                  <div className="skeleton" style={{ height: '100px', width: '100%', borderRadius: '12px' }} />
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-[var(--slate-200)] rounded w-3/4" />
+                  <div className="h-4 bg-[var(--slate-200)] rounded w-1/2" />
+                  <div className="h-40 bg-[var(--slate-200)] rounded-xl w-full" />
                 </div>
               ) : (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="space-y-6">
+                  
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-4">
                     {Object.keys(activeAssetDetails).filter(k => !['type', 'name', 'coordinates'].includes(k)).map(key => (
-                      <div key={key}>
-                        <div className="micro-label">{key}</div>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>{activeAssetDetails[key]}</div>
+                      <div key={key} className="bg-[var(--slate-50)] border border-[var(--slate-100)] p-3 rounded-xl">
+                        <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-wider">{key}</div>
+                        <div className="text-sm font-bold text-[var(--slate-900)] mt-1">{activeAssetDetails[key]}</div>
                       </div>
                     ))}
                   </div>
 
-                  <hr className="divider" />
-
+                  {/* Telemetry Chart */}
                   <div>
-                    <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>Operational Telemetry</h3>
-                    <div style={{ height: '220px', padding: '16px', background: 'var(--bg-surface-2)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                    <h3 className="text-xs font-bold text-[var(--slate-800)] uppercase tracking-widest mb-3">Live Telemetry</h3>
+                    <div className="h-[200px] bg-white border border-[var(--slate-200)] rounded-xl p-4 shadow-sm">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={telemetryData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                          <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <Tooltip contentStyle={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '11px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                          <Line type="monotone" dataKey="load" stroke="var(--accent-navy)" strokeWidth={2} dot={false} />
-                          <Line type="monotone" dataKey="usage" stroke="var(--accent-teal)" strokeWidth={2} dot={false} />
+                          <XAxis dataKey="name" tick={{ fill: 'var(--slate-400)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fill: 'var(--slate-400)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--slate-200)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                          <Line type="monotone" dataKey="load" stroke="var(--accent-navy)" strokeWidth={3} dot={false} />
+                          <Line type="monotone" dataKey="usage" stroke="var(--accent-teal)" strokeWidth={3} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
-                  <hr className="divider" />
-
-                  <div>
-                    <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>Nearby Assets</h3>
-                    {getNearbyAssets().length > 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {getNearbyAssets().map(asset => (
-                          <button
-                            key={asset.name}
-                            onClick={() => {
-                              setSelectedMapAsset(asset.name);
-                              setActiveAssetDetails(asset);
-                            }}
-                            style={{
-                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                              padding: '10px 12px', borderRadius: '10px',
-                              background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)',
-                              cursor: 'pointer', transition: 'all 150ms ease', width: '100%',
-                              textAlign: 'left',
-                            }}
-                          >
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.name}</div>
-                              <div className="micro-label" style={{ marginTop: '2px' }}>{asset.type}</div>
-                            </div>
-                            <div className="data-value" style={{ fontSize: '11px', color: 'var(--text-muted)', flexShrink: 0, marginLeft: '8px' }}>
-                              {asset.distance < 1000 ? `${Math.round(asset.distance)}m` : `${(asset.distance / 1000).toFixed(1)}km`}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', background: 'var(--bg-surface-2)', borderRadius: '10px' }}>
-                        No nearby assets found
-                      </div>
-                    )}
+                  {/* AI Insight */}
+                  <div className="bg-[var(--slate-900)] p-5 rounded-xl text-white shadow-md relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-blue)]/20 blur-2xl rounded-full" />
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle2 size={16} className="text-[var(--accent-teal)]" />
+                      <span className="text-xs font-bold text-[var(--accent-teal)] uppercase tracking-widest">Asset Optimal</span>
+                    </div>
+                    <p className="text-sm text-[var(--slate-300)] leading-relaxed mb-4">
+                      Current operation is within expected nominal boundaries. Predictive maintenance not required for next 14 days.
+                    </p>
+                    <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors border border-white/10">
+                      Download Report
+                    </button>
                   </div>
 
-                  <hr className="divider" />
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    style={{
-                      padding: '20px',
-                      background: 'linear-gradient(135deg, var(--accent-navy-light), rgba(219,225,255,0.5))',
-                      borderRadius: '16px',
-                      border: '1px solid var(--border-accent)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                      <span style={{
-                        width: '28px', height: '28px', borderRadius: '8px',
-                        background: 'var(--accent-navy)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '14px',
-                      }}>🤖</span>
-                      <div>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-navy)' }}>AI Optimization Analysis</span>
-                        <div className="live-dot" style={{ fontSize: '10px', color: 'var(--accent-teal)', fontWeight: 600 }}>Live</div>
-                      </div>
-                    </div>
-
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-                      Asset is performing within nominal parameters. Predictive modeling suggests a 14% increase in utilization during Q3 due to regional zoning changes.
-                    </p>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-                      {[
-                        { label: 'Efficiency', value: '94%', color: 'var(--accent-teal)' },
-                        { label: 'Uptime', value: '99.8%', color: 'var(--accent-teal)' },
-                        { label: 'Predicted Load', value: '+14%', color: 'var(--accent-amber)' },
-                        { label: 'Risk Score', value: 'Low', color: 'var(--accent-teal)' },
-                      ].map(metric => (
-                        <div key={metric.label} style={{
-                          padding: '10px', borderRadius: '10px',
-                          background: 'rgba(255,255,255,0.6)',
-                          border: '1px solid rgba(255,255,255,0.8)',
-                        }}>
-                          <div className="micro-label" style={{ marginBottom: '4px' }}>{metric.label}</div>
-                          <div className="data-value" style={{ fontSize: '18px', fontWeight: 700, color: metric.color }}>{metric.value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button className="btn-primary" style={{ width: '100%', fontSize: '13px', fontWeight: 600 }}>
-                      <span>Generate Drilldown Report</span>
-                      <span style={{ fontSize: '14px' }}>→</span>
-                    </button>
-                  </motion.div>
-                </>
+                </div>
               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }

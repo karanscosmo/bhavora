@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useSimulationStore, useAppStore } from '@/stores';
 import { exportToPDF, exportToCSV } from '@/lib/exportUtils';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FileText, Download, Printer, ShieldCheck, Clock, FileSpreadsheet, KeySquare } from 'lucide-react';
 
 interface ReportSpec {
   id: string;
@@ -156,135 +156,186 @@ export default function ReportsPage() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[var(--slate-200)] text-[var(--slate-800)]">
       
-      {/* Header */}
-      <div>
-        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
-          <span>Analysis</span>
-          <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
-          <span style={{ color: '#00D4FF', fontWeight: 600 }}>Predictive Outlook Reports</span>
-        </nav>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>Predictive Infrastructure Outlook</h1>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
-          Evaluate regional carrying capacity, transit indices, and grid stability reports based on Bengaluru urban models.
-        </p>
-      </div>
+      {/* Left Column: Document Index */}
+      <div className="w-[380px] bg-[var(--slate-50)] border-r border-[var(--slate-300)] flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.05)]">
+        <div className="p-5 border-b border-[var(--slate-300)] bg-white shrink-0">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded bg-[var(--slate-900)] text-white flex items-center justify-center shadow-inner">
+              <KeySquare size={20} />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest">Document Center</h1>
+              <div className="text-[10px] text-[var(--slate-500)] font-semibold mt-0.5 font-mono">CLASSIFIED ARCHIVES</div>
+            </div>
+          </div>
+        </div>
 
-      {/* Main Grid View */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 480px', gap: '16px', alignItems: 'start' }}>
-        
-        {/* Left Side: 6 Reports List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
           {REPORTS_LIST.map(report => {
             const isSelected = selectedReportId === report.id;
-            const confColor = report.confidence >= 85 ? '#10B981' : report.confidence >= 65 ? '#F59E0B' : '#EF4444';
-
             return (
               <div
                 key={report.id}
                 onClick={() => setSelectedReportId(report.id)}
-                className="glass-card"
-                style={{
-                  padding: '16px', borderRadius: '10px', cursor: 'pointer',
-                  borderColor: isSelected ? 'rgba(0, 212, 255, 0.3)' : undefined,
-                  background: isSelected ? 'rgba(0, 212, 255, 0.03)' : undefined,
-                  transition: 'all 150ms',
-                }}
+                className={`p-4 rounded-lg cursor-pointer transition-all border ${
+                  isSelected 
+                    ? 'bg-white border-[var(--accent-navy)] shadow-md ring-1 ring-[var(--accent-navy)]' 
+                    : 'bg-white border-[var(--slate-200)] shadow-sm hover:border-[var(--slate-300)]'
+                }`}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[9px] font-bold text-[var(--slate-500)] tracking-widest uppercase">
                     {report.category}
                   </span>
-                  <span style={{ fontSize: '10px', color: confColor, fontWeight: 700 }}>
-                    Confidence {report.confidence}%
+                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm ${
+                    report.status === 'Published' ? 'bg-[var(--accent-teal)]/10 text-[var(--accent-teal)]' :
+                    report.status === 'Under Review' ? 'bg-[var(--accent-amber)]/10 text-[var(--accent-amber)]' :
+                    'bg-[var(--slate-200)] text-[var(--slate-600)]'
+                  }`}>
+                    {report.status}
                   </span>
                 </div>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>
+                <h3 className={`text-sm leading-tight mb-2 ${isSelected ? 'font-bold text-[var(--accent-navy)]' : 'font-semibold text-[var(--slate-800)]'}`}>
                   {report.title}
                 </h3>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.4 }}>
-                  {report.description}
-                </p>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>
-                  <span>Author: {report.author}</span>
+                <div className="flex items-center gap-2 text-[9px] font-mono text-[var(--slate-500)] uppercase mt-3 pt-3 border-t border-[var(--slate-100)]">
+                  <span>REF: {report.id.toUpperCase()}</span>
                   <span>·</span>
-                  <span>Ver: {report.version}</span>
-                  <span>·</span>
-                  <span style={{ color: report.status === 'Published' ? '#10B981' : '#F59E0B' }}>{report.status}</span>
+                  <span>VER: {report.version}</span>
                 </div>
               </div>
             );
           })}
         </div>
+      </div>
 
-        {/* Right Side: Interactive Report Viewer details panel */}
-        <div id="reports-detail-panel" className="glass-card" style={{ padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(10,22,40,0.85)' }}>
-          <div>
-            <span style={{ fontSize: '9px', fontWeight: 700, color: '#00D4FF', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {selectedReport.category} REPORT SPEC
-            </span>
-            <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '8px 0 4px', lineHeight: 1.3 }}>
-              {selectedReport.title}
-            </h2>
-            <div style={{ display: 'flex', gap: '8px', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>
-              <span>Version {selectedReport.version}</span>
-              <span>·</span>
-              <span>By {selectedReport.author}</span>
-            </div>
-          </div>
-
-          {/* Core Indicator Metrics */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {selectedReport.metrics.map((m, idx) => (
-              <div key={idx} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{m.label}</div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginTop: '2px' }}>{m.value}</div>
+      {/* Right Column: Physical Document Viewer */}
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[var(--slate-200)] flex justify-center">
+        
+        {/* The Paper Document */}
+        <div 
+          id="reports-detail-panel" 
+          className="w-full max-w-[850px] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[var(--slate-300)] my-4 relative"
+          style={{ minHeight: '1100px' }}
+        >
+          {/* Top Edge / Letterhead */}
+          <div className="h-4 bg-[var(--accent-navy)] w-full absolute top-0 left-0" />
+          
+          <div className="p-16 pt-20">
+            {/* Header section */}
+            <div className="flex justify-between items-start border-b-2 border-[var(--slate-900)] pb-8 mb-8">
+              <div>
+                <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1 font-mono">
+                  DEPARTMENT OF URBAN INTELLIGENCE
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: m.isGood ? '#10B981' : '#EF4444' }}>
-                  {m.delta}
-                </span>
+                <div className="text-4xl font-bold text-[var(--slate-900)] font-serif leading-tight max-w-[500px]">
+                  {selectedReport.title}
+                </div>
               </div>
-            ))}
-          </div>
+              <div className="text-right">
+                <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1 font-mono">Report Identifier</div>
+                <div className="text-lg font-bold text-[var(--slate-900)] font-mono">{selectedReport.id.toUpperCase()}</div>
+                <div className="text-xs text-[var(--slate-600)] font-mono mt-2 flex items-center justify-end gap-1">
+                  <ShieldCheck size={14} className="text-[var(--accent-teal)]" /> 
+                  CONFIDENCE: {selectedReport.confidence}%
+                </div>
+              </div>
+            </div>
 
-          {/* Summary Abstract */}
-          <div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Summary Abstract</div>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>
-              {selectedReport.summary}
-            </p>
-          </div>
+            {/* Metadata Table */}
+            <div className="grid grid-cols-4 gap-0 border-y border-[var(--slate-300)] bg-[var(--slate-50)] mb-10 font-mono text-xs">
+              <div className="p-3 border-r border-[var(--slate-300)]">
+                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Author</div>
+                <div className="font-bold text-[var(--slate-900)]">{selectedReport.author}</div>
+              </div>
+              <div className="p-3 border-r border-[var(--slate-300)]">
+                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Version</div>
+                <div className="font-bold text-[var(--slate-900)]">{selectedReport.version}</div>
+              </div>
+              <div className="p-3 border-r border-[var(--slate-300)]">
+                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Classification</div>
+                <div className="font-bold text-[var(--slate-900)] uppercase">{selectedReport.category}</div>
+              </div>
+              <div className="p-3">
+                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Date</div>
+                <div className="font-bold text-[var(--slate-900)]">{new Date().toLocaleDateString('en-GB')}</div>
+              </div>
+            </div>
 
-          {/* Policy Context */}
-          <div style={{ padding: '12px', background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: '8px' }}>
-            <span style={{ fontSize: '9px', color: '#00D4FF', fontWeight: 700, display: 'block', marginBottom: '4px' }}>SIMULATOR CONTEXT</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
-              Values calculated under current model profiles (Metro: {activePolicy.metroExpansion}%, EV: {activePolicy.evAdoptionRate}%, Renewables: {activePolicy.renewableShare}%).
-            </span>
-          </div>
+            {/* Abstract */}
+            <div className="mb-12">
+              <h3 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-4 border-b border-[var(--slate-200)] pb-2 inline-block">1.0 Executive Summary</h3>
+              <p className="text-sm text-[var(--slate-700)] leading-loose font-serif text-justify">
+                {selectedReport.summary}
+              </p>
+            </div>
 
-          {/* Document actions */}
-          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }} className="no-print">
-            <button
-              onClick={() => handleExportPDF(selectedReport)}
-              disabled={exporting}
-              className="btn-primary"
-              style={{ flex: 1, padding: '10px', fontSize: '12px' }}
-            >
-              {exporting ? 'Generating PDF...' : '⬇ Export PDF Report'}
-            </button>
-            <button
-              onClick={() => handleExportCSV(selectedReport)}
-              className="btn-ghost"
-              style={{ padding: '10px 14px', fontSize: '12px' }}
-            >
-              📊 Export CSV
-            </button>
+            {/* Metrics */}
+            <div className="mb-12">
+              <h3 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-4 border-b border-[var(--slate-200)] pb-2 inline-block">2.0 Key Indicators</h3>
+              <div className="grid grid-cols-3 gap-6">
+                {selectedReport.metrics.map((m, idx) => (
+                  <div key={idx} className="border border-[var(--slate-300)] p-4 bg-white shadow-sm">
+                    <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-2 font-mono h-8">{m.label}</div>
+                    <div className="text-2xl font-bold text-[var(--slate-900)] font-serif mb-2">{m.value}</div>
+                    <div className={`text-[10px] font-bold uppercase tracking-widest font-mono ${m.isGood ? 'text-[var(--accent-teal)]' : 'text-[var(--accent-red)]'}`}>
+                      {m.delta}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Policy Context */}
+            <div className="mb-12">
+              <h3 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-4 border-b border-[var(--slate-200)] pb-2 inline-block">3.0 Model Variables</h3>
+              <div className="border border-[var(--slate-300)] p-5 bg-[var(--slate-50)] font-mono text-xs leading-relaxed text-[var(--slate-700)]">
+                <p>THE FOLLOWING SIMULATION VECTORS WERE ACTIVE AT TIME OF REPORT GENERATION:</p>
+                <ul className="mt-3 space-y-2 list-disc list-inside">
+                  <li>METRO EXPANSION INDEX: {activePolicy.metroExpansion}%</li>
+                  <li>EV ADOPTION RATE: {activePolicy.evAdoptionRate}%</li>
+                  <li>RENEWABLE ENERGY SHARE: {activePolicy.renewableShare}%</li>
+                  <li>ROAD CAPACITY INDEX: {activePolicy.roadCapacity}%</li>
+                  <li>WATER INFRASTRUCTURE: {activePolicy.waterInfrastructure}%</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer / Signoff */}
+            <div className="mt-24 pt-8 border-t border-[var(--slate-300)] flex justify-between items-end font-mono text-[10px] text-[var(--slate-500)]">
+              <div>
+                GENERATED BY BHAVORA URBAN OS<br/>
+                CHECKSUM: {Math.random().toString(36).substring(2, 10).toUpperCase()}
+              </div>
+              <div className="text-center">
+                <div className="w-48 border-b border-[var(--slate-400)] mb-2"></div>
+                AUTHORIZED SIGNATURE
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
+
+      {/* Floating Action Bar */}
+      <div className="fixed bottom-8 right-8 flex gap-3 no-print z-50">
+        <button
+          onClick={() => handleExportCSV(selectedReport)}
+          className="flex items-center gap-2 px-4 py-3 bg-white border border-[var(--slate-300)] hover:bg-[var(--slate-50)] text-[var(--slate-700)] text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg transition-all"
+        >
+          <FileSpreadsheet size={16} /> Export CSV
+        </button>
+        <button
+          onClick={() => handleExportPDF(selectedReport)}
+          disabled={exporting}
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--accent-navy)] hover:bg-[var(--accent-navy)]/90 text-white text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg transition-all"
+        >
+          <Printer size={16} /> {exporting ? 'PRINTING...' : 'PRINT REPORT'}
+        </button>
+      </div>
+
     </div>
   );
 }
