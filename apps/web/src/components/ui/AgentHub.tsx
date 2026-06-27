@@ -167,10 +167,10 @@ export function AgentHub() {
             bottom: '96px',
             width: '420px',
             maxHeight: '75vh',
-            background: '#0A1628',
-            border: '1px solid rgba(0,212,255,0.12)',
+            background: 'var(--bg-surface-1)',
+            border: '1px solid var(--border-normal)',
             borderRadius: '16px',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.05)',
+            boxShadow: '0 8px 32px rgba(15,23,42,0.08)',
             zIndex: 9989,
             display: 'flex',
             flexDirection: 'column',
@@ -181,7 +181,7 @@ export function AgentHub() {
           {/* Header */}
           <div style={{
             padding: '12px 16px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -189,11 +189,11 @@ export function AgentHub() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>🤖</span>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>Urban Copilot</div>
-                <div style={{ fontSize: '10px', color: '#00D4FF', textTransform: 'uppercase', letterSpacing: '0.08em' }}>AI Agents</div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>Urban Copilot</div>
+                <div style={{ fontSize: '10px', color: 'var(--accent-blue)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>AI Agents</div>
               </div>
             </div>
-            <button onClick={closeAgentHub} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '18px' }}>×</button>
+            <button onClick={closeAgentHub} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '18px' }}>×</button>
           </div>
 
           {/* Agent Selector */}
@@ -201,7 +201,7 @@ export function AgentHub() {
             display: 'flex',
             gap: '4px',
             padding: '10px 12px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid var(--border-subtle)',
             overflowX: 'auto',
           }}>
             {(Object.values(AGENTS) as typeof AGENTS[AgentId][]).map(a => (
@@ -211,9 +211,9 @@ export function AgentHub() {
                 style={{
                   padding: '6px 10px',
                   borderRadius: '20px',
-                  border: `1px solid ${activeAgentId === a.id ? a.color : 'rgba(255,255,255,0.08)'}`,
+                  border: `1px solid ${activeAgentId === a.id ? a.color : 'var(--border-normal)'}`,
                   background: activeAgentId === a.id ? `${a.color}18` : 'transparent',
-                  color: activeAgentId === a.id ? a.color : 'rgba(255,255,255,0.5)',
+                  color: activeAgentId === a.id ? a.color : 'var(--text-secondary)',
                   fontSize: '11px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -229,19 +229,19 @@ export function AgentHub() {
           {/* Context Strip */}
           <div style={{
             padding: '8px 14px',
-            background: 'rgba(255,255,255,0.02)',
-            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            background: 'var(--bg-surface-2)',
+            borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             gap: '12px',
             flexWrap: 'wrap',
           }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-jetbrains, monospace)' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-jetbrains, monospace)' }}>
               AQI {cityData.metrics.aqi} · Traffic {cityData.metrics.congestionIndex}% · Incidents {cityData.metrics.activeIncidents}
             </span>
           </div>
 
           {/* Quick Actions */}
-          <div style={{ padding: '8px 12px', display: 'flex', gap: '6px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div style={{ padding: '8px 12px', display: 'flex', gap: '6px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)' }}>
             {agent.quickActions.slice(0, 4).map(action => (
               <button
                 key={action}
@@ -249,14 +249,14 @@ export function AgentHub() {
                 style={{
                   padding: '4px 8px',
                   borderRadius: '4px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: 'rgba(255,255,255,0.6)',
+                  background: 'var(--bg-surface-2)',
+                  border: '1px solid var(--border-normal)',
+                  color: 'var(--text-secondary)',
                   fontSize: '11px',
                   cursor: 'pointer',
                   transition: 'all 120ms',
                 }}
-                className="hover:text-white hover:border-[rgba(0,212,255,0.3)]"
+                className="hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]"
               >
                 {action}
               </button>
@@ -266,9 +266,9 @@ export function AgentHub() {
           {/* Messages */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {messages.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '24px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '12px' }}>
                 <div style={{ fontSize: '24px', marginBottom: '8px' }}>{agent.icon}</div>
-                <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>{agent.name}</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>{agent.name}</div>
                 <div>{agent.domain}</div>
                 <div style={{ marginTop: '8px' }}>Ask me anything about {agent.domain.split('·')[0].trim().toLowerCase()}</div>
               </div>
@@ -290,13 +290,13 @@ export function AgentHub() {
                   maxWidth: '80%',
                   padding: '10px 12px',
                   borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-                  background: msg.role === 'user' ? 'rgba(0,212,255,0.1)' : '#0F1E38',
-                  border: `1px solid ${msg.role === 'user' ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)'}`,
+                  background: msg.role === 'user' ? 'var(--accent-blue-light)' : 'var(--bg-surface-2)',
+                  border: `1px solid ${msg.role === 'user' ? 'var(--border-accent)' : 'var(--border-subtle)'}`,
                 }}>
                   {msg.role === 'agent' ? (
                     <FormatResponse text={msg.content} />
                   ) : (
-                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.9)' }}>{msg.content}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{msg.content}</div>
                   )}
                 </div>
               </div>
@@ -304,12 +304,12 @@ export function AgentHub() {
             {isLoading && (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <span style={{ fontSize: '20px' }}>{agent.icon}</span>
-                <div style={{ padding: '10px 14px', background: '#0F1E38', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ padding: '10px 14px', background: 'var(--bg-surface-2)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     {[0, 1, 2].map(i => (
                       <div key={i} style={{
                         width: '6px', height: '6px', borderRadius: '50%',
-                        background: '#00D4FF', opacity: 0.6,
+                        background: 'var(--accent-blue)', opacity: 0.6,
                         animation: `fade-in 0.6s ease-in-out ${i * 0.2}s infinite alternate`,
                       }} />
                     ))}
@@ -321,7 +321,7 @@ export function AgentHub() {
           </div>
 
           {/* Input */}
-          <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ padding: '12px', borderTop: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <textarea
                 value={input}
@@ -331,11 +331,11 @@ export function AgentHub() {
                 rows={2}
                 style={{
                   flex: 1,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-surface-2)',
+                  border: '1px solid var(--border-normal)',
                   borderRadius: '8px',
                   padding: '8px 12px',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   fontSize: '13px',
                   resize: 'none',
                   outline: 'none',
@@ -347,10 +347,10 @@ export function AgentHub() {
                 disabled={!input.trim() || isLoading}
                 style={{
                   padding: '8px 14px',
-                  background: 'linear-gradient(135deg, #00D4FF, #0099CC)',
+                  background: 'var(--accent-navy)',
                   border: 'none',
                   borderRadius: '8px',
-                  color: '#050A14',
+                  color: '#FFFFFF',
                   fontWeight: 700,
                   fontSize: '13px',
                   cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
@@ -361,7 +361,7 @@ export function AgentHub() {
                 Send
               </button>
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px', textAlign: 'right' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
               Ctrl+Enter to send · {agent.name}
             </div>
           </div>

@@ -89,35 +89,35 @@ export function TakeActionDrawer() {
         top: 0,
         bottom: 0,
         width: '440px',
-        background: '#0A1628',
-        borderLeft: '1px solid rgba(0,212,255,0.12)',
+        background: 'var(--bg-surface-1)',
+        borderLeft: '1px solid var(--border-subtle)',
         zIndex: 201,
         display: 'flex',
         flexDirection: 'column',
         animation: 'slide-right 0.2s ease-out',
-        boxShadow: '-24px 0 80px rgba(0,0,0,0.5)',
+        boxShadow: '-8px 0 32px rgba(15,23,42,0.06)',
       }}>
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>AI Recommended Interventions</div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>AI Recommended Interventions</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
               Based on current city metrics · Confidence-ranked
             </div>
           </div>
           <button
             onClick={closeTakeAction}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '20px' }}
           >×</button>
         </div>
 
         {/* Context */}
-        <div style={{ padding: '12px 24px', background: 'rgba(0,212,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Current Simulation Context</div>
+        <div style={{ padding: '12px 24px', background: 'var(--accent-blue-light)', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Current Simulation Context</div>
           <div style={{ display: 'flex', gap: '16px' }}>
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#00D4FF' }}>Traffic Δ{results.traffic.delta}%</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#10B981' }}>CO₂ Δ{results.co2.delta > 0 ? '+' : ''}{(results.co2.delta / 100).toFixed(0)}kt</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#F59E0B' }}>AQI Δ{results.aqi.delta}</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--accent-blue)' }}>Traffic Δ{results.traffic.delta}%</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--accent-teal)' }}>CO₂ Δ{results.co2.delta > 0 ? '+' : ''}{(results.co2.delta / 100).toFixed(0)}kt</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--accent-amber)' }}>AQI Δ{results.aqi.delta}</span>
           </div>
         </div>
 
@@ -132,8 +132,8 @@ export function TakeActionDrawer() {
                 key={i}
                 style={{
                   padding: '14px',
-                  background: isActivated ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${isActivated ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                  background: isActivated ? 'var(--accent-teal-light)' : 'var(--bg-surface-2)',
+                  border: `1px solid ${isActivated ? 'rgba(13,148,136,0.3)' : 'var(--border-subtle)'}`,
                   borderRadius: '10px',
                   transition: 'all 200ms',
                 }}
@@ -147,20 +147,20 @@ export function TakeActionDrawer() {
                     }}>{item.priority}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${item.confidence}%`, background: item.confidence >= 85 ? '#10B981' : '#F59E0B', borderRadius: '2px' }} />
+                    <div style={{ width: '40px', height: '4px', background: 'var(--bg-surface-3)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${item.confidence}%`, background: item.confidence >= 85 ? 'var(--accent-teal)' : 'var(--accent-amber)', borderRadius: '2px' }} />
                     </div>
-                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>{item.confidence}%</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{item.confidence}%</span>
                   </div>
                 </div>
 
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>{item.title}</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', marginBottom: '6px', lineHeight: 1.4 }}>{item.rationale}</div>
-                <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 500, marginBottom: '10px' }}>{item.impact}</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{item.title}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px', lineHeight: 1.4 }}>{item.rationale}</div>
+                <div style={{ fontSize: '11px', color: 'var(--accent-teal)', fontWeight: 500, marginBottom: '10px' }}>{item.impact}</div>
 
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {isActivated ? (
-                    <span style={{ padding: '5px 10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '5px', fontSize: '11px', color: '#10B981', fontWeight: 600 }}>
+                    <span style={{ padding: '5px 10px', background: 'var(--accent-teal-light)', border: '1px solid var(--accent-teal)', borderRadius: '5px', fontSize: '11px', color: 'var(--accent-teal)', fontWeight: 600 }}>
                       ✓ Activated
                     </span>
                   ) : (
@@ -168,8 +168,8 @@ export function TakeActionDrawer() {
                       onClick={() => handleActivate(i, item.title)}
                       disabled={isLoading}
                       style={{
-                        padding: '5px 12px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)',
-                        borderRadius: '5px', fontSize: '11px', color: '#00D4FF', fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer',
+                        padding: '5px 12px', background: 'var(--accent-blue-light)', border: '1px solid var(--border-normal)',
+                        borderRadius: '5px', fontSize: '11px', color: 'var(--accent-blue)', fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer',
                         opacity: isLoading ? 0.7 : 1,
                       }}
                     >
@@ -178,7 +178,7 @@ export function TakeActionDrawer() {
                   )}
                   <button
                     onClick={() => openAgentHub(item.agentId)}
-                    style={{ padding: '5px 10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '5px', fontSize: '11px', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}
+                    style={{ padding: '5px 10px', background: 'transparent', border: '1px solid var(--border-normal)', borderRadius: '5px', fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer' }}
                   >
                     Ask Agent
                   </button>
@@ -189,12 +189,12 @@ export function TakeActionDrawer() {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)' }}>
           <button
             onClick={() => saveScenario('Current Interventions', 'Auto-saved from Take Action drawer', ['dashboard', 'interventions'], '')}
             style={{
-              width: '100%', padding: '10px', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.15)',
-              borderRadius: '8px', color: '#00D4FF', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+              width: '100%', padding: '10px', background: 'var(--accent-navy-light)', border: '1px solid var(--border-subtle)',
+              borderRadius: '8px', color: 'var(--accent-navy)', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
             }}
           >
             Save as Scenario

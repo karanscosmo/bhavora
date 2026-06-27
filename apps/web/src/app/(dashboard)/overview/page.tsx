@@ -220,7 +220,7 @@ export default function OverviewPage() {
 
       map = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/light-v11',
         center: [77.5946, 12.9716],
         zoom: 10.5,
         pitch: 35,

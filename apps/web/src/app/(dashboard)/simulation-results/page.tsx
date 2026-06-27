@@ -45,7 +45,7 @@ export default function SimulationResultsPage() {
       if (mapBeforeRef.current) {
         map1 = new mapboxgl.Map({
           container: mapBeforeRef.current,
-          style: 'mapbox://styles/mapbox/dark-v11',
+          style: 'mapbox://styles/mapbox/light-v11',
           center: [77.5946, 12.9716],
           zoom: 10.5,
           pitch: 30,
@@ -88,7 +88,7 @@ export default function SimulationResultsPage() {
       if (mapAfterRef.current) {
         map2 = new mapboxgl.Map({
           container: mapAfterRef.current,
-          style: 'mapbox://styles/mapbox/dark-v11',
+          style: 'mapbox://styles/mapbox/light-v11',
           center: [77.5946, 12.9716],
           zoom: 10.5,
           pitch: 30,

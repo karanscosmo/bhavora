@@ -31,19 +31,19 @@ function ProtocolModal({ onClose, onActivate }: { onClose: () => void; onActivat
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 300, backdropFilter: 'none' }} />
       <div style={{
         position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-        background: '#0A1628', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '14px',
-        padding: '24px', width: '520px', zIndex: 301, boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+        background: 'var(--bg-surface-1)', border: '1px solid var(--border-normal)', borderRadius: '14px',
+        padding: '24px', width: '520px', zIndex: 301, boxShadow: '0 8px 32px rgba(15,23,42,0.08)',
         animation: 'scale-in 0.16s ease-out',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>Execute Emergency Protocol</div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>Select and confirm response protocol for active incident</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>Execute Emergency Protocol</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>Select and confirm response protocol for active incident</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '20px' }}>×</button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
@@ -54,25 +54,25 @@ function ProtocolModal({ onClose, onActivate }: { onClose: () => void; onActivat
               style={{
                 padding: '12px',
                 borderRadius: '8px',
-                border: `1px solid ${selected === p.id ? p.color : 'rgba(255,255,255,0.06)'}`,
-                background: selected === p.id ? `${p.color}12` : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${selected === p.id ? p.color : 'var(--border-normal)'}`,
+                background: selected === p.id ? `${p.color}12` : 'transparent',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 150ms',
               }}
             >
               <div style={{ fontSize: '20px', marginBottom: '5px' }}>{p.icon}</div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: selected === p.id ? '#fff' : 'rgba(255,255,255,0.7)' }}>{p.name}</div>
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '3px', lineHeight: 1.3 }}>{p.description}</div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: selected === p.id ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{p.name}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '3px', lineHeight: 1.3 }}>{p.description}</div>
             </button>
           ))}
         </div>
 
         {selected && (
-          <div style={{ padding: '12px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '8px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', color: '#EF4444', fontWeight: 700, marginBottom: '4px' }}>⚠ Confirmation Required</div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-              Activating <strong style={{ color: '#fff' }}>{PROTOCOLS.find(p => p.id === selected)?.name}</strong> will:
+          <div style={{ padding: '12px', background: 'var(--accent-red-light)', border: '1px solid var(--accent-red)', borderRadius: '8px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--accent-red)', fontWeight: 700, marginBottom: '4px' }}>⚠ Confirmation Required</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Activating <strong style={{ color: 'var(--text-primary)' }}>{PROTOCOLS.find(pr => pr.id === selected)?.name}</strong> will:
               <br />• Dispatch emergency teams and notify authorities
               <br />• Activate traffic diversion systems
               <br />• Send public alert notifications
@@ -86,7 +86,7 @@ function ProtocolModal({ onClose, onActivate }: { onClose: () => void; onActivat
             onClick={handleActivate}
             disabled={!selected || activating}
             style={{
-              padding: '8px 20px', background: '#EF4444', border: 'none',
+              padding: '8px 20px', background: 'var(--accent-red)', border: 'none',
               borderRadius: '6px', color: '#fff', fontSize: '13px', fontWeight: 700,
               cursor: selected && !activating ? 'pointer' : 'not-allowed',
               opacity: selected && !activating ? 1 : 0.5,
@@ -180,7 +180,7 @@ export default function DisasterPage() {
       if (!mapRef.current) return;
       map = new mapboxgl.Map({
         container: mapRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/light-v11',
         center: [77.5946, 12.9716],
         zoom: 11,
         pitch: 25,
@@ -328,8 +328,8 @@ export default function DisasterPage() {
           <button
             onClick={() => setShowProtocolModal(true)}
             style={{
-              padding: '7px 16px', background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.15))',
-              border: '1px solid rgba(239,68,68,0.35)', borderRadius: '6px', color: '#EF4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+              padding: '7px 16px', background: 'var(--accent-red-light)',
+              border: '1px solid var(--accent-red)', borderRadius: '6px', color: 'var(--accent-red)', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '5px',
               animation: disaster.activeProtocol ? 'none' : 'glow-pulse 2s ease-in-out infinite',
             }}
@@ -337,13 +337,13 @@ export default function DisasterPage() {
             ⚡ Execute Protocol
           </button>
           {disaster.activeProtocol && (
-            <span style={{ padding: '4px 10px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '20px', fontSize: '11px', color: '#EF4444', fontWeight: 700 }}>
+            <span style={{ padding: '4px 10px', background: 'var(--accent-red-light)', border: '1px solid var(--accent-red)', borderRadius: '20px', fontSize: '11px', color: 'var(--accent-red)', fontWeight: 700 }}>
               ● ACTIVE — {disaster.activeProtocol.toUpperCase()}
             </span>
           )}
           <button
             onClick={handleRequestSupport}
-            style={{ padding: '7px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: 'rgba(255,255,255,0.6)', fontSize: '12px', cursor: 'pointer' }}
+            style={{ padding: '7px 14px', background: 'transparent', border: '1px solid var(--border-normal)', borderRadius: '6px', color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer' }}
           >
             🆘 Request Support
           </button>
@@ -352,8 +352,8 @@ export default function DisasterPage() {
         {/* Map */}
         <div style={{ flex: 1, position: 'relative' }}>
           {!mapLoaded && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050A14', zIndex: 5 }}>
-              <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)', zIndex: 5 }}>
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                 <div style={{ fontSize: '32px', marginBottom: '8px' }}>🗺</div>
                 Loading incident map...
               </div>
@@ -364,24 +364,24 @@ export default function DisasterPage() {
       </div>
 
       {/* ===== RIGHT — Response Panel ===== */}
-      <div style={{ width: '320px', flexShrink: 0, borderLeft: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', background: 'rgba(5,10,20,0.5)' }}>
+      <div style={{ width: '320px', flexShrink: 0, borderLeft: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', background: 'var(--bg-surface-2)' }}>
         {/* Selected Incident Detail */}
         {selectedIncident ? (
           <>
-            <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '10px', color: 'var(--accent-red)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
                 {selectedIncident.status === 'active' ? '● Active Incident' : '✓ Resolved'}
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>{selectedIncident.name}</div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{selectedIncident.location}</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedIncident.name}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{selectedIncident.location}</div>
               {selectedIncident.affectedCount && (
-                <div style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 600, marginTop: '8px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--accent-amber)', fontWeight: 600, marginTop: '8px' }}>
                   ⚠ {selectedIncident.affectedCount.toLocaleString()} residents affected
                 </div>
               )}
               <button
                 onClick={() => setEndConfirm(selectedIncident.id)}
-                style={{ marginTop: '10px', padding: '6px 12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '5px', color: '#EF4444', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                style={{ marginTop: '10px', padding: '6px 12px', background: 'var(--accent-red-light)', border: '1px solid var(--accent-red)', borderRadius: '5px', color: 'var(--accent-red)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
               >
                 End Incident
               </button>
@@ -389,29 +389,29 @@ export default function DisasterPage() {
 
             {/* Response Timeline */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>Response Timeline</div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>Response Timeline</div>
               {disaster.responseTimeline.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '11px' }}>
                   Execute a protocol to generate response timeline
                 </div>
               ) : (
                 <div style={{ position: 'relative', paddingLeft: '24px' }}>
-                  <div style={{ position: 'absolute', left: '7px', top: '12px', bottom: '12px', width: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                  <div style={{ position: 'absolute', left: '7px', top: '12px', bottom: '12px', width: '1px', background: 'var(--border-subtle)' }} />
                   {disaster.responseTimeline.map((step, i) => (
                     <div key={i} style={{ position: 'relative', marginBottom: '16px' }}>
                       <div style={{
                         position: 'absolute', left: '-20px', top: '2px',
                         width: '10px', height: '10px', borderRadius: '50%',
-                        background: step.status === 'done' ? '#10B981' : step.status === 'active' ? '#F59E0B' : 'rgba(255,255,255,0.15)',
-                        border: step.status === 'active' ? '2px solid #F59E0B' : 'none',
+                        background: step.status === 'done' ? 'var(--accent-teal)' : step.status === 'active' ? 'var(--accent-amber)' : 'var(--text-disabled)',
+                        border: step.status === 'active' ? '2px solid var(--accent-amber)' : 'none',
                         animation: step.status === 'active' ? 'live-pulse 1.5s ease-in-out infinite' : 'none',
                       }} />
-                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{step.time}</div>
-                      <div style={{ fontSize: '12px', color: step.status === 'done' ? '#fff' : step.status === 'active' ? '#F59E0B' : 'rgba(255,255,255,0.4)' }}>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{step.time}</div>
+                      <div style={{ fontSize: '12px', color: step.status === 'done' ? 'var(--text-primary)' : step.status === 'active' ? 'var(--accent-amber)' : 'var(--text-disabled)' }}>
                         {step.action}
                       </div>
-                      {step.status === 'done' && <div style={{ fontSize: '10px', color: '#10B981', marginTop: '2px' }}>✓ Complete</div>}
-                      {step.status === 'active' && <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px' }}>→ In Progress</div>}
+                      {step.status === 'done' && <div style={{ fontSize: '10px', color: 'var(--accent-teal)', marginTop: '2px' }}>✓ Complete</div>}
+                      {step.status === 'active' && <div style={{ fontSize: '10px', color: 'var(--accent-amber)', marginTop: '2px' }}>→ In Progress</div>}
                     </div>
                   ))}
                 </div>
@@ -420,7 +420,7 @@ export default function DisasterPage() {
           </>
         ) : (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px' }}>
-            <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '32px', marginBottom: '8px' }}>👈</div>
               <div style={{ fontSize: '12px' }}>Select an incident to view details</div>
             </div>
@@ -444,19 +444,19 @@ export default function DisasterPage() {
       {/* End Incident Confirmation */}
       {endConfirm && (
         <>
-          <div onClick={() => setEndConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 300 }} />
+          <div onClick={() => setEndConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 300 }} />
           <div style={{
             position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-            background: '#0A1628', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px',
-            padding: '24px', width: '360px', zIndex: 301, boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+            background: 'var(--bg-surface-1)', border: '1px solid var(--border-normal)', borderRadius: '12px',
+            padding: '24px', width: '360px', zIndex: 301, boxShadow: '0 8px 32px rgba(15,23,42,0.08)',
           }}>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>End Incident?</div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '20px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>End Incident?</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.5 }}>
               This will archive the incident and export the response timeline to Reports. This action cannot be undone.
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button onClick={() => setEndConfirm(null)} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '13px' }}>Cancel</button>
-              <button onClick={() => handleEndIncident(endConfirm)} style={{ padding: '8px 16px', background: '#EF4444', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => handleEndIncident(endConfirm)} style={{ padding: '8px 16px', background: 'var(--accent-red)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
                 End Incident
               </button>
             </div>

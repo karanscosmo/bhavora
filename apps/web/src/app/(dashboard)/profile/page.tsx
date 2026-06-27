@@ -55,13 +55,13 @@ export default function ProfilePage() {
       
       {/* Header */}
       <div>
-        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
+        <nav style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
           <span>Identity Center</span>
           <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
-          <span style={{ color: '#00D4FF', fontWeight: 600 }}>User Profile</span>
+          <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>User Profile</span>
         </nav>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>Identity Center</h1>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Identity Center</h1>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
           Manage user profiles, permission tiers, audit logs, and security groups.
         </p>
       </div>
@@ -76,21 +76,21 @@ export default function ProfilePage() {
           <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{
               width: '72px', height: '72px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #00D4FF, #7C3AED)',
+              background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-violet))',
               display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center',
-              fontSize: '24px', fontWeight: 700, color: '#050A14', marginBottom: '12px'
+              fontSize: '24px', fontWeight: 700, color: '#FFFFFF', marginBottom: '12px'
             }}>
               RK
             </div>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 2px' }}>{user.name}</h3>
-            <span style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{user.role}</span>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{user.department}</span>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 2px' }}>{user.name}</h3>
+            <span style={{ fontSize: '10px', color: 'var(--accent-blue)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{user.role}</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>{user.department}</span>
 
             <button
               onClick={handleLogout}
               style={{
                 marginTop: '16px', width: '100%', padding: '8px', borderRadius: '6px', border: 'none',
-                background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', fontSize: '12px', fontWeight: 700,
+                background: 'var(--accent-red-light)', color: 'var(--accent-red)', fontSize: '12px', fontWeight: 700,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
               }}
             >

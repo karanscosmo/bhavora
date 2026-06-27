@@ -212,7 +212,7 @@ export default function CitiesPage() {
   useEffect(() => {
     if (!mapRef.current) return;
     const map = mapRef.current;
-    const styleUrl = activeBasemap === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/dark-v11';
+    const styleUrl = activeBasemap === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/light-v11';
     
     // Changing map style triggers 'load' again, requiring full layer initialization
     setMapLoaded(false);
@@ -376,7 +376,7 @@ export default function CitiesPage() {
 
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: activeBasemap === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/dark-v11',
+        style: activeBasemap === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/light-v11',
         center: [77.5946, 12.9716],
         zoom: 11,
         pitch: 35,

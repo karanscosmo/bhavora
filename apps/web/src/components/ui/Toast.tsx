@@ -23,16 +23,16 @@ export function Toast() {
         <div
           key={toast.id}
           style={{
-            background: '#0A1628',
+            background: 'var(--bg-surface-1)',
             border: `1px solid ${
-              toast.severity === 'critical' ? 'rgba(239,68,68,0.4)' :
-              toast.severity === 'warning' ? 'rgba(245,158,11,0.4)' :
-              toast.severity === 'success' ? 'rgba(16,185,129,0.4)' :
-              'rgba(0,212,255,0.2)'
+              toast.severity === 'critical' ? 'var(--accent-red)' :
+              toast.severity === 'warning' ? 'var(--accent-amber)' :
+              toast.severity === 'success' ? 'var(--accent-teal)' :
+              'var(--accent-blue)'
             }`,
             borderRadius: '8px',
             padding: '12px 16px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
             animation: 'slide-right 0.3s ease-out',
             cursor: 'pointer',
           }}
@@ -45,10 +45,10 @@ export function Toast() {
                toast.severity === 'success' ? '✅' : 'ℹ️'}
             </span>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', marginBottom: '2px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
                 {toast.title}
               </div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                 {toast.message}
               </div>
             </div>

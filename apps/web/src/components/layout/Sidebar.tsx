@@ -52,9 +52,9 @@ export function Sidebar() {
         top: '64px',
         height: 'calc(100vh - 64px)',
         width: collapsed ? '56px' : '224px',
-        background: 'rgba(5,10,20,0.97)',
-        borderRight: '1px solid rgba(255,255,255,0.05)',
-        backdropFilter: 'blur(20px)',
+        background: 'var(--bg-surface-2)',
+        borderRight: '1px solid var(--border-subtle)',
+        backdropFilter: 'none',
         zIndex: 40,
         display: 'flex',
         flexDirection: 'column',
@@ -65,18 +65,18 @@ export function Sidebar() {
       {/* Logo */}
       <div style={{
         padding: '12px',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
         minHeight: '52px',
         overflow: 'hidden',
       }}>
-        <LogoIcon size={28} variant="dark" />
+        <LogoIcon size={28} variant="light" />
         {!collapsed && (
           <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>BHAVORA</div>
-            <div style={{ fontSize: '8px', color: '#00D4FF', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Urban Intelligence OS</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>BHAVORA</div>
+            <div style={{ fontSize: '8px', color: 'var(--accent-blue)', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Urban Intelligence OS</div>
           </div>
         )}
       </div>
@@ -91,7 +91,7 @@ export function Sidebar() {
                 fontWeight: 700,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.2)',
+                color: 'var(--text-muted)',
                 padding: '0 6px',
                 marginBottom: '3px',
               }}>
@@ -114,9 +114,9 @@ export function Sidebar() {
                       borderRadius: '6px',
                       textDecoration: 'none',
                       transition: 'all 120ms ease',
-                      background: isActive ? 'rgba(0,212,255,0.08)' : 'transparent',
-                      borderLeft: isActive ? '2px solid #00D4FF' : '2px solid transparent',
-                      color: isActive ? '#00D4FF' : 'rgba(255,255,255,0.45)',
+                      background: isActive ? 'var(--accent-navy-light)' : 'transparent',
+                      borderLeft: isActive ? '2px solid var(--accent-navy)' : '2px solid transparent',
+                      color: isActive ? 'var(--accent-navy)' : 'var(--text-secondary)',
                       fontWeight: isActive ? 600 : 400,
                       fontSize: '13px',
                       overflow: 'hidden',
@@ -139,24 +139,24 @@ export function Sidebar() {
 
       {/* Simulation CTA */}
       {!collapsed && (
-        <div style={{ padding: '10px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ padding: '10px', borderTop: '1px solid var(--border-subtle)' }}>
           <Link href="/decision-twin" style={{ textDecoration: 'none', display: 'block' }}>
             <div style={{
               padding: '12px',
               borderRadius: '8px',
-              background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.06))',
-              border: '1px solid rgba(0,212,255,0.12)',
+              background: 'var(--accent-navy-light)',
+              border: '1px solid var(--border-subtle)',
             }}>
-              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00D4FF', marginBottom: '3px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent-navy)', marginBottom: '3px' }}>
                 Simulation Engine
               </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.4, marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: '8px' }}>
                 Run urban growth models
               </div>
               <div style={{
                 padding: '5px 10px',
-                background: '#00D4FF',
-                color: '#050A14',
+                background: 'var(--accent-navy)',
+                color: '#FFFFFF',
                 fontSize: '11px',
                 fontWeight: 700,
                 borderRadius: '4px',
@@ -179,9 +179,9 @@ export function Sidebar() {
           width: '22px',
           height: '22px',
           borderRadius: '50%',
-          background: '#0A1628',
-          border: '1px solid rgba(255,255,255,0.1)',
-          color: 'rgba(255,255,255,0.4)',
+          background: 'var(--bg-surface-2)',
+          border: '1px solid var(--border-normal)',
+          color: 'var(--text-secondary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

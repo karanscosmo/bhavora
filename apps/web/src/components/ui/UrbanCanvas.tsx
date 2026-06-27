@@ -39,11 +39,11 @@ export function UrbanCanvas() {
     const particles: Particle[] = Array.from({ length: PARTICLE_COUNT }).map(() => ({
       x: rand() * W,
       y: rand() * H,
-      vx: (rand() - 0.5) * 0.35,
-      vy: (rand() - 0.5) * 0.35,
+      vx: (rand() - 0.5) * 0.3,
+      vy: (rand() - 0.5) * 0.3,
       ox: 0, oy: 0,
       r: rand() * 1.2 + 0.6,
-      opacity: rand() * 0.2 + 0.08,
+      opacity: rand() * 0.03 + 0.05, // 5% to 8% opacity
     }));
 
     // Pulse rings
@@ -88,23 +88,20 @@ export function UrbanCanvas() {
 
       ctx.clearRect(0, 0, W, H);
 
-      // LAYER 1 — Background gradient (static — CSS handles the pulse)
-      // CSS :root animation handles the slow background breathing
-
-      // LAYER 4 — Ambient bloom (two drifting radial gradients)
+      // LAYER 4 — Ambient bloom (very subtle)
       ambX1 = W * 0.3 + Math.sin(ambT * 0.7) * W * 0.25;
       ambY1 = H * 0.4 + Math.cos(ambT * 0.5) * H * 0.3;
       ambX2 = W * 0.7 - Math.sin(ambT * 0.4) * W * 0.25;
       ambY2 = H * 0.6 - Math.cos(ambT * 0.6) * H * 0.3;
 
       const bloom1 = ctx.createRadialGradient(ambX1, ambY1, 0, ambX1, ambY1, 350);
-      bloom1.addColorStop(0, 'rgba(0,212,255,0.025)');
+      bloom1.addColorStop(0, 'rgba(37,99,235,0.03)');
       bloom1.addColorStop(1, 'transparent');
       ctx.fillStyle = bloom1;
       ctx.fillRect(0, 0, W, H);
 
       const bloom2 = ctx.createRadialGradient(ambX2, ambY2, 0, ambX2, ambY2, 300);
-      bloom2.addColorStop(0, 'rgba(124,58,237,0.018)');
+      bloom2.addColorStop(0, 'rgba(124,58,237,0.02)');
       bloom2.addColorStop(1, 'transparent');
       ctx.fillStyle = bloom2;
       ctx.fillRect(0, 0, W, H);
@@ -119,14 +116,14 @@ export function UrbanCanvas() {
         const dy = my - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 200) {
-          const force = (1 - dist / 200) * 0.04;
+          const force = (1 - dist / 200) * 0.03;
           p.vx += dx * force;
           p.vy += dy * force;
         }
 
         // Dampen velocity
-        p.vx *= 0.985;
-        p.vy *= 0.985;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
 
         p.x += p.vx;
         p.y += p.vy;
@@ -140,11 +137,11 @@ export function UrbanCanvas() {
         // Draw particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0,212,255,${p.opacity})`;
+        ctx.fillStyle = `rgba(27,43,75,${p.opacity})`;
         ctx.fill();
       }
 
-      // Draw edges between nearby particles
+      // Draw edges between nearby particles (3% connection lines)
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i];
@@ -153,32 +150,32 @@ export function UrbanCanvas() {
           const dy = a.y - b.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 120) {
-            const alpha = (1 - dist / 120) * 0.07;
+            const alpha = (1 - dist / 120) * 0.03;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `rgba(0,212,255,${alpha})`;
+            ctx.strokeStyle = `rgba(27,43,75,${alpha})`;
             ctx.lineWidth = 0.4;
             ctx.stroke();
           }
         }
       }
 
-      // LAYER 3 — Pulse rings
-      if (ts - lastRingTime > (4000 + rand() * 3000)) {
+      // LAYER 3 — Pulse rings (8% electric blue)
+      if (ts - lastRingTime > (5000 + rand() * 4000)) {
         rings.push({
           x: rand() * W,
           y: rand() * H,
           radius: 0,
-          opacity: 0.35,
+          opacity: 0.08,
         });
         lastRingTime = ts;
       }
 
       for (let i = rings.length - 1; i >= 0; i--) {
         const ring = rings[i];
-        ring.radius += 1.2;
-        ring.opacity -= 0.0035;
+        ring.radius += 1.0;
+        ring.opacity -= 0.0006;
 
         if (ring.opacity <= 0) {
           rings.splice(i, 1);
@@ -187,17 +184,17 @@ export function UrbanCanvas() {
 
         ctx.beginPath();
         ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0,212,255,${ring.opacity})`;
+        ctx.strokeStyle = `rgba(37,99,235,${ring.opacity})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       }
 
-      // LAYER 5 — Scanline (barely perceptible)
-      const scanY = ((ts % 8000) / 8000) * H;
+      // LAYER 5 — Scanline
+      const scanY = ((ts % 9000) / 9000) * H;
       ctx.beginPath();
       ctx.moveTo(0, scanY);
       ctx.lineTo(W, scanY);
-      ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+      ctx.strokeStyle = 'rgba(27,43,75,0.015)';
       ctx.lineWidth = 1;
       ctx.stroke();
 

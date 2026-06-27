@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogoDark } from '@/components/ui/Logo';
+import { LogoLight } from '@/components/ui/Logo';
 import { useAppStore, useCityDataStore, useSimulationStore } from '@/stores';
 
 const SEARCH_ITEMS = [
@@ -83,9 +83,9 @@ export function TopNav() {
       right: 0,
       height: '64px',
       zIndex: 50,
-      background: 'rgba(5,10,20,0.93)',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
-      backdropFilter: 'blur(24px)',
+      background: '#FFFFFF',
+      borderBottom: '1px solid var(--border-subtle)',
+      backdropFilter: 'none',
       display: 'flex',
       alignItems: 'stretch',
     }}>
@@ -96,10 +96,10 @@ export function TopNav() {
         display: 'flex',
         alignItems: 'center',
         paddingLeft: '16px',
-        borderRight: '1px solid rgba(255,255,255,0.05)',
+        borderRight: '1px solid var(--border-subtle)',
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <LogoDark size={24} />
+          <LogoLight size={24} />
         </Link>
       </div>
 
@@ -112,18 +112,18 @@ export function TopNav() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{
               width: '6px', height: '6px', borderRadius: '50%',
-              background: '#10B981',
-              boxShadow: '0 0 6px rgba(16,185,129,0.6)',
+              background: 'var(--accent-teal)',
+              boxShadow: '0 0 6px var(--accent-teal)',
               display: 'inline-block',
               animation: 'live-pulse 2s ease-in-out infinite',
             }} />
-            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10B981' }}>Live</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginLeft: '4px' }}>{currentTime}</span>
+            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent-teal)' }}>Live</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-muted)', marginLeft: '4px' }}>{currentTime}</span>
           </div>
 
           {/* City Health Score */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>City Health</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>City Health</span>
             <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: 700, color: healthColor }}>{cityHealth}/100</span>
           </div>
 
@@ -135,14 +135,14 @@ export function TopNav() {
               { label: 'Grid', value: cityData.metrics.gridLoad.toFixed(1), unit: 'GW' },
             ].map(m => (
               <div key={m.label} style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{m.label}</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: '#00D4FF' }}>{m.value}{m.unit}</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{m.label}</span>
+                <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: 'var(--accent-blue)' }}>{m.value}{m.unit}</span>
               </div>
             ))}
           </div>
 
           {/* Updated X ago */}
-          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
             Updated {lastUpdatedSecs}s ago
           </span>
         </div>
@@ -151,12 +151,12 @@ export function TopNav() {
         <div style={{ position: 'relative', flexShrink: 0, width: '280px' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '7px 12px',
           }}>
-            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>⌕</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>⌕</span>
             <input
               value={searchQ}
               onChange={e => { setSearchQ(e.target.value); setShowSearch(true); }}
@@ -165,16 +165,16 @@ export function TopNav() {
               placeholder="Search pages, districts..."
               style={{
                 background: 'transparent', border: 'none', outline: 'none',
-                color: 'rgba(255,255,255,0.85)', fontSize: '12px', width: '100%',
+                color: 'var(--text-primary)', fontSize: '12px', width: '100%',
               }}
             />
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.04em', flexShrink: 0 }}>⌘K</span>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.04em', flexShrink: 0 }}>⌘K</span>
           </div>
           {showSearch && filteredSearch.length > 0 && (
             <div style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-              background: '#0A1628', border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.5)', zIndex: 100,
+              background: 'var(--bg-surface-1)', border: '1px solid var(--border-subtle)',
+              borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(15,23,42,0.08)', zIndex: 100,
             }}>
               {filteredSearch.map((item, i) => (
                 <div
@@ -182,14 +182,14 @@ export function TopNav() {
                   onClick={() => { setSearchQ(''); setShowSearch(false); router.push(item.path); }}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '9px 12px', cursor: 'pointer', fontSize: '12px', color: 'rgba(255,255,255,0.8)',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    padding: '9px 12px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-primary)',
+                    borderBottom: '1px solid var(--border-subtle)',
                     transition: 'background 100ms',
                   }}
-                  className="hover:bg-[rgba(0,212,255,0.05)]"
+                  className="hover:bg-[var(--bg-surface-3)]"
                 >
                   <span>{item.name}</span>
-                  <span style={{ fontSize: '9px', color: '#00D4FF', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{item.type}</span>
+                  <span style={{ fontSize: '9px', color: 'var(--accent-blue)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{item.type}</span>
                 </div>
               ))}
             </div>
@@ -205,8 +205,8 @@ export function TopNav() {
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '5px 10px', borderRadius: '20px',
-                background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)',
-                color: '#F59E0B', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                background: 'var(--accent-amber-light)', border: '1px solid var(--border-normal)',
+                color: 'var(--accent-amber)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
               }}
             >
               ⚠ {alertCount} Alerts
@@ -219,7 +219,7 @@ export function TopNav() {
               onClick={() => setShowNotif(v => !v)}
               style={{
                 padding: '8px', borderRadius: '6px', background: 'transparent',
-                border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
+                border: 'none', cursor: 'pointer', color: 'var(--text-secondary)',
                 fontSize: '16px', transition: 'all 150ms', position: 'relative',
               }}
             >
@@ -228,22 +228,22 @@ export function TopNav() {
                 <span style={{
                   position: 'absolute', top: '4px', right: '4px',
                   width: '14px', height: '14px', borderRadius: '50%',
-                  background: '#EF4444', color: '#fff', fontSize: '8px',
+                  background: 'var(--accent-red)', color: '#fff', fontSize: '8px',
                   fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '2px solid #050A14',
+                  border: '2px solid var(--bg-surface-1)',
                 }}>{alertCount}</span>
               )}
             </button>
             {showNotif && (
               <div style={{
                 position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-                width: '340px', background: '#0A1628',
-                border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px',
-                overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.5)', zIndex: 100,
+                width: '340px', background: 'var(--bg-surface-1)',
+                border: '1px solid var(--border-subtle)', borderRadius: '10px',
+                overflow: 'hidden', boxShadow: '0 8px 32px rgba(15,23,42,0.08)', zIndex: 100,
               }}>
-                <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>Alerts</span>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>City Intelligence</span>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Alerts</span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>City Intelligence</span>
                 </div>
                 {notifications.slice(0, 5).map(n => (
                   <div
@@ -251,17 +251,17 @@ export function TopNav() {
                     onClick={() => { markRead(n.id); setShowNotif(false); if (n.path) router.push(n.path); }}
                     style={{
                       padding: '11px 16px', cursor: 'pointer',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      borderBottom: '1px solid var(--border-subtle)',
                       display: 'flex', gap: '10px', alignItems: 'flex-start',
-                      background: !n.read ? 'rgba(0,212,255,0.02)' : 'transparent',
+                      background: !n.read ? 'var(--bg-surface-3)' : 'transparent',
                     }}
                   >
                     <span style={{ fontSize: '14px', flexShrink: 0 }}>
                       {n.severity === 'critical' ? '🔴' : n.severity === 'warning' ? '🟡' : n.severity === 'success' ? '✅' : '🔵'}
                     </span>
                     <div>
-                      <div style={{ fontSize: '12px', fontWeight: n.read ? 400 : 600, color: n.read ? 'rgba(255,255,255,0.5)' : '#fff' }}>{n.title}</div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{n.message}</div>
+                      <div style={{ fontSize: '12px', fontWeight: n.read ? 400 : 600, color: n.read ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{n.title}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{n.message}</div>
                     </div>
                   </div>
                 ))}
@@ -275,10 +275,10 @@ export function TopNav() {
               onClick={() => setShowProfile(v => !v)}
               style={{
                 width: '34px', height: '34px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, #00D4FF, #7C3AED)',
+                background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-violet))',
                 border: 'none', cursor: 'pointer', display: 'flex',
                 alignItems: 'center', justifyContent: 'center',
-                fontSize: '13px', fontWeight: 700, color: '#050A14',
+                fontSize: '13px', fontWeight: 700, color: '#FFFFFF',
               }}
               aria-label="Profile menu"
             >
@@ -287,14 +287,14 @@ export function TopNav() {
             {showProfile && (
               <div style={{
                 position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-                width: '200px', background: '#0A1628',
-                border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px',
-                overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.5)', zIndex: 100,
+                width: '200px', background: 'var(--bg-surface-1)',
+                border: '1px solid var(--border-subtle)', borderRadius: '10px',
+                overflow: 'hidden', boxShadow: '0 8px 32px rgba(15,23,42,0.08)', zIndex: 100,
               }}>
-                <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>Rajesh Kumar</div>
-                  <div style={{ fontSize: '11px', color: '#00D4FF', fontWeight: 500 }}>City Administrator</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>BBMP · Admin Role</div>
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Rajesh Kumar</div>
+                  <div style={{ fontSize: '11px', color: 'var(--accent-blue)', fontWeight: 500 }}>City Administrator</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>BBMP · Admin Role</div>
                 </div>
                 {[
                   { label: 'Profile Center', path: '/profile' },
@@ -308,10 +308,10 @@ export function TopNav() {
                     onClick={() => setShowProfile(false)}
                     style={{
                       display: 'block', padding: '10px 16px', fontSize: '13px',
-                      color: 'rgba(255,255,255,0.6)', textDecoration: 'none',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'all 120ms',
+                      color: 'var(--text-secondary)', textDecoration: 'none',
+                      borderBottom: '1px solid var(--border-subtle)', transition: 'all 120ms',
                     }}
-                    className="hover:bg-[rgba(255,255,255,0.04)] hover:text-white"
+                    className="hover:bg-[var(--bg-surface-3)] hover:text-[var(--text-primary)]"
                   >
                     {item.label}
                   </Link>
@@ -320,7 +320,7 @@ export function TopNav() {
                   onClick={() => router.push('/auth')}
                   style={{
                     display: 'block', width: '100%', padding: '10px 16px',
-                    fontSize: '13px', color: '#EF4444', textAlign: 'left',
+                    fontSize: '13px', color: 'var(--accent-red)', textAlign: 'left',
                     background: 'transparent', border: 'none', cursor: 'pointer',
                   }}
                   className="hover:bg-[rgba(239,68,68,0.06)]"
