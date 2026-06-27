@@ -180,9 +180,11 @@ interface SimulationState {
   activeYear: number;
   isComputing: boolean;
   activeScenarioName: string | null;
+  activeTrafficRule: string | null;
   setPolicy: (policy: Partial<PolicyInput>) => void;
   setYear: (year: number) => void;
   setActiveScenario: (name: string | null) => void;
+  setActiveTrafficRule: (ruleId: string | null) => void;
   recompute: () => void;
 }
 
@@ -197,6 +199,7 @@ export const useSimulationStore = create<SimulationState>()((set, get) => ({
   activeYear: 2025,
   isComputing: false,
   activeScenarioName: null,
+  activeTrafficRule: null,
 
   setPolicy: (patch) => {
     const newPolicy = { ...get().activePolicy, ...patch };
@@ -211,6 +214,7 @@ export const useSimulationStore = create<SimulationState>()((set, get) => ({
 
   setYear: (year) => set({ activeYear: year }),
   setActiveScenario: (name) => set({ activeScenarioName: name }),
+  setActiveTrafficRule: (ruleId) => set({ activeTrafficRule: ruleId }),
   recompute: () => {
     const results = computeSimulation(get().activePolicy);
     const timeline = projectTimeline(get().activePolicy);

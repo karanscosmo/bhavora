@@ -57,6 +57,15 @@ export interface BlindSpot {
   probability: number;
 }
 
+export interface DistrictImpact {
+  id: string;
+  name: string;
+  impactScore: number;
+  growthScore: number;
+  riskScore: number;
+  investmentPriority: 'High' | 'Medium' | 'Low';
+}
+
 export interface SimulationResult {
   traffic: MetricResult & { unit: '%congestion' };
   co2: MetricResult & { unit: 'ktCO2/yr' };
@@ -68,6 +77,7 @@ export interface SimulationResult {
   cityHealth: MetricResult & { unit: '/100' };
   cascadingEffects: CascadeNode[];
   blindSpots: BlindSpot[];
+  districts: DistrictImpact[];
   confidence: number;
   computedAt: Date;
   methodology: string[];
@@ -457,7 +467,7 @@ export function computeCityHealth(
 
 export function buildCascadeTree(
   policy: PolicyInput,
-  results: Omit<SimulationResult, 'cascadingEffects' | 'blindSpots' | 'computedAt' | 'methodology' | 'confidence'>
+  results: Omit<SimulationResult, 'cascadingEffects' | 'blindSpots' | 'districts' | 'computedAt' | 'methodology' | 'confidence'>
 ): CascadeNode[] {
   const nodes: CascadeNode[] = [];
 
@@ -642,6 +652,54 @@ export function computeBlindSpots(policy: PolicyInput, partial: any): BlindSpot[
   return spots;
 }
 
+export function computeDistricts(policy: PolicyInput): DistrictImpact[] {
+  const districts = [
+    { id: 'whitefield', name: 'Whitefield', baseGrowth: 60, baseRisk: 40 },
+    { id: 'ecity', name: 'Electronic City', baseGrowth: 55, baseRisk: 30 },
+    { id: 'bellandur', name: 'Bellandur', baseGrowth: 70, baseRisk: 65 }, // High flood/traffic risk
+    { id: 'koramangala', name: 'Koramangala', baseGrowth: 40, baseRisk: 25 },
+    { id: 'hebbal', name: 'Hebbal', baseGrowth: 65, baseRisk: 35 },
+    { id: 'yelahanka', name: 'Yelahanka', baseGrowth: 50, baseRisk: 20 },
+    { id: 'rajajinagar', name: 'Rajajinagar', baseGrowth: 30, baseRisk: 15 },
+    { id: 'indiranagar', name: 'Indiranagar', baseGrowth: 35, baseRisk: 20 },
+    { id: 'jayanagar', name: 'Jayanagar', baseGrowth: 25, baseRisk: 10 },
+  ];
+
+  return districts.map(d => {
+    // Modify based on policy (e.g. Metro heavily impacts IT corridors like Whitefield/ECity)
+    let impactScore = 50;
+    let growthScore = d.baseGrowth;
+    let riskScore = d.baseRisk;
+
+    if (d.id === 'whitefield' || d.id === 'ecity' || d.id === 'bellandur') {
+      impactScore += policy.metroExpansion * 0.4;
+      growthScore += policy.industrialZoning * 0.3;
+      riskScore += policy.roadCapacity > 60 ? -10 : (policy.industrialZoning > 50 ? 15 : 0);
+    }
+
+    if (d.id === 'bellandur') {
+      riskScore -= policy.waterInfrastructure * 0.4; // Better infrastructure reduces flood risk
+    }
+
+    impactScore = Math.min(100, Math.max(0, impactScore));
+    growthScore = Math.min(100, Math.max(0, growthScore));
+    riskScore = Math.min(100, Math.max(0, riskScore));
+
+    let priority: 'High' | 'Medium' | 'Low' = 'Low';
+    if (riskScore > 60 || growthScore > 80) priority = 'High';
+    else if (riskScore > 40 || growthScore > 60) priority = 'Medium';
+
+    return {
+      id: d.id,
+      name: d.name,
+      impactScore: Math.round(impactScore),
+      growthScore: Math.round(growthScore),
+      riskScore: Math.round(riskScore),
+      investmentPriority: priority,
+    };
+  });
+}
+
 // =====================================================================
 // MAIN POLICY IMPACT CALCULATOR
 // =====================================================================
@@ -659,6 +717,7 @@ export function computeSimulation(policy: PolicyInput): SimulationResult {
   const partial = { traffic, co2, energy, water, gdp, aqi, modalSplit, cityHealth };
   const cascadingEffects = buildCascadeTree(policy, partial);
   const blindSpots = computeBlindSpots(policy, partial);
+  const districts = computeDistricts(policy);
 
   // Aggregate confidence
   const avg_confidence = [
@@ -670,6 +729,7 @@ export function computeSimulation(policy: PolicyInput): SimulationResult {
     ...partial,
     cascadingEffects,
     blindSpots,
+    districts,
     confidence: parseFloat(avg_confidence.toFixed(2)),
     computedAt: new Date(),
     methodology: [

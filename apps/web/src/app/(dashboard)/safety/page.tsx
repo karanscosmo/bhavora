@@ -5,11 +5,60 @@ import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ShieldAlert, Activity, AlertTriangle, Car, Siren } from 'lucide-react';
 import { TrafficRuleSimulator } from '@/components/safety/TrafficRuleSimulator';
+import { useSimulationStore } from '@/stores';
 
 export default function SafetyIntelligencePage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const { activeTrafficRule } = useSimulationStore();
+
+  function generateMockAccidents(ruleId: string | null) {
+    const features = [];
+    const center = [77.5946, 12.9716];
+    
+    // Seed deterministic accident points around major corridors (ORR, Silk Board, etc)
+    let s = 42;
+    const random = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+    
+    for (let i = 0; i < 400; i++) {
+      const radius = 0.12 * Math.sqrt(random());
+      const theta = 2.0 * Math.PI * random();
+      
+      // Cluster heavily on certain angles (corridors)
+      const angOffset = (Math.floor(random() * 4) * Math.PI) / 2;
+      const lng = center[0] + radius * Math.cos(theta + angOffset);
+      const lat = center[1] + radius * Math.sin(theta + angOffset) * 0.8;
+      
+      let baseSeverity = 0.2 + random() * 0.8; // 0.2 to 1.0 severity
+      
+      // Rule reductions
+      if (ruleId === 'school-zones' && radius < 0.05) baseSeverity *= 0.3; // Near center (schools)
+      else if (ruleId === 'odd-even') baseSeverity *= 0.6; // City wide reduction
+      else if (ruleId === 'truck-ban' && (i % 3 === 0)) baseSeverity *= 0.2; // Heavy vehicle subset
+      else if (ruleId === 'congestion-pricing' && radius < 0.06) baseSeverity *= 0.4; // CBD subset
+
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+        properties: { severity: baseSeverity }
+      });
+    }
+    return { type: 'FeatureCollection', features } as any;
+  }
+
+  function generateDistricts() {
+    return {
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', properties: { name: 'Whitefield', mobility: 42, walkability: 35 }, geometry: { type: 'Point', coordinates: [77.7499, 12.9698] } },
+        { type: 'Feature', properties: { name: 'Electronic City', mobility: 55, walkability: 45 }, geometry: { type: 'Point', coordinates: [77.6688, 12.8452] } },
+        { type: 'Feature', properties: { name: 'Koramangala', mobility: 78, walkability: 82 }, geometry: { type: 'Point', coordinates: [77.6208, 12.9352] } },
+        { type: 'Feature', properties: { name: 'Indiranagar', mobility: 85, walkability: 88 }, geometry: { type: 'Point', coordinates: [77.6389, 12.9719] } },
+        { type: 'Feature', properties: { name: 'Hebbal', mobility: 62, walkability: 50 }, geometry: { type: 'Point', coordinates: [77.5919, 13.0354] } }
+      ]
+    } as any;
+  }
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -33,7 +82,7 @@ export default function SafetyIntelligencePage() {
         // Add seeded accident clusters
         map.current.addSource('accident-clusters', {
           type: 'geojson',
-          data: generateMockAccidents()
+          data: generateMockAccidents(activeTrafficRule)
         });
 
         map.current.addLayer({
@@ -54,6 +103,57 @@ export default function SafetyIntelligencePage() {
             'heatmap-opacity': 0.8
           }
         });
+
+        // Add Mobility Scores
+        map.current.addSource('mobility-scores', {
+          type: 'geojson',
+          data: generateDistricts()
+        });
+
+        map.current.addLayer({
+          id: 'mobility-circles',
+          type: 'circle',
+          source: 'mobility-scores',
+          paint: {
+            'circle-radius': 40,
+            'circle-color': [
+              'interpolate', ['linear'], ['get', 'mobility'],
+              0, '#ef4444',
+              50, '#f59e0b',
+              100, '#10b981'
+            ],
+            'circle-opacity': 0.2,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': [
+              'interpolate', ['linear'], ['get', 'mobility'],
+              0, '#ef4444',
+              50, '#f59e0b',
+              100, '#10b981'
+            ],
+          }
+        });
+
+        map.current.addLayer({
+          id: 'mobility-labels',
+          type: 'symbol',
+          source: 'mobility-scores',
+          layout: {
+            'text-field': [
+              'format',
+              ['get', 'name'], { 'font-scale': 0.8, 'text-color': '#fff' },
+              '\n', {},
+              ['get', 'mobility'], { 'font-scale': 1.2, 'text-color': '#fff' },
+              '/100', { 'font-scale': 0.8, 'text-color': '#aaa' }
+            ],
+            'text-size': 12,
+            'text-justify': 'center'
+          },
+          paint: {
+            'text-color': '#ffffff',
+            'text-halo-color': '#000000',
+            'text-halo-width': 1
+          }
+        });
         
         setMapLoaded(true);
       });
@@ -63,33 +163,15 @@ export default function SafetyIntelligencePage() {
       isActive = false;
       map.current?.remove();
     };
-  }, []);
+  }, []); // Initialize only once
 
-  function generateMockAccidents() {
-    const features = [];
-    const center = [77.5946, 12.9716];
-    
-    // Seed deterministic accident points around major corridors (ORR, Silk Board, etc)
-    let s = 42;
-    const random = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-    
-    for (let i = 0; i < 400; i++) {
-      const radius = 0.12 * Math.sqrt(random());
-      const theta = 2.0 * Math.PI * random();
-      
-      // Cluster heavily on certain angles (corridors)
-      const angOffset = (Math.floor(random() * 4) * Math.PI) / 2;
-      const lng = center[0] + radius * Math.cos(theta + angOffset);
-      const lat = center[1] + radius * Math.sin(theta + angOffset) * 0.8;
-      
-      features.push({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [lng, lat] },
-        properties: { severity: 0.2 + random() * 0.8 } // 0.2 to 1.0 severity
-      });
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    const source = map.current.getSource('accident-clusters') as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(generateMockAccidents(activeTrafficRule));
     }
-    return { type: 'FeatureCollection', features } as any;
-  }
+  }, [activeTrafficRule, mapLoaded]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[var(--bg-base)]">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Play, TrendingDown, TrendingUp, AlertCircle, Ban, Clock, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useSimulationStore } from '@/stores';
 
 const RULES = [
   { id: 'odd-even', name: 'Odd-Even Scheme', icon: <Car size={16}/>, description: 'Alternate day driving based on license plate.' },
@@ -10,12 +11,12 @@ const RULES = [
 ];
 
 export function TrafficRuleSimulator() {
-  const [activeRule, setActiveRule] = useState<string | null>(null);
+  const { activeTrafficRule, setActiveTrafficRule } = useSimulationStore();
   const [isSimulating, setIsSimulating] = useState(false);
   const [results, setResults] = useState<any>(null);
 
   const handleSimulate = (ruleId: string) => {
-    setActiveRule(ruleId);
+    setActiveTrafficRule(ruleId);
     setIsSimulating(true);
     setResults(null);
 
@@ -45,21 +46,27 @@ export function TrafficRuleSimulator() {
             key={rule.id}
             onClick={() => !isSimulating && handleSimulate(rule.id)}
             className={`p-4 border rounded-xl cursor-pointer transition-all ${
-              activeRule === rule.id 
+              activeTrafficRule === rule.id 
                 ? 'bg-[#2563EB]/10 border-[#2563EB] shadow-[0_0_15px_rgba(37,99,235,0.1)]' 
                 : 'bg-white border-[var(--border-subtle)] hover:border-[#2563EB]/50'
             }`}
           >
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-2 font-bold text-sm text-[var(--text-primary)]">
-                <div className={`p-1.5 rounded-lg ${activeRule === rule.id ? 'bg-[#2563EB] text-white' : 'bg-[var(--bg-surface-2)] text-[var(--text-secondary)]'}`}>
+                <div className={`p-1.5 rounded-lg ${activeTrafficRule === rule.id ? 'bg-[#2563EB] text-white' : 'bg-[var(--bg-surface-2)] text-[var(--text-secondary)]'}`}>
                   {rule.icon}
                 </div>
-                {rule.name}
+                <div>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)]">{rule.name}</h4>
+                  <p className="text-xs text-[var(--text-secondary)]">{rule.description}</p>
+                </div>
               </div>
-              {activeRule === rule.id && isSimulating && (
-                <div className="flex items-center gap-1 text-[10px] text-[#2563EB] font-bold animate-pulse">
-                  <Play size={10} /> SIMULATING...
+              
+              {activeTrafficRule === rule.id && isSimulating && (
+                <div className="mt-3 flex items-center justify-center py-2 bg-[var(--slate-100)] rounded text-[10px] text-[var(--slate-500)] font-bold tracking-widest uppercase">
+                  <span className="animate-pulse flex items-center gap-2">
+                    <Play size={10} /> Simulating AI Impacts...
+                  </span>
                 </div>
               )}
             </div>
