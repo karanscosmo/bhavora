@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/ui/Logo';
 import { BrandHeader } from '@/components/ui/BrandHeader';
-import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play, LogOut } from 'lucide-react';
+import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play, LogOut, ShieldAlert } from 'lucide-react';
 
 const NAV_GROUPS = [
   {
@@ -20,6 +20,7 @@ const NAV_GROUPS = [
     label: 'Intelligence',
     items: [
       { name: 'Decision Twin', path: '/decision-twin', icon: Cpu },
+      { name: 'Safety Intelligence', path: '/safety', icon: ShieldAlert },
       { name: 'Simulation Results', path: '/simulation-results', icon: TrendingUp },
       { name: 'Impact Analysis', path: '/impact', icon: Hexagon },
       { name: 'AI Insights', path: '/insights', icon: Brain },
