@@ -49,6 +49,14 @@ export interface MetricResult {
   trend: 'up' | 'down' | 'stable';
 }
 
+export interface BlindSpot {
+  id: string;
+  title: string;
+  description: string;
+  metrics: { label: string; value: string; isNegative: boolean }[];
+  probability: number;
+}
+
 export interface SimulationResult {
   traffic: MetricResult & { unit: '%congestion' };
   co2: MetricResult & { unit: 'ktCO2/yr' };
@@ -59,6 +67,7 @@ export interface SimulationResult {
   modalSplit: MetricResult & { unit: '%transit' };
   cityHealth: MetricResult & { unit: '/100' };
   cascadingEffects: CascadeNode[];
+  blindSpots: BlindSpot[];
   confidence: number;
   computedAt: Date;
   methodology: string[];
@@ -448,7 +457,7 @@ export function computeCityHealth(
 
 export function buildCascadeTree(
   policy: PolicyInput,
-  results: Omit<SimulationResult, 'cascadingEffects' | 'computedAt' | 'methodology' | 'confidence'>
+  results: Omit<SimulationResult, 'cascadingEffects' | 'blindSpots' | 'computedAt' | 'methodology' | 'confidence'>
 ): CascadeNode[] {
   const nodes: CascadeNode[] = [];
 
@@ -582,6 +591,57 @@ export function buildCascadeTree(
   return nodes;
 }
 
+export function computeBlindSpots(policy: PolicyInput, partial: any): BlindSpot[] {
+  const spots: BlindSpot[] = [];
+
+  // Example 1: High Metro Expansion causes migration and water stress
+  if (policy.metroExpansion > 40) {
+    const popInflux = Math.round(policy.metroExpansion * 8000);
+    const waterDemand = Math.round(policy.metroExpansion * 3.5);
+    spots.push({
+      id: 'bs-metro-migration',
+      title: 'Population Migration & Resource Stress',
+      description: 'Rapid transit expansion creates new economic corridors, driving localized population density far beyond current zoning estimates.',
+      probability: 0.82,
+      metrics: [
+        { label: 'Population growth expected', value: `+${popInflux.toLocaleString()} residents`, isNegative: true },
+        { label: 'Water demand increase', value: `+${waterDemand} MLD`, isNegative: true },
+        { label: 'Hospital capacity stress', value: `+${Math.round(policy.metroExpansion * 0.25)}%`, isNegative: true }
+      ]
+    });
+  }
+
+  // Example 2: High Industrial Zoning causes grid overload
+  if (policy.industrialZoning > 60) {
+    spots.push({
+      id: 'bs-industrial-grid',
+      title: 'Substation Overload & Power Cascades',
+      description: 'Aggressive industrial zoning without matching grid reinforcement creates severe vulnerabilities in local substations.',
+      probability: 0.78,
+      metrics: [
+        { label: 'Substation overload risk', value: '78%', isNegative: true },
+        { label: 'Voltage instability events', value: '+4 per month', isNegative: true }
+      ]
+    });
+  }
+
+  // Example 3: High Road Capacity induces demand
+  if (policy.roadCapacity > 50) {
+    spots.push({
+      id: 'bs-induced-demand',
+      title: 'Induced Traffic Demand',
+      description: 'Widening roads temporarily relieves congestion, but encourages higher private vehicle usage which fills the new capacity within 3 years.',
+      probability: 0.94,
+      metrics: [
+        { label: 'Private vehicle ownership', value: '+8%', isNegative: true },
+        { label: 'Long-term congestion', value: 'Returns to baseline by 2028', isNegative: true }
+      ]
+    });
+  }
+
+  return spots;
+}
+
 // =====================================================================
 // MAIN POLICY IMPACT CALCULATOR
 // =====================================================================
@@ -598,6 +658,7 @@ export function computeSimulation(policy: PolicyInput): SimulationResult {
 
   const partial = { traffic, co2, energy, water, gdp, aqi, modalSplit, cityHealth };
   const cascadingEffects = buildCascadeTree(policy, partial);
+  const blindSpots = computeBlindSpots(policy, partial);
 
   // Aggregate confidence
   const avg_confidence = [
@@ -608,6 +669,7 @@ export function computeSimulation(policy: PolicyInput): SimulationResult {
   return {
     ...partial,
     cascadingEffects,
+    blindSpots,
     confidence: parseFloat(avg_confidence.toFixed(2)),
     computedAt: new Date(),
     methodology: [

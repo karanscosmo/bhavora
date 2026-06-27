@@ -7,7 +7,8 @@ import { useSimulationStore } from '@/stores';
 import { Train, Zap, Route, Sun, Droplet, Leaf, Factory, HelpCircle, Activity, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-
+import { BlindSpotAlert } from '@/components/ui/BlindSpotAlert';
+import { ConsequenceTree } from '@/components/ui/ConsequenceTree';
 
 
 const SLIDER_ICON_MAP: Record<string, React.ReactNode> = {
@@ -209,34 +210,27 @@ export default function DecisionTwinPage() {
         </div>
       </div>
 
-      {/* RIGHT: Predicted Outcomes */}
-      <div className="w-[380px] flex-shrink-0 bg-white border-l border-[var(--border-subtle)] flex flex-col z-10 shadow-lg">
+      {/* RIGHT: Predicted Outcomes & Consequences */}
+      <div className="w-[420px] flex-shrink-0 bg-[var(--bg-base)] border-l border-[var(--border-subtle)] flex flex-col z-10 shadow-lg overflow-hidden">
         <div className="p-6 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-2)]">
-          <h2 className="text-lg font-bold text-[var(--text-primary)] mb-1">Predicted Outcomes</h2>
-          <p className="text-xs text-[var(--text-secondary)]">Horizon: 2030</p>
+          <h2 className="text-lg font-bold text-[var(--text-primary)] mb-1">Urban Consequence Engine</h2>
+          <p className="text-xs text-[var(--text-secondary)]">Primary, Secondary & Tertiary Forecasts</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="card p-4 bg-[var(--bg-surface-2)] border-none">
-              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-1">Budget</span>
-              <span className="text-lg font-bold text-[var(--text-primary)]">₹{(pseudoCapex / 100).toFixed(1)}k Cr</span>
-            </div>
-            <div className="card p-4 bg-[var(--bg-surface-2)] border-none">
-              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-1">OpEx Savings</span>
-              <span className="text-lg font-bold text-[#10B981]">₹{(pseudoOpex / 10).toFixed(1)}k Cr</span>
-            </div>
-          </div>
+          <BlindSpotAlert blindSpots={results.blindSpots} />
 
-          <div>
-            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3 block">Impact Variance (%)</h3>
+          <ConsequenceTree nodes={results.cascadingEffects} />
+
+          <div className="pt-6 border-t border-[var(--border-subtle)]">
+            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4 block">Systemic Variance Overview</h3>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={80} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border-subtle)' }} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-1)', color: 'var(--text-primary)' }} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -246,25 +240,6 @@ export default function DecisionTwinPage() {
               </ResponsiveContainer>
             </div>
           </div>
-
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3 block">Key Indicators</h3>
-            <div className="flex justify-between items-center p-3 border border-[var(--border-subtle)] rounded-lg">
-              <span className="text-sm font-semibold text-[var(--text-primary)]">Air Quality</span>
-              <div className="flex items-center gap-2">
-                {results.aqi.delta < 0 ? <TrendingDown size={14} className="text-[#10B981]" /> : <TrendingUp size={14} className="text-[#EF4444]" />}
-                <span className={`text-sm font-bold ${results.aqi.delta < 0 ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>{results.aqi.delta > 0 ? '+' : ''}{results.aqi.delta.toFixed(1)}%</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center p-3 border border-[var(--border-subtle)] rounded-lg">
-              <span className="text-sm font-semibold text-[var(--text-primary)]">Job Creation</span>
-              <div className="flex items-center gap-2">
-                <TrendingUp size={14} className="text-[#10B981]" />
-                <span className="text-sm font-bold text-[#10B981]">+{(results.gdp.delta * 12).toFixed(1)}k</span>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         <div className="p-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-2)]">
