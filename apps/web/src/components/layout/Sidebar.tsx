@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogoIcon } from '@/components/ui/Logo';
 import { BrandHeader } from '@/components/ui/BrandHeader';
-import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Map, AlertTriangle, Cpu, TrendingUp, Hexagon, Brain, BarChart3, FileText, FolderSync, Info, Settings, Play, LogOut, ShieldAlert, Activity } from 'lucide-react';
 
 const NAV_GROUPS = [
   {
     label: 'Operations',
     items: [
-      { name: 'Command Center', path: '/overview', icon: LayoutDashboard },
+      { name: 'Mayor Mode', path: '/mayor', icon: LayoutDashboard },
+      { name: 'Command Center', path: '/overview', icon: Activity },
       { name: 'City Twin GIS', path: '/cities', icon: Map },
       { name: 'Disaster Response', path: '/disaster', icon: AlertTriangle },
     ],
@@ -31,7 +32,7 @@ const NAV_GROUPS = [
     items: [
       { name: 'Analytics Suite', path: '/analytics', icon: BarChart3 },
       { name: 'Reports', path: '/reports', icon: FileText },
-      { name: 'Scenario Vault', path: '/scenarios', icon: FolderSync },
+      { name: 'Policy War Room', path: '/war-room', icon: FolderSync },
     ],
   },
   {

@@ -7,7 +7,7 @@ import { useScenarioStore, useSimulationStore, useAppStore } from '@/stores';
 import { exportToCSV } from '@/lib/exportUtils';
 import {
   GitCommit, GitBranch, GitMerge, FileArchive, Search, Plus, Filter, Play, CheckCircle2,
-  Trash2, Archive, Download, Clock, User, ChevronRight, Activity, Zap, Droplets, BookOpen
+  Trash2, Archive, Download, Clock, User, ChevronRight, Activity, Zap, Droplets, BookOpen, FolderSync
 } from 'lucide-react';
 import type { Scenario } from '@/stores';
 
@@ -123,9 +123,11 @@ export default function ScenariosPage() {
               <span className="text-[var(--slate-400)]">/</span> 
               <span>scenarios</span>
             </div>
-            <h1 className="text-lg font-bold text-[var(--slate-900)] flex items-center gap-2">
-              <GitCommit size={18} className="text-[var(--slate-400)]" /> Commit History
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2">
+              <FolderSync size={24} className="text-[#2563EB]" />
+              Policy War Room
             </h1>
+            <p className="text-sm text-[var(--text-secondary)]">Compare A/B strategies and evaluate trade-offs before implementation.</p>
           </div>
 
           <div className="flex items-center gap-3">
