@@ -9,7 +9,17 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid,
 } from 'recharts';
-import { Sliders, RefreshCcw, Save, FolderOpen, Play, CheckCircle2, AlertTriangle, HelpCircle, ChevronRight, ChevronDown } from 'lucide-react';
+import { Sliders, RefreshCcw, Save, FolderOpen, Play, CheckCircle2, AlertTriangle, HelpCircle, ChevronRight, ChevronDown, Train, Zap, Route, Sun, Droplet, Leaf, Factory } from 'lucide-react';
+
+const SLIDER_ICON_MAP: Record<string, React.ReactNode> = {
+  train: <Train size={18} />,
+  zap: <Zap size={18} />,
+  route: <Route size={18} />,
+  sun: <Sun size={18} />,
+  droplet: <Droplet size={18} />,
+  leaf: <Leaf size={18} />,
+  factory: <Factory size={18} />,
+};
 
 // ===== PRESET BUTTONS =====
 const PRESETS = [
@@ -132,7 +142,7 @@ function PolicySlider({
     <div className="py-4 border-b border-[var(--slate-200)] group">
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{icon}</span>
+          <span className="text-lg text-[var(--slate-500)] flex items-center">{SLIDER_ICON_MAP[icon] || icon}</span>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-[var(--slate-900)]">{label}</span>
@@ -264,13 +274,13 @@ function CascadeNodeView({ node, depth = 0 }: { node: CascadeNode; depth?: numbe
 }
 
 const SLIDERS: { key: keyof PolicyInput; label: string; description: string; icon: string }[] = [
-  { key: 'metroExpansion', label: 'Metro Expansion', description: 'Network reach vs demand', icon: '🚇' },
-  { key: 'evAdoptionRate', label: 'EV Adoption Rate', description: 'Fleet electrification %', icon: '⚡' },
-  { key: 'roadCapacity', label: 'Road Capacity', description: 'Infrastructure widenings', icon: '🛣' },
-  { key: 'renewableShare', label: 'Renewable Grid', description: 'Solar/Wind integration', icon: '☀' },
-  { key: 'waterInfrastructure', label: 'Water Infrastructure', description: 'Leakage reduction', icon: '💧' },
-  { key: 'greenSpaceAllocation', label: 'Green Space', description: 'Parks & canopy cover', icon: '🌿' },
-  { key: 'industrialZoning', label: 'Industrial Zoning', description: 'Manufacturing capacity', icon: '🏭' },
+  { key: 'metroExpansion', label: 'Metro Expansion', description: 'Network reach vs demand', icon: 'train' },
+  { key: 'evAdoptionRate', label: 'EV Adoption Rate', description: 'Fleet electrification %', icon: 'zap' },
+  { key: 'roadCapacity', label: 'Road Capacity', description: 'Infrastructure widenings', icon: 'route' },
+  { key: 'renewableShare', label: 'Renewable Grid', description: 'Solar/Wind integration', icon: 'sun' },
+  { key: 'waterInfrastructure', label: 'Water Infrastructure', description: 'Leakage reduction', icon: 'droplet' },
+  { key: 'greenSpaceAllocation', label: 'Green Space', description: 'Parks & canopy cover', icon: 'leaf' },
+  { key: 'industrialZoning', label: 'Industrial Zoning', description: 'Manufacturing capacity', icon: 'factory' },
 ];
 
 export default function DecisionTwinPage() {

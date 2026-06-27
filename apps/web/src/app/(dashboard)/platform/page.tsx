@@ -233,13 +233,13 @@ export default function PlatformPage() {
       
       {/* Header */}
       <div>
-        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
+        <nav style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
           <span>Platform Overview</span>
           <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
-          <span style={{ color: '#00D4FF', fontWeight: 600 }}>Bhavora Architecture</span>
+          <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>Bhavora Architecture</span>
         </nav>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>City Intelligence Architecture</h1>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>City Intelligence Architecture</h1>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
           Bhavora combines high-fidelity GIS modeling, deterministic impact analysis, and predictive AI engines to de-risk municipal planning.
         </p>
       </div>
@@ -257,15 +257,15 @@ export default function PlatformPage() {
           >
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: eng.bg, color: eng.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: `${eng.bg}33`, color: eng.color, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${eng.bg}` }}>
                   {eng.icon}
                 </div>
-                <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Engine Layer
                 </span>
               </div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>{eng.name}</h3>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, margin: 0 }}>{eng.description}</p>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{eng.name}</h3>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{eng.description}</p>
             </div>
 
             <button
@@ -284,23 +284,23 @@ export default function PlatformPage() {
       {/* Bottom Technical Spec Summary Card */}
       <div className="glass-card" style={{ padding: '24px', borderRadius: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: 0 }}>Bengaluru Integrated Data Lake</h3>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Bengaluru Integrated Data Lake</h3>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
             The platform is built on real municipal, geographical, and industrial datasets from Bangalore Open Data, Censuses, Karnataka EV Policy publications, and BBMP. By processing spatial distributions and applying local infrastructure rules, Bhavora provides urban planning authorities with actionable predictions.
           </p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', textAlign: 'center' }}>
-          <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#00D4FF', fontFamily: 'monospace' }}>1.2M+</div>
-            <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>Spatial Nodes</div>
+          <div style={{ padding: '16px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-blue)', fontFamily: 'monospace' }}>1.2M+</div>
+            <div style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>Spatial Nodes</div>
           </div>
-          <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#10B981', fontFamily: 'monospace' }}>14,700km</div>
-            <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>Road Net</div>
+          <div style={{ padding: '16px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-teal)', fontFamily: 'monospace' }}>14,700km</div>
+            <div style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>Road Net</div>
           </div>
-          <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#F59E0B', fontFamily: 'monospace' }}>650+</div>
-            <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>EV Points</div>
+          <div style={{ padding: '16px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-amber)', fontFamily: 'monospace' }}>650+</div>
+            <div style={{ fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' }}>EV Points</div>
           </div>
         </div>
       </div>

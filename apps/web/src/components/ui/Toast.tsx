@@ -40,9 +40,7 @@ export function Toast() {
         >
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '16px', flexShrink: 0 }}>
-              {toast.severity === 'critical' ? '🔴' :
-               toast.severity === 'warning' ? '🟡' :
-               toast.severity === 'success' ? '✅' : 'ℹ️'}
+              <div className={`w-3 h-3 rounded-full mt-0.5 ${toast.severity === 'critical' ? 'bg-[#EF4444]' : toast.severity === 'warning' ? 'bg-[#F59E0B]' : toast.severity === 'success' ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`} />
             </span>
             <div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>

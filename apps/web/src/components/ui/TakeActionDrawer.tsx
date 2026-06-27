@@ -2,6 +2,15 @@
 
 import React, { useState } from 'react';
 import { useSimulationStore, useUIStore, useScenarioStore, useAppStore } from '@/stores';
+import { Zap, Car, Droplet, Wind, Train } from 'lucide-react';
+
+const DRAWER_ICON_MAP: Record<string, React.ReactNode> = {
+  zap: <Zap size={18} />,
+  car: <Car size={18} />,
+  droplet: <Droplet size={18} />,
+  wind: <Wind size={18} />,
+  train: <Train size={18} />,
+};
 
 const INTERVENTIONS = [
   {
@@ -11,7 +20,7 @@ const INTERVENTIONS = [
     rationale: 'Substation #11 at 87% capacity — blackout risk in Q3 2025',
     impact: '↓ 23% grid stress in NE zone within 48h',
     confidence: 91,
-    icon: '⚡',
+    icon: 'zap',
     agentId: 'infrastructure',
   },
   {
@@ -21,7 +30,7 @@ const INTERVENTIONS = [
     rationale: 'Corridor at 34% above baseline congestion — speed: 8 km/h',
     impact: '↓ 12% congestion, +4 min/veh avg speed improvement',
     confidence: 87,
-    icon: '🚦',
+    icon: 'car',
     agentId: 'urban',
   },
   {
@@ -31,7 +40,7 @@ const INTERVENTIONS = [
     rationale: 'Groundwater at −2.3m since Jan; 350 MLD gap by 2027',
     impact: 'Prevent water stress escalation for 280,000 residents',
     confidence: 84,
-    icon: '💧',
+    icon: 'droplet',
     agentId: 'sustainability',
   },
   {
@@ -41,7 +50,7 @@ const INTERVENTIONS = [
     rationale: 'Industrial zone PM2.5 168 AQI — above safe threshold',
     impact: '↓ 18 AQI pts within 2 weeks of enforcement',
     confidence: 79,
-    icon: '🌫',
+    icon: 'wind',
     agentId: 'sustainability',
   },
   {
@@ -51,7 +60,7 @@ const INTERVENTIONS = [
     rationale: 'Hebbal–Nagawara at 112% planned capacity — overcrowding',
     impact: '↓ 8% average wait time, +11% ridership capacity',
     confidence: 93,
-    icon: '🚇',
+    icon: 'train',
     agentId: 'urban',
   },
 ];
@@ -140,7 +149,7 @@ export function TakeActionDrawer() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                    <span style={{ fontSize: '18px', color: 'var(--slate-500)', display: 'flex' }}>{DRAWER_ICON_MAP[item.icon] || item.icon}</span>
                     <span style={{
                       padding: '2px 7px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em',
                       background: `${item.priorityColor}18`, color: item.priorityColor, border: `1px solid ${item.priorityColor}30`,

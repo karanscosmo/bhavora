@@ -449,16 +449,16 @@ export const useMapStore = create<MapState>()(
   persist(
     (set) => ({
       layers: [
-        { id: 'metro-stations', name: 'Metro Stations', enabled: true, count: 47, icon: '🚇' },
-        { id: 'metro-routes', name: 'Metro Routes', enabled: true, count: 6, icon: '🛤' },
-        { id: 'ev-stations', name: 'EV Charging', enabled: false, count: 650, icon: '⚡' },
-        { id: 'bus-depots', name: 'Bus Depots', enabled: false, count: 38, icon: '🚌' },
-        { id: 'hospitals', name: 'Hospitals', enabled: true, count: 124, icon: '🏥' },
-        { id: 'industrial', name: 'Industrial Zones', enabled: false, count: 18, icon: '🏭' },
-        { id: 'tech-parks', name: 'Tech Parks', enabled: true, count: 12, icon: '💻' },
-        { id: 'flood-zones', name: 'Flood Zones', enabled: false, count: 34, icon: '🌊' },
-        { id: 'substations', name: 'Substations', enabled: true, count: 47, icon: '🔌' },
-        { id: 'lakes', name: 'Lakes & Reservoirs', enabled: true, count: 189, icon: '💧' },
+        { id: 'metro-stations', name: 'Metro Stations', enabled: true, count: 47, icon: 'train' },
+        { id: 'metro-routes', name: 'Metro Routes', enabled: true, count: 6, icon: 'route' },
+        { id: 'ev-stations', name: 'EV Charging', enabled: false, count: 650, icon: 'zap' },
+        { id: 'bus-depots', name: 'Bus Depots', enabled: false, count: 38, icon: 'bus' },
+        { id: 'hospitals', name: 'Hospitals', enabled: true, count: 124, icon: 'hospital' },
+        { id: 'industrial', name: 'Industrial Zones', enabled: false, count: 18, icon: 'factory' },
+        { id: 'tech-parks', name: 'Tech Parks', enabled: true, count: 12, icon: 'laptop' },
+        { id: 'flood-zones', name: 'Flood Zones', enabled: false, count: 34, icon: 'waves' },
+        { id: 'substations', name: 'Substations', enabled: true, count: 47, icon: 'plug' },
+        { id: 'lakes', name: 'Lakes & Reservoirs', enabled: true, count: 189, icon: 'droplet' },
       ],
       layerOpacity: 80,
       activeBasemap: 'dark',
@@ -483,7 +483,7 @@ export const AGENTS = {
     name: 'Urban Planner',
     domain: 'Zoning · Metro · Land Use',
     color: '#7C3AED',
-    icon: '🏙',
+    icon: 'building',
     quickActions: ['Optimal metro corridor', 'High-density zones', 'Whitefield density', 'Zoning recommendations'],
   },
   disaster: {
@@ -491,7 +491,7 @@ export const AGENTS = {
     name: 'Disaster Response',
     domain: 'Floods · Emergency · Evacuation',
     color: '#EF4444',
-    icon: '🚨',
+    icon: 'alert-triangle',
     quickActions: ['Monsoon flood risk', 'Evacuation plan', 'Bellandur risk score', 'Emergency resources'],
   },
   sustainability: {
@@ -499,7 +499,7 @@ export const AGENTS = {
     name: 'Sustainability',
     domain: 'Carbon · Water · Air Quality',
     color: '#10B981',
-    icon: '🌿',
+    icon: 'leaf',
     quickActions: ['Carbon neutrality path', 'Water stress forecast', 'AQI improvement plan', 'Renewable strategy'],
   },
   infrastructure: {
@@ -507,7 +507,7 @@ export const AGENTS = {
     name: 'Infrastructure',
     domain: 'Power Grid · EV · Roads',
     color: '#F59E0B',
-    icon: '⚙',
+    icon: 'settings',
     quickActions: ['Substation overload risk', 'EV station placement', 'Grid maintenance priority', 'Road network gaps'],
   },
   executive: {
@@ -515,7 +515,7 @@ export const AGENTS = {
     name: 'Executive Agent',
     domain: 'Briefings · Strategy · Synthesis',
     color: '#00D4FF',
-    icon: '🎯',
+    icon: 'target',
     quickActions: ['Board briefing', 'Top 3 investments', 'Metro Line 4 impact', 'Quarterly summary'],
   },
 } as const;

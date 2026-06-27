@@ -156,51 +156,51 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[var(--slate-200)] text-[var(--slate-800)]">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[#0a0e14] text-white">
       
       {/* Left Column: Document Index */}
-      <div className="w-[380px] bg-[var(--slate-50)] border-r border-[var(--slate-300)] flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.05)]">
-        <div className="p-5 border-b border-[var(--slate-300)] bg-white shrink-0">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded bg-[var(--slate-900)] text-white flex items-center justify-center shadow-inner">
-              <KeySquare size={20} />
+      <div className="w-[340px] bg-[var(--slate-900)] border-r border-[var(--slate-800)] flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.5)]">
+        <div className="p-4 border-b border-[var(--slate-800)] bg-[var(--slate-900)]/80 shrink-0">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-sm bg-gradient-to-br from-[var(--slate-800)] to-[var(--slate-900)] border border-[var(--slate-700)] text-white flex items-center justify-center">
+              <KeySquare size={16} />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest">Document Center</h1>
-              <div className="text-[10px] text-[var(--slate-500)] font-semibold mt-0.5 font-mono">CLASSIFIED ARCHIVES</div>
+              <h1 className="text-[11px] font-bold text-white uppercase tracking-widest">Document Center</h1>
+              <div className="text-[9px] text-[var(--accent-teal)] font-semibold mt-0.5 font-mono">CLASSIFIED ARCHIVES</div>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
           {REPORTS_LIST.map(report => {
             const isSelected = selectedReportId === report.id;
             return (
               <div
                 key={report.id}
                 onClick={() => setSelectedReportId(report.id)}
-                className={`p-4 rounded-lg cursor-pointer transition-all border ${
+                className={`p-3 rounded-sm cursor-pointer transition-all border ${
                   isSelected 
-                    ? 'bg-white border-[var(--accent-navy)] shadow-md ring-1 ring-[var(--accent-navy)]' 
-                    : 'bg-white border-[var(--slate-200)] shadow-sm hover:border-[var(--slate-300)]'
+                    ? 'bg-[#0f141e] border-[var(--accent-blue)] shadow-[inset_0_0_10px_rgba(37,99,235,0.2)]' 
+                    : 'bg-transparent border-transparent hover:bg-[var(--slate-800)] hover:border-[var(--slate-700)]'
                 }`}
               >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-[9px] font-bold text-[var(--slate-500)] tracking-widest uppercase">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[8px] font-bold text-[var(--slate-400)] tracking-widest uppercase">
                     {report.category}
                   </span>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm ${
-                    report.status === 'Published' ? 'bg-[var(--accent-teal)]/10 text-[var(--accent-teal)]' :
-                    report.status === 'Under Review' ? 'bg-[var(--accent-amber)]/10 text-[var(--accent-amber)]' :
-                    'bg-[var(--slate-200)] text-[var(--slate-600)]'
+                  <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${
+                    report.status === 'Published' ? 'bg-[var(--accent-teal)]/10 text-[var(--accent-teal)] border-[var(--accent-teal)]/20' :
+                    report.status === 'Under Review' ? 'bg-[var(--accent-amber)]/10 text-[var(--accent-amber)] border-[var(--accent-amber)]/20' :
+                    'bg-[var(--slate-800)] text-[var(--slate-400)] border-[var(--slate-700)]'
                   }`}>
                     {report.status}
                   </span>
                 </div>
-                <h3 className={`text-sm leading-tight mb-2 ${isSelected ? 'font-bold text-[var(--accent-navy)]' : 'font-semibold text-[var(--slate-800)]'}`}>
+                <h3 className={`text-[11px] leading-snug mb-2 font-mono ${isSelected ? 'font-bold text-white' : 'font-semibold text-[var(--slate-300)]'}`}>
                   {report.title}
                 </h3>
-                <div className="flex items-center gap-2 text-[9px] font-mono text-[var(--slate-500)] uppercase mt-3 pt-3 border-t border-[var(--slate-100)]">
+                <div className="flex items-center gap-2 text-[8px] font-mono text-[var(--slate-500)] uppercase">
                   <span>REF: {report.id.toUpperCase()}</span>
                   <span>·</span>
                   <span>VER: {report.version}</span>
@@ -212,75 +212,75 @@ export default function ReportsPage() {
       </div>
 
       {/* Right Column: Physical Document Viewer */}
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[var(--slate-200)] flex justify-center">
+      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[#0a0e14] flex justify-center">
         
         {/* The Paper Document */}
         <div 
           id="reports-detail-panel" 
-          className="w-full max-w-[850px] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[var(--slate-300)] my-4 relative"
-          style={{ minHeight: '1100px' }}
+          className="w-full max-w-[900px] bg-[#0f141e] shadow-[inset_0_0_40px_rgba(0,0,0,0.8)] border border-[var(--slate-800)] my-2 relative flex flex-col"
+          style={{ minHeight: '100%' }}
         >
           {/* Top Edge / Letterhead */}
-          <div className="h-4 bg-[var(--accent-navy)] w-full absolute top-0 left-0" />
+          <div className="h-1 bg-[var(--accent-blue)] w-full absolute top-0 left-0" />
           
-          <div className="p-16 pt-20">
+          <div className="p-8 pt-12 flex-1">
             {/* Header section */}
-            <div className="flex justify-between items-start border-b-2 border-[var(--slate-900)] pb-8 mb-8">
+            <div className="flex justify-between items-start border-b border-[var(--slate-800)] pb-6 mb-6">
               <div>
-                <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1 font-mono">
-                  DEPARTMENT OF URBAN INTELLIGENCE
+                <div className="text-[9px] font-bold text-[var(--accent-blue)] uppercase tracking-widest mb-2 font-mono flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-[var(--accent-blue)]" /> DEPARTMENT OF URBAN INTELLIGENCE
                 </div>
-                <div className="text-4xl font-bold text-[var(--slate-900)] font-serif leading-tight max-w-[500px]">
+                <div className="text-2xl font-bold text-white font-serif leading-tight max-w-[500px] tracking-wide">
                   {selectedReport.title}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1 font-mono">Report Identifier</div>
-                <div className="text-lg font-bold text-[var(--slate-900)] font-mono">{selectedReport.id.toUpperCase()}</div>
-                <div className="text-xs text-[var(--slate-600)] font-mono mt-2 flex items-center justify-end gap-1">
-                  <ShieldCheck size={14} className="text-[var(--accent-teal)]" /> 
-                  CONFIDENCE: {selectedReport.confidence}%
+                <div className="text-[8px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1 font-mono">Report Identifier</div>
+                <div className="text-sm font-bold text-[var(--slate-300)] font-mono tracking-wider">{selectedReport.id.toUpperCase()}</div>
+                <div className="text-[10px] text-[var(--slate-400)] font-mono mt-2 flex items-center justify-end gap-1">
+                  <ShieldCheck size={12} className="text-[var(--accent-teal)]" /> 
+                  CONFIDENCE: <span className="text-[var(--accent-teal)] font-bold">{selectedReport.confidence}%</span>
                 </div>
               </div>
             </div>
 
             {/* Metadata Table */}
-            <div className="grid grid-cols-4 gap-0 border-y border-[var(--slate-300)] bg-[var(--slate-50)] mb-10 font-mono text-xs">
-              <div className="p-3 border-r border-[var(--slate-300)]">
-                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Author</div>
-                <div className="font-bold text-[var(--slate-900)]">{selectedReport.author}</div>
+            <div className="grid grid-cols-4 gap-0 border border-[var(--slate-800)] bg-[var(--slate-900)] mb-8 font-mono text-[10px]">
+              <div className="p-3 border-r border-[var(--slate-800)]">
+                <div className="text-[8px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Author</div>
+                <div className="font-bold text-[var(--slate-300)] truncate">{selectedReport.author}</div>
               </div>
-              <div className="p-3 border-r border-[var(--slate-300)]">
-                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Version</div>
-                <div className="font-bold text-[var(--slate-900)]">{selectedReport.version}</div>
+              <div className="p-3 border-r border-[var(--slate-800)]">
+                <div className="text-[8px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Version</div>
+                <div className="font-bold text-[var(--slate-300)]">{selectedReport.version}</div>
               </div>
-              <div className="p-3 border-r border-[var(--slate-300)]">
-                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Classification</div>
-                <div className="font-bold text-[var(--slate-900)] uppercase">{selectedReport.category}</div>
+              <div className="p-3 border-r border-[var(--slate-800)]">
+                <div className="text-[8px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Classification</div>
+                <div className="font-bold text-[var(--slate-300)] uppercase">{selectedReport.category}</div>
               </div>
               <div className="p-3">
-                <div className="text-[9px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Date</div>
-                <div className="font-bold text-[var(--slate-900)]">{new Date().toLocaleDateString('en-GB')}</div>
+                <div className="text-[8px] text-[var(--slate-500)] uppercase tracking-widest mb-1">Date</div>
+                <div className="font-bold text-[var(--slate-300)]">{new Date().toLocaleDateString('en-GB')}</div>
               </div>
             </div>
 
             {/* Abstract */}
-            <div className="mb-12">
-              <h3 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-4 border-b border-[var(--slate-200)] pb-2 inline-block">1.0 Executive Summary</h3>
-              <p className="text-sm text-[var(--slate-700)] leading-loose font-serif text-justify">
+            <div className="mb-8">
+              <h3 className="text-[10px] font-bold text-[var(--slate-300)] uppercase tracking-widest mb-3 border-b border-[var(--slate-800)] pb-1.5 inline-block font-mono">1.0 Executive Summary</h3>
+              <p className="text-xs text-[var(--slate-400)] leading-relaxed font-serif text-justify">
                 {selectedReport.summary}
               </p>
             </div>
 
             {/* Metrics */}
-            <div className="mb-12">
-              <h3 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-4 border-b border-[var(--slate-200)] pb-2 inline-block">2.0 Key Indicators</h3>
-              <div className="grid grid-cols-3 gap-6">
+            <div className="mb-8">
+              <h3 className="text-[10px] font-bold text-[var(--slate-300)] uppercase tracking-widest mb-3 border-b border-[var(--slate-800)] pb-1.5 inline-block font-mono">2.0 Key Indicators</h3>
+              <div className="grid grid-cols-3 gap-4">
                 {selectedReport.metrics.map((m, idx) => (
-                  <div key={idx} className="border border-[var(--slate-300)] p-4 bg-white shadow-sm">
-                    <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-2 font-mono h-8">{m.label}</div>
-                    <div className="text-2xl font-bold text-[var(--slate-900)] font-serif mb-2">{m.value}</div>
-                    <div className={`text-[10px] font-bold uppercase tracking-widest font-mono ${m.isGood ? 'text-[var(--accent-teal)]' : 'text-[var(--accent-red)]'}`}>
+                  <div key={idx} className="border border-[var(--slate-800)] p-3 bg-[var(--slate-900)]/50">
+                    <div className="text-[8px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-1 font-mono h-6">{m.label}</div>
+                    <div className="text-xl font-bold text-white font-serif mb-1">{m.value}</div>
+                    <div className={`text-[9px] font-bold uppercase tracking-widest font-mono ${m.isGood ? 'text-[var(--accent-teal)]' : 'text-[var(--accent-red)]'}`}>
                       {m.delta}
                     </div>
                   </div>
@@ -289,29 +289,29 @@ export default function ReportsPage() {
             </div>
 
             {/* Policy Context */}
-            <div className="mb-12">
-              <h3 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest mb-4 border-b border-[var(--slate-200)] pb-2 inline-block">3.0 Model Variables</h3>
-              <div className="border border-[var(--slate-300)] p-5 bg-[var(--slate-50)] font-mono text-xs leading-relaxed text-[var(--slate-700)]">
-                <p>THE FOLLOWING SIMULATION VECTORS WERE ACTIVE AT TIME OF REPORT GENERATION:</p>
-                <ul className="mt-3 space-y-2 list-disc list-inside">
-                  <li>METRO EXPANSION INDEX: {activePolicy.metroExpansion}%</li>
-                  <li>EV ADOPTION RATE: {activePolicy.evAdoptionRate}%</li>
-                  <li>RENEWABLE ENERGY SHARE: {activePolicy.renewableShare}%</li>
-                  <li>ROAD CAPACITY INDEX: {activePolicy.roadCapacity}%</li>
-                  <li>WATER INFRASTRUCTURE: {activePolicy.waterInfrastructure}%</li>
+            <div className="mb-10">
+              <h3 className="text-[10px] font-bold text-[var(--slate-300)] uppercase tracking-widest mb-3 border-b border-[var(--slate-800)] pb-1.5 inline-block font-mono">3.0 Model Variables</h3>
+              <div className="border border-[var(--slate-800)] p-4 bg-[var(--slate-900)] font-mono text-[10px] leading-relaxed text-[var(--slate-400)] shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                <p className="text-[var(--accent-blue)] mb-2">:: SYSTEM TELEMETRY STATE AT REPORT GENERATION ::</p>
+                <ul className="space-y-1.5 list-none">
+                  <li><span className="text-[var(--slate-500)]">VAR_METRO_EXPANSION_IDX:</span> <span className="text-white">{activePolicy.metroExpansion}%</span></li>
+                  <li><span className="text-[var(--slate-500)]">VAR_EV_ADOPTION_RATE:</span> <span className="text-white">{activePolicy.evAdoptionRate}%</span></li>
+                  <li><span className="text-[var(--slate-500)]">VAR_RENEWABLE_SHARE:</span> <span className="text-white">{activePolicy.renewableShare}%</span></li>
+                  <li><span className="text-[var(--slate-500)]">VAR_ROAD_CAPACITY_IDX:</span> <span className="text-white">{activePolicy.roadCapacity}%</span></li>
+                  <li><span className="text-[var(--slate-500)]">VAR_WATER_INFRASTRUCTURE:</span> <span className="text-white">{activePolicy.waterInfrastructure}%</span></li>
                 </ul>
               </div>
             </div>
 
             {/* Footer / Signoff */}
-            <div className="mt-24 pt-8 border-t border-[var(--slate-300)] flex justify-between items-end font-mono text-[10px] text-[var(--slate-500)]">
+            <div className="mt-auto pt-6 border-t border-[var(--slate-800)] flex justify-between items-end font-mono text-[8px] text-[var(--slate-600)]">
               <div>
                 GENERATED BY BHAVORA URBAN OS<br/>
-                CHECKSUM: {Math.random().toString(36).substring(2, 10).toUpperCase()}
+                CHECKSUM: <span className="text-[var(--slate-400)]">{Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
               </div>
-              <div className="text-center">
-                <div className="w-48 border-b border-[var(--slate-400)] mb-2"></div>
-                AUTHORIZED SIGNATURE
+              <div className="text-right">
+                <div className="w-32 border-b border-[var(--slate-700)] mb-1.5 inline-block"></div><br/>
+                AUTHORIZED TERMINAL
               </div>
             </div>
 
@@ -320,19 +320,19 @@ export default function ReportsPage() {
       </div>
 
       {/* Floating Action Bar */}
-      <div className="fixed bottom-8 right-8 flex gap-3 no-print z-50">
+      <div className="fixed bottom-6 right-6 flex gap-2 no-print z-50">
         <button
           onClick={() => handleExportCSV(selectedReport)}
-          className="flex items-center gap-2 px-4 py-3 bg-white border border-[var(--slate-300)] hover:bg-[var(--slate-50)] text-[var(--slate-700)] text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg transition-all"
+          className="flex items-center gap-1.5 px-3 py-2 bg-[var(--slate-900)] border border-[var(--slate-700)] hover:border-[var(--accent-blue)] text-[var(--slate-300)] text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all"
         >
-          <FileSpreadsheet size={16} /> Export CSV
+          <FileSpreadsheet size={14} /> EXPORT DATA
         </button>
         <button
           onClick={() => handleExportPDF(selectedReport)}
           disabled={exporting}
-          className="flex items-center gap-2 px-5 py-3 bg-[var(--accent-navy)] hover:bg-[var(--accent-navy)]/90 text-white text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg transition-all"
+          className="flex items-center gap-1.5 px-3 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/80 text-white text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all shadow-[0_0_10px_rgba(37,99,235,0.4)]"
         >
-          <Printer size={16} /> {exporting ? 'PRINTING...' : 'PRINT REPORT'}
+          <Printer size={14} /> {exporting ? 'PRINTING...' : 'PRINT BRIEFING'}
         </button>
       </div>
 

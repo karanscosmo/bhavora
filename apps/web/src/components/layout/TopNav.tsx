@@ -231,7 +231,7 @@ export function TopNav() {
                     }}
                   >
                     <span style={{ fontSize: '14px', flexShrink: 0 }}>
-                      {n.severity === 'critical' ? '🔴' : n.severity === 'warning' ? '🟡' : n.severity === 'success' ? '✅' : '🔵'}
+                      <div className={`w-2 h-2 rounded-full ${n.severity === 'critical' ? 'bg-[#EF4444]' : n.severity === 'warning' ? 'bg-[#F59E0B]' : n.severity === 'success' ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`} />
                     </span>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: n.read ? 400 : 600, color: n.read ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{n.title}</div>

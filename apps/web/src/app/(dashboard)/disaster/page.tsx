@@ -5,14 +5,33 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDisasterStore, useAppStore, useUIStore } from '@/stores';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Waves, Flame, Zap, Hospital, Activity, Factory, Ambulance, Truck, HardHat, Camera } from 'lucide-react';
+
+const PROTOCOL_ICON_MAP: Record<string, React.ReactNode> = {
+  waves: <Waves size={16} />,
+  flame: <Flame size={16} />,
+  zap: <Zap size={16} />,
+  hospital: <Hospital size={16} />,
+  activity: <Activity size={16} />,
+  factory: <Factory size={16} />
+};
+
+const RESOURCE_ICON_MAP: Record<string, React.ReactNode> = {
+  ambulance: <Ambulance size={16} />,
+  truck: <Truck size={16} />,
+  'hard-hat': <HardHat size={16} />,
+  camera: <Camera size={16} />,
+  zap: <Zap size={16} />,
+  hospital: <Hospital size={16} />
+};
 
 const PROTOCOLS = [
-  { id: 'flood', name: 'Flood Response', icon: '🌊', color: '#3B82F6', description: 'Activate BBMP drainage, deploy pumps, issue evacuation orders' },
-  { id: 'fire', name: 'Fire Evacuation', icon: '🔥', color: '#EF4444', description: 'KFES dispatch, civilian evacuation, traffic diversion' },
-  { id: 'power', name: 'Power Outage Response', icon: '⚡', color: '#F59E0B', description: 'BESCOM emergency, load redistribution, backup activation' },
-  { id: 'medical', name: 'Mass Medical Emergency', icon: '🏥', color: '#10B981', description: '108 dispatch, hospital alerts, field triage setup' },
-  { id: 'earthquake', name: 'Earthquake Response', icon: '🌍', color: '#7C3AED', description: 'NDRF activation, structural assessment, rescue coordination' },
-  { id: 'industrial', name: 'Industrial Accident', icon: '🏭', color: '#F97316', description: 'HAZMAT team, evacuation radius, media coordination' },
+  { id: 'flood', name: 'Flood Response', icon: 'waves', color: '#3B82F6', description: 'Activate BBMP drainage, deploy pumps, issue evacuation orders' },
+  { id: 'fire', name: 'Fire Evacuation', icon: 'flame', color: '#EF4444', description: 'KFES dispatch, civilian evacuation, traffic diversion' },
+  { id: 'power', name: 'Power Outage Response', icon: 'zap', color: '#F59E0B', description: 'BESCOM emergency, load redistribution, backup activation' },
+  { id: 'medical', name: 'Mass Medical Emergency', icon: 'hospital', color: '#10B981', description: '108 dispatch, hospital alerts, field triage setup' },
+  { id: 'earthquake', name: 'Earthquake Response', icon: 'activity', color: '#7C3AED', description: 'NDRF activation, structural assessment, rescue coordination' },
+  { id: 'industrial', name: 'Industrial Accident', icon: 'factory', color: '#F97316', description: 'HAZMAT team, evacuation radius, media coordination' },
 ];
 
 const SEVERITY_CONFIG = {
@@ -26,14 +45,14 @@ const INCIDENT_ICONS: Record<string, string> = {
 };
 
 const RESOURCE_CARDS = [
-  { id: 'ambulance-1', type: 'Ambulance', icon: '🚑', status: 'En Route', eta: '4 min', capacity: 80, team: '108 Cluster A', color: '#10B981' },
-  { id: 'fire-1', type: 'Fire Truck', icon: '🚒', status: 'On Site', eta: '0 min', capacity: 100, team: 'KFES Unit 3', color: '#EF4444' },
-  { id: 'rescue-1', type: 'Rescue Team', icon: '🪖', status: 'En Route', eta: '7 min', capacity: 60, team: 'NDRF Team BLR', color: '#F59E0B' },
-  { id: 'drone-1', type: 'Drone', icon: '🛸', status: 'Available', eta: '—', capacity: 100, team: 'Surveillance Unit', color: '#7C3AED' },
-  { id: 'ambulance-2', type: 'Ambulance', icon: '🚑', status: 'Available', eta: '—', capacity: 100, team: '108 Cluster B', color: '#10B981' },
-  { id: 'fire-2', type: 'Fire Truck', icon: '🚒', status: 'En Route', eta: '11 min', capacity: 70, team: 'KFES Unit 7', color: '#EF4444' },
-  { id: 'power-1', type: 'Power Crew', icon: '⚡', status: 'On Site', eta: '0 min', capacity: 90, team: 'BESCOM RR', color: '#3B82F6' },
-  { id: 'medical-1', type: 'Medical Unit', icon: '🏥', status: 'En Route', eta: '3 min', capacity: 50, team: 'Field Hospital A', color: '#10B981' },
+  { id: 'ambulance-1', type: 'Ambulance', icon: 'ambulance', status: 'En Route', eta: '4 min', capacity: 80, team: '108 Cluster A', color: '#10B981' },
+  { id: 'fire-1', type: 'Fire Truck', icon: 'truck', status: 'On Site', eta: '0 min', capacity: 100, team: 'KFES Unit 3', color: '#EF4444' },
+  { id: 'rescue-1', type: 'Rescue Team', icon: 'hard-hat', status: 'En Route', eta: '7 min', capacity: 60, team: 'NDRF Team BLR', color: '#F59E0B' },
+  { id: 'drone-1', type: 'Drone', icon: 'camera', status: 'Available', eta: '—', capacity: 100, team: 'Surveillance Unit', color: '#7C3AED' },
+  { id: 'ambulance-2', type: 'Ambulance', icon: 'ambulance', status: 'Available', eta: '—', capacity: 100, team: '108 Cluster B', color: '#10B981' },
+  { id: 'fire-2', type: 'Fire Truck', icon: 'truck', status: 'En Route', eta: '11 min', capacity: 70, team: 'KFES Unit 7', color: '#EF4444' },
+  { id: 'power-1', type: 'Power Crew', icon: 'zap', status: 'On Site', eta: '0 min', capacity: 90, team: 'BESCOM RR', color: '#3B82F6' },
+  { id: 'medical-1', type: 'Medical Unit', icon: 'hospital', status: 'En Route', eta: '3 min', capacity: 50, team: 'Field Hospital A', color: '#10B981' },
 ];
 
 const RESOURCE_STATUS_STYLES: Record<string, { bg: string; color: string }> = {
@@ -49,13 +68,13 @@ const STATUS_BADGE: Record<string, { bg: string; color: string; label: string }>
 };
 
 const INCIDENT_SVG_MARKERS: Record<string, string> = {
-  flood: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#3B82F6" fill-opacity="0.3" stroke="#3B82F6" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#3B82F6"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">🌊</text></svg>`,
-  fire: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#EF4444" fill-opacity="0.3" stroke="#EF4444" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#EF4444"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">🔥</text></svg>`,
-  power: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#F59E0B" fill-opacity="0.3" stroke="#F59E0B" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#F59E0B"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">⚡</text></svg>`,
-  medical: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#10B981" fill-opacity="0.3" stroke="#10B981" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#10B981"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">🏥</text></svg>`,
-  earthquake: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#7C3AED" fill-opacity="0.3" stroke="#7C3AED" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#7C3AED"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">🌍</text></svg>`,
-  industrial: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#F97316" fill-opacity="0.3" stroke="#F97316" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#F97316"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">🏭</text></svg>`,
-  default: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#EF4444" fill-opacity="0.3" stroke="#EF4444" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#EF4444"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12">🚨</text></svg>`,
+  flood: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#3B82F6" fill-opacity="0.3" stroke="#3B82F6" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#3B82F6"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">FL</text></svg>`,
+  fire: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#EF4444" fill-opacity="0.3" stroke="#EF4444" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#EF4444"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">FI</text></svg>`,
+  power: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#F59E0B" fill-opacity="0.3" stroke="#F59E0B" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#F59E0B"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">PW</text></svg>`,
+  medical: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#10B981" fill-opacity="0.3" stroke="#10B981" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#10B981"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">MD</text></svg>`,
+  earthquake: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#7C3AED" fill-opacity="0.3" stroke="#7C3AED" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#7C3AED"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">EQ</text></svg>`,
+  industrial: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#F97316" fill-opacity="0.3" stroke="#F97316" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#F97316"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">IN</text></svg>`,
+  default: `<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#EF4444" fill-opacity="0.3" stroke="#EF4444" stroke-width="2"/><circle cx="18" cy="18" r="8" fill="#EF4444"/><text x="18" y="22" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="bold">ER</text></svg>`,
 };
 
 const containerVariants = {
@@ -146,7 +165,6 @@ function ProtocolModal({ onClose, onActivate }: { onClose: () => void; onActivat
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '20px' }}>⚔</span>
               <span style={{ fontSize: '18px', fontWeight: 700, color: '#EF4444', letterSpacing: '-0.02em' }}>Execute Emergency Protocol</span>
             </div>
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginLeft: '34px' }}>Select response protocol for active incident</div>
@@ -215,7 +233,7 @@ function ProtocolModal({ onClose, onActivate }: { onClose: () => void; onActivat
             >
               <div style={{ padding: '16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', marginBottom: '24px' }}>
                 <div style={{ fontSize: '12px', color: '#EF4444', fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  ⚠ Confirmation Required
+                  Confirmation Required
                 </div>
                 <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
                   Activating <strong style={{ color: '#fff' }}>{PROTOCOLS.find(pr => pr.id === selected)?.name}</strong> will initiate city-wide emergency broadcasting and auto-deploy emergency response teams.
@@ -310,7 +328,8 @@ function ResourceDrawer({ onClose }: { onClose: () => void }) {
                       width: '32px', height: '32px', borderRadius: '8px',
                       background: `${r.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '16px',
-                    }}>{r.icon}</span>
+                      fontSize: '16px',
+                    }}>{RESOURCE_ICON_MAP[r.icon] || r.icon}</span>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: 600 }}>{r.type}</div>
                       <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{r.team}</div>

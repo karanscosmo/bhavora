@@ -34,15 +34,15 @@ const AGENT_RESPONSES: Record<AgentId, Record<string, string>> = {
     density: "Whitefield faces a density problem: 18,000 persons/km² with inadequate trunk infrastructure. Recommended interventions:\n\n**Immediate:** \n• Enforce parking caps to discourage private vehicle use\n• Prioritize BMTC feeder routes to existing metro at Kadugodi\n\n**Medium-term:**\n• Widen Hope Farm Junction — single point causing 34% area congestion\n• Commercial-residential mixed-use permitted along 150m of Whitefield Main Road\n\n**Long-term:**\n• Phase 2 purple line extension adds 4 new stations in zone\n• Expected impact: −22% peak congestion, +18% property value",
   },
   disaster: {
-    default: "Monsoon flood risk analysis for Bengaluru 2025:\n\n**High Risk Zones (100-year flood):**\n🔴 Bellandur Lake periphery — 3,200 households at risk\n🔴 Varthur catchment — 1,800 structures in flood plain\n🔴 Koramangala valley — Storm drain capacity exceeded at >85mm/hr\n\n**Medium Risk:**\n🟡 Hebbal valley — overflow risk above 95mm/24hr\n🟡 Rachenahalli Lake area — bund maintenance overdue\n\n**Recommended pre-monsoon actions:**\n1. Desilting — 23 storm drains require emergency desilting\n2. Pump station readiness audit — 8 stations not operational\n3. Early warning sensors — install 12 sensors in high-risk zones\n\nShall I generate an evacuation plan for any specific zone?",
+    default: "Monsoon flood risk analysis for Bengaluru 2025:\n\n**High Risk Zones (100-year flood):**\n[CRITICAL] Bellandur Lake periphery — 3,200 households at risk\n[CRITICAL] Varthur catchment — 1,800 structures in flood plain\n[CRITICAL] Koramangala valley — Storm drain capacity exceeded at >85mm/hr\n\n**Medium Risk:**\n[WARNING] Hebbal valley — overflow risk above 95mm/24hr\n[WARNING] Rachenahalli Lake area — bund maintenance overdue\n\n**Recommended pre-monsoon actions:**\n1. Desilting — 23 storm drains require emergency desilting\n2. Pump station readiness audit — 8 stations not operational\n3. Early warning sensors — install 12 sensors in high-risk zones\n\nShall I generate an evacuation plan for any specific zone?",
     evacuation: "**EVACUATION PLAN — ELECTRONIC CITY**\n\nTrigger: Grid failure or flash flood event\n\nPrimary Routes:\n→ Electronic City Phase 1: Hosur Road to NICE Road (capacity 18,000 veh/hr)\n→ Electronic City Phase 2: Neeladri Road to Bommasandra (capacity 12,000 veh/hr)\n\nAssembly Points:\n• Bommasandra Ground — capacity 8,000 persons\n• Hebbagodi School — capacity 3,500 persons\n\nTimeline:\n• T+0: Alert activated\n• T+15min: Traffic police deployed at 6 junctions\n• T+30min: BMTC emergency buses dispatched (14 buses)\n• T+2hr: Target 80% evacuation complete\n\nEstimated affected population: 47,000 in Zone 4",
   },
   sustainability: {
     default: "Carbon neutrality pathway for Bengaluru by 2040:\n\n**Current State:** 42,000 kt CO₂/yr\n**2040 Target:** Net Zero\n\n**Pathway:**\n2025-2028: EV fleet transition (−8% transport CO₂)\n2028-2032: 60% renewable grid (−18% energy CO₂)\n2032-2036: Green building codes (−6% building CO₂)\n2036-2040: Industrial efficiency + carbon sequestration\n\n**Key Lever — Carbon by Sector:**\n• Transport: 43% → target 15% by 2040 (EV + Metro)\n• Energy: 39% → target 5% (renewables)\n• Industry: 18% → target 8% (efficiency standards)\n\nWater stress outlook: 1.24 → projected 1.68 by 2030 without intervention. Priority: upgrade Cauvery Stage 5 supply.",
-    water: "Water stress forecast for Bengaluru 2025-2030:\n\n**Current:** Demand 1,800 MLD | Supply 1,450 MLD | Gap: 350 MLD\n\n**2027 Projection:**\n• Demand: 2,050 MLD (+14%)\n• Supply: 1,580 MLD (Stage 5 upgrade)\n• Gap: **470 MLD** (critical)\n\n**District Risk Map:**\n🔴 Whitefield: 62% groundwater dependent, depletion rate 3m/yr\n🔴 Electronic City: 78% tanker dependent during peak\n🟡 Koramangala: Aging network, 40% distribution loss\n🟢 Indiranagar: Cauvery supply reliable\n\n**Priority Actions:**\n1. Accelerate Cauvery Stage 5 (adds 775 MLD by 2026)\n2. 150 rainwater harvesting mandatory structures in Whitefield\n3. 40% distribution loss reduction program (saves 300 MLD/yr)",
+    water: "Water stress forecast for Bengaluru 2025-2030:\n\n**Current:** Demand 1,800 MLD | Supply 1,450 MLD | Gap: 350 MLD\n\n**2027 Projection:**\n• Demand: 2,050 MLD (+14%)\n• Supply: 1,580 MLD (Stage 5 upgrade)\n• Gap: **470 MLD** (critical)\n\n**District Risk Map:**\n[CRITICAL] Whitefield: 62% groundwater dependent, depletion rate 3m/yr\n[CRITICAL] Electronic City: 78% tanker dependent during peak\n[WARNING] Koramangala: Aging network, 40% distribution loss\n[SAFE] Indiranagar: Cauvery supply reliable\n\n**Priority Actions:**\n1. Accelerate Cauvery Stage 5 (adds 775 MLD by 2026)\n2. 150 rainwater harvesting mandatory structures in Whitefield\n3. 40% distribution loss reduction program (saves 300 MLD/yr)",
   },
   infrastructure: {
-    default: "Power grid risk assessment — Bengaluru 2025:\n\n**Substations at Risk:**\n🔴 Substation #7 (Whitefield) — 91% capacity, maintenance overdue 8 months\n🔴 Substation #11 (Electronic City) — 87% capacity, aging transformers\n🟡 Substation #23 (Hebbal) — 74% capacity, growth trajectory concerning\n🟡 Substation #31 (Sarjapur) — 71% capacity, new residential adds load\n\n**Recommended EV Station Locations (next 50):**\nTop priority: Whitefield, Koramangala, Indiranagar (high EV adoption + low density coverage)\nSecondary: Hebbal, Jayanagar, JP Nagar\n\n**Maintenance Priority Order:**\n1. Sub #7 — emergency transformer replacement (Q2 2025)\n2. Sub #11 — load balancing + new feeder (Q3 2025)\n3. Road network: Outer Ring Road 4-lane → 6-lane from Marathahalli to KR Puram",
+    default: "Power grid risk assessment — Bengaluru 2025:\n\n**Substations at Risk:**\n[CRITICAL] Substation #7 (Whitefield) — 91% capacity, maintenance overdue 8 months\n[CRITICAL] Substation #11 (Electronic City) — 87% capacity, aging transformers\n[WARNING] Substation #23 (Hebbal) — 74% capacity, growth trajectory concerning\n[WARNING] Substation #31 (Sarjapur) — 71% capacity, new residential adds load\n\n**Recommended EV Station Locations (next 50):**\nTop priority: Whitefield, Koramangala, Indiranagar (high EV adoption + low density coverage)\nSecondary: Hebbal, Jayanagar, JP Nagar\n\n**Maintenance Priority Order:**\n1. Sub #7 — emergency transformer replacement (Q2 2025)\n2. Sub #11 — load balancing + new feeder (Q3 2025)\n3. Road network: Outer Ring Road 4-lane → 6-lane from Marathahalli to KR Puram",
     ev: "**EV Charging Station Placement Analysis**\n\nOptimal 50 locations based on:\n• Population density\n• Vehicle registration data\n• Existing coverage gaps\n• Grid capacity availability\n\n**Zone A — Whitefield (12 stations)**\nHope Farm Junction × 3, Whitefield Main Road × 4, ITPL × 3, VGP Garden × 2\nGrid feeder: Whitefield 66kV substation (available capacity: 8 MW)\n\n**Zone B — Electronic City (10 stations)**\nPhase 1 × 5, Phase 2 × 3, Bommasandra × 2\nGrid feeder: Hebbagodi 66kV (available: 6.5 MW)\n\n**Zone C — Koramangala (8 stations)**\n1st–8th Block distribution, Sony World signal area\n\nTotal estimated cost: ₹24 Cr\nPayback period: 6.2 years at current utilization rates",
   },
 };
@@ -128,12 +128,14 @@ function FormatResponse({ text }: { text: string }) {
         if (trimmed.startsWith('• ') || trimmed.startsWith('→ ') || trimmed.startsWith('- ')) {
           const prefix = trimmed.startsWith('→ ') ? '→' : '•';
           const content = trimmed.replace(/^[•→\-]\s*/, '');
-          const emojiMatch = content.match(/^([🔴🟡🟢])/);
-          if (emojiMatch) {
+          const labelMatch = content.match(/^\[(CRITICAL|WARNING|SAFE)\]/);
+          if (labelMatch) {
+            const status = labelMatch[1];
+            const color = status === 'CRITICAL' ? '#EF4444' : status === 'WARNING' ? '#F59E0B' : '#10B981';
             return (
               <div key={i} style={{ paddingLeft: '12px', display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'rgba(255,255,255,0.7)' }}>
-                <span>{emojiMatch[1]}</span>
-                <span>{content.slice(emojiMatch[1].length).trim()}</span>
+                <span style={{ color, fontSize: '12px', fontWeight: 700, paddingTop: '1px' }}>[{status}]</span>
+                <span>{content.slice(labelMatch[0].length).trim()}</span>
               </div>
             );
           }
@@ -165,13 +167,13 @@ function FormatResponse({ text }: { text: string }) {
             </div>
           );
         }
-        if (trimmed.includes('🔴') || trimmed.includes('🟡') || trimmed.includes('🟢')) {
-          const emoji = trimmed.match(/[🔴🟡🟢]/)?.[0] || '';
-          const rest = trimmed.replace(/[🔴🟡🟢]/, '').trim();
-          const colors: Record<string, string> = { '🔴': '#EF4444', '🟡': '#F59E0B', '🟢': '#10B981' };
+        if (trimmed.includes('[CRITICAL]') || trimmed.includes('[WARNING]') || trimmed.includes('[SAFE]')) {
+          const statusMatch = trimmed.match(/\[(CRITICAL|WARNING|SAFE)\]/)?.[1] || '';
+          const rest = trimmed.replace(/\[(CRITICAL|WARNING|SAFE)\]/, '').trim();
+          const colors: Record<string, string> = { 'CRITICAL': '#EF4444', 'WARNING': '#F59E0B', 'SAFE': '#10B981' };
           return (
             <div key={i} style={{ paddingLeft: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors[emoji] || 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors[statusMatch] || 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
               <span>{rest}</span>
             </div>
           );
@@ -228,6 +230,7 @@ export function AgentHub() {
   const sim = useSimulationStore();
 
   const [input, setInput] = useState('');
+  const [activeTab, setActiveTab] = useState<'briefing'|'insights'|'actions'>('insights');
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   const agentId = activeAgentId as AgentId;
@@ -305,14 +308,13 @@ export function AgentHub() {
             transition={{ type: 'spring', damping: 26, stiffness: 300 }}
             style={{
               position: 'fixed',
-              right: '24px',
-              bottom: '96px',
+              top: '0',
+              right: '0',
+              bottom: '0',
               width: '440px',
-              maxHeight: '78vh',
-              background: 'linear-gradient(170deg, var(--bg-surface-1) 0%, color-mix(in srgb, var(--bg-surface-1) 95%, #000) 100%)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '16px',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)',
+              background: 'var(--slate-900)',
+              borderLeft: '1px solid var(--slate-800)',
+              boxShadow: '-16px 0 48px rgba(0,0,0,0.5)',
               zIndex: 9989,
               display: 'flex',
               flexDirection: 'column',
@@ -427,87 +429,125 @@ export function AgentHub() {
               })}
             </div>
 
-            {/* System Status Strip */}
-            <div style={{
-              padding: '8px 14px',
-              background: 'rgba(0,0,0,0.2)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-            }}>
-              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: cityData.metrics.cityHealthScore > 60 ? '#10B981' : '#EF4444', flexShrink: 0 }} />
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>HEALTH</span>
-                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.cityHealthScore}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Activity size={10} color="rgba(255,255,255,0.4)" />
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>TRAFFIC</span>
-                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.congestionIndex}%</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <AlertTriangle size={10} color={cityData.metrics.aqi > 150 ? '#EF4444' : 'rgba(255,255,255,0.4)'} />
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>AQI</span>
-                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.aqi}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Zap size={10} color="rgba(255,255,255,0.4)" />
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>GRID</span>
-                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.gridLoad}GW</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <MapPin size={10} color="rgba(255,255,255,0.4)" />
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>INCIDENTS</span>
-                  <span style={{ fontSize: '11px', color: cityData.metrics.activeIncidents > 0 ? '#F59E0B' : 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.activeIncidents}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Context Awareness Greeting Strip */}
-            <div style={{
-              padding: '6px 14px',
-              background: 'rgba(0,212,255,0.04)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <Brain size={10} color="rgba(0,212,255,0.5)" />
-              <span style={{ fontSize: '10px', color: 'rgba(0,212,255,0.6)', fontWeight: 500, fontFamily: 'var(--font-jetbrains, monospace)' }}>
-                {getAgentGreeting(agentId, cityData)}
-              </span>
-            </div>
-
-            {/* Quick Actions */}
-            <div style={{ padding: '8px 12px', display: 'flex', gap: '5px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.05)' }}>
-              {agent.quickActions.slice(0, 4).map(action => (
-                <motion.button
-                  key={action}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setInput(action)}
+            <div style={{ display: 'flex', padding: '0 14px', background: 'var(--slate-800)', borderBottom: '1px solid var(--slate-700)' }}>
+              {(['briefing', 'insights', 'actions'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
                   style={{
-                    padding: '5px 12px',
-                    borderRadius: '20px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.55)',
-                    fontSize: '10px',
-                    fontWeight: 500,
+                    flex: 1,
+                    padding: '12px 0',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: activeTab === tab ? agent.color : 'var(--slate-400)',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: `2px solid ${activeTab === tab ? agent.color : 'transparent'}`,
                     cursor: 'pointer',
-                    transition: 'all 120ms',
-                    letterSpacing: '0.02em',
+                    transition: 'all 0.2s',
                   }}
                 >
-                  {action}
-                </motion.button>
+                  {tab}
+                </button>
               ))}
-              {agent.quickActions.length > 4 && (
-                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', alignSelf: 'center' }}>+{agent.quickActions.length - 4} more</span>
-              )}
             </div>
 
-            {/* Messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.1)' }}>
+            {/* Content Area */}
+            <div style={{ flex: 1, overflowY: 'auto', background: 'var(--slate-900)' }}>
+              {activeTab === 'briefing' && (
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {/* Context Awareness Greeting Strip */}
+                  <div style={{
+                    padding: '12px 16px',
+                    background: `${agent.color}10`,
+                    borderLeft: `3px solid ${agent.color}`,
+                    borderRadius: '0 8px 8px 0',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                  }}>
+                    <Brain size={16} color={agent.color} style={{ marginTop: '2px' }} />
+                    <span style={{ fontSize: '13px', color: 'var(--slate-300)', lineHeight: '1.5', fontFamily: 'var(--font-jetbrains, monospace)' }}>
+                      {getAgentGreeting(agentId, cityData)}
+                    </span>
+                  </div>
+
+                  {/* System Status Strip */}
+                  <div>
+                    <h3 style={{ fontSize: '10px', fontWeight: 800, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>System Telemetry</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ background: 'var(--slate-800)', padding: '12px', borderRadius: '8px', border: '1px solid var(--slate-700)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cityData.metrics.cityHealthScore > 60 ? '#10B981' : '#EF4444' }} />
+                          <span style={{ fontSize: '10px', color: 'var(--slate-400)', fontWeight: 600 }}>CITY HEALTH</span>
+                        </div>
+                        <div style={{ fontSize: '18px', color: 'var(--slate-200)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.cityHealthScore}/100</div>
+                      </div>
+                      <div style={{ background: 'var(--slate-800)', padding: '12px', borderRadius: '8px', border: '1px solid var(--slate-700)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                          <Activity size={12} color="var(--slate-400)" />
+                          <span style={{ fontSize: '10px', color: 'var(--slate-400)', fontWeight: 600 }}>TRAFFIC IDX</span>
+                        </div>
+                        <div style={{ fontSize: '18px', color: 'var(--slate-200)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.congestionIndex}%</div>
+                      </div>
+                      <div style={{ background: 'var(--slate-800)', padding: '12px', borderRadius: '8px', border: '1px solid var(--slate-700)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                          <AlertTriangle size={12} color={cityData.metrics.aqi > 150 ? '#EF4444' : 'var(--slate-400)'} />
+                          <span style={{ fontSize: '10px', color: 'var(--slate-400)', fontWeight: 600 }}>AQI</span>
+                        </div>
+                        <div style={{ fontSize: '18px', color: 'var(--slate-200)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.aqi}</div>
+                      </div>
+                      <div style={{ background: 'var(--slate-800)', padding: '12px', borderRadius: '8px', border: '1px solid var(--slate-700)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                          <Zap size={12} color="var(--slate-400)" />
+                          <span style={{ fontSize: '10px', color: 'var(--slate-400)', fontWeight: 600 }}>GRID LOAD</span>
+                        </div>
+                        <div style={{ fontSize: '18px', color: 'var(--slate-200)', fontFamily: 'var(--font-jetbrains, monospace)', fontWeight: 700 }}>{cityData.metrics.gridLoad} GW</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'actions' && (
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h3 style={{ fontSize: '10px', fontWeight: 800, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Recommended Interventions</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {agent.quickActions.map((action, idx) => (
+                      <motion.button
+                        key={action}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => { setActiveTab('insights'); setInput(action); }}
+                        style={{
+                          padding: '14px 16px',
+                          borderRadius: '10px',
+                          background: 'var(--slate-800)',
+                          border: '1px solid var(--slate-700)',
+                          color: 'var(--slate-200)',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          textAlign: 'left',
+                          transition: 'border-color 0.2s',
+                        }}
+                      >
+                        <span>{action}</span>
+                        <ArrowRight size={14} color={agent.color} />
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'insights' && (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <div style={{ flex: 1, padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {messages.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -703,67 +743,57 @@ export function AgentHub() {
                   </div>
                 </motion.div>
               )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input */}
-            <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <textarea
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSend(); }}
-                  placeholder={`Ask ${agent.name.split(' ')[0]} about ${agent.domain.split('·')[0].trim().toLowerCase()}...`}
-                  rows={2}
-                  style={{
-                    flex: 1,
-                    background: 'rgba(0,0,0,0.25)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'rgba(255,255,255,0.85)',
-                    fontSize: '13px',
-                    resize: 'none',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                  }}
-                />
-                <motion.button
-                  whileHover={input.trim() && !isLoading ? { scale: 1.04 } : {}}
-                  whileTap={input.trim() && !isLoading ? { scale: 0.96 } : {}}
-                  onClick={handleSend}
-                  disabled={!input.trim() || isLoading}
-                  style={{
-                    padding: '10px 14px',
-                    background: !input.trim() || isLoading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00D4FF, #7C3AED)',
-                    border: 'none',
-                    borderRadius: '10px',
-                    color: '#FFFFFF',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                    cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
-                    opacity: input.trim() && !isLoading ? 1 : 0.3,
-                    alignSelf: 'flex-end',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Send size={14} />
-                  Send
-                </motion.button>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                <button
-                  onClick={() => { clearConversation(agentId); }}
-                  style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px' }}
-                >
-                  Clear chat
-                </button>
-                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
-                  Ctrl+Enter to send · {agent.name}
+                <div ref={messagesEndRef} />
+                  </div>
+                  {/* Input */}
+                  <div style={{ padding: '12px 14px', borderTop: '1px solid var(--slate-800)', background: 'var(--slate-900)', shrink: 0 }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <textarea
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSend(); }}
+                        placeholder={`Ask ${agent.name.split(' ')[0]}...`}
+                        rows={2}
+                        style={{
+                          flex: 1,
+                          background: 'var(--slate-800)',
+                          border: '1px solid var(--slate-700)',
+                          borderRadius: '10px',
+                          padding: '10px 14px',
+                          color: 'var(--slate-200)',
+                          fontSize: '13px',
+                          resize: 'none',
+                          outline: 'none',
+                          fontFamily: 'inherit',
+                        }}
+                      />
+                      <motion.button
+                        whileHover={input.trim() && !isLoading ? { scale: 1.04 } : {}}
+                        whileTap={input.trim() && !isLoading ? { scale: 0.96 } : {}}
+                        onClick={handleSend}
+                        disabled={!input.trim() || isLoading}
+                        style={{
+                          padding: '10px 14px',
+                          background: !input.trim() || isLoading ? 'var(--slate-800)' : agent.color,
+                          border: 'none',
+                          borderRadius: '10px',
+                          color: '#FFFFFF',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                          opacity: input.trim() && !isLoading ? 1 : 0.5,
+                          alignSelf: 'flex-end',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <Send size={14} />
+                      </motion.button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         )}

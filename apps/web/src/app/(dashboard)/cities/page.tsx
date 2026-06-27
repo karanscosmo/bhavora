@@ -6,7 +6,28 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'rec
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Layers, MapPin, Maximize, Navigation, Minus, Plus, Search, ChevronDown, ChevronUp, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Maximize2, Crosshair, Play, Activity, Map as MapIcon, Layers, ShieldAlert, Cpu, BarChart3, Clock, TrendingUp, Train, Route, Zap, Bus, Hospital, Factory, Laptop, Waves, Plug, Droplet, MapPin, Maximize, Navigation, Minus, Plus, CheckCircle2 } from 'lucide-react';
+
+const LAYER_ICON_MAP: Record<string, React.ReactNode> = {
+  train: <Train size={16} />,
+  route: <Route size={16} />,
+  zap: <Zap size={16} />,
+  bus: <Bus size={16} />,
+  hospital: <Hospital size={16} />,
+  factory: <Factory size={16} />,
+  laptop: <Laptop size={16} />,
+  waves: <Waves size={16} />,
+  plug: <Plug size={16} />,
+  droplet: <Droplet size={16} />
+};
+
+const METRO_STATIONS = [
+  { name: 'Baiyappanahalli Metro', coordinates: [77.6525, 12.9907], type: 'Interchange', ridership: '45k/day' },
+  { name: 'Indiranagar Metro', coordinates: [77.6412, 12.9784], type: 'Standard', ridership: '35k/day' },
+  { name: 'MG Road Metro', coordinates: [77.6010, 12.9755], type: 'Standard', ridership: '60k/day' },
+  { name: 'Majestic Interchange', coordinates: [77.5726, 12.9756], type: 'Interchange', ridership: '120k/day' },
+  { name: 'Mysore Road Metro', coordinates: [77.5298, 12.9485], type: 'Standard', ridership: '25k/day' },
+];
 
 const EV_STATIONS = [
   { name: 'Hope Farm EV Hub', coordinates: [77.7499, 12.9698], chargerCount: 12, capacity: '250 kW' },
@@ -136,6 +157,34 @@ export default function CitiesPage() {
           });
         }
 
+        if (!map.getSource('metro-routes')) {
+          map.addSource('metro-routes', {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'LineString',
+                coordinates: METRO_STATIONS.map(s => s.coordinates)
+              }
+            }
+          });
+          map.addLayer({
+            id: 'metro-routes-layer',
+            type: 'line',
+            source: 'metro-routes',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round'
+            },
+            paint: {
+              'line-color': '#7C3AED',
+              'line-width': 4,
+              'line-opacity': 0.8
+            }
+          });
+        }
+
         map.on('mousemove', (e) => {
           setCursorCoords({ lng: Number(e.lngLat.lng.toFixed(4)), lat: Number(e.lngLat.lat.toFixed(4)) });
         });
@@ -190,6 +239,23 @@ export default function CitiesPage() {
           });
           markersRef.current.push(new mapboxgl.Marker(el).setLngLat(flood.coordinates as [number, number]).addTo(map));
         });
+      }
+
+      if (isLayerEnabled('metro-stations')) {
+        METRO_STATIONS.forEach(station => {
+          const el = document.createElement('div');
+          el.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#7C3AED;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px;box-shadow:0 4px 10px rgba(124,58,237,0.5);cursor:pointer;';
+          el.innerHTML = 'M';
+          el.addEventListener('click', () => {
+            setSelectedMapAsset(station.name);
+            setActiveAssetDetails({ type: 'Metro Station', ...station });
+          });
+          markersRef.current.push(new mapboxgl.Marker(el).setLngLat(station.coordinates as [number, number]).addTo(map));
+        });
+      }
+
+      if (map.getLayer('metro-routes-layer')) {
+        map.setLayoutProperty('metro-routes-layer', 'visibility', isLayerEnabled('metro-routes') ? 'visible' : 'none');
       }
     });
 
@@ -291,7 +357,7 @@ export default function CitiesPage() {
                               layer.enabled ? 'bg-[var(--accent-blue)]/5 border-[var(--accent-blue)]/30' : 'bg-transparent border-transparent hover:bg-[var(--slate-50)]'
                             }`}>
                               <div className="flex items-center gap-3">
-                                <span className="text-base">{layer.icon}</span>
+                                <span className="text-base text-[var(--slate-500)] flex items-center">{LAYER_ICON_MAP[layer.icon] || layer.icon}</span>
                                 <span className={`text-sm ${layer.enabled ? 'font-bold text-[var(--accent-blue)]' : 'font-medium text-[var(--slate-700)]'}`}>
                                   {layer.name}
                                 </span>

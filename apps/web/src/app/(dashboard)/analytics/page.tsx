@@ -12,17 +12,19 @@ import {
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--slate-200)]">
+    <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--slate-800)]">
       <div>
-        <h2 className="text-sm font-bold text-[var(--slate-900)] uppercase tracking-widest">{title}</h2>
-        {subtitle && <p className="text-xs text-[var(--slate-500)] mt-1">{subtitle}</p>}
+        <h2 className="text-[11px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
+          <span className="w-1.5 h-1.5 bg-[var(--accent-blue)]" /> {title}
+        </h2>
+        {subtitle && <p className="text-[10px] text-[var(--slate-400)] mt-1">{subtitle}</p>}
       </div>
-      <div className="flex gap-2">
-        <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[var(--slate-200)] hover:bg-[var(--slate-50)] text-xs font-bold text-[var(--slate-700)] transition-colors">
-          <Filter size={14} /> Filter
+      <div className="flex gap-1.5">
+        <button className="flex items-center gap-1.5 px-2 py-1 bg-[var(--slate-900)] border border-[var(--slate-700)] hover:border-[var(--accent-blue)] text-[10px] font-bold text-[var(--slate-300)] transition-colors">
+          <Filter size={12} /> FILTER
         </button>
-        <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[var(--slate-200)] hover:bg-[var(--slate-50)] text-xs font-bold text-[var(--slate-700)] transition-colors">
-          <Download size={14} /> Export CSV
+        <button className="flex items-center gap-1.5 px-2 py-1 bg-[var(--slate-900)] border border-[var(--slate-700)] hover:border-[var(--accent-blue)] text-[10px] font-bold text-[var(--slate-300)] transition-colors">
+          <Download size={12} /> EXPORT CSV
         </button>
       </div>
     </div>
@@ -31,16 +33,15 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
 
 function ChartContainer({ title, source, children }: { title: string; source: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white border border-[var(--slate-200)] flex flex-col h-full shadow-sm">
-      <div className="px-4 py-3 border-b border-[var(--slate-200)] bg-[var(--slate-50)]">
-        <h3 className="text-xs font-bold text-[var(--slate-800)] uppercase tracking-widest">{title}</h3>
+    <div className="bg-[#0f141e] border border-[var(--slate-800)] flex flex-col h-full shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
+      <div className="px-3 py-2 border-b border-[var(--slate-800)] bg-[var(--slate-900)]/80 flex justify-between items-center">
+        <h3 className="text-[9px] font-bold text-[var(--slate-300)] uppercase tracking-widest flex items-center gap-2">
+          <span className="w-1 h-1 rounded-full bg-[var(--accent-teal)] animate-pulse" /> {title}
+        </h3>
+        <span className="text-[8px] font-mono text-[var(--slate-500)] uppercase tracking-wider">{source}</span>
       </div>
-      <div className="flex-1 p-4 min-h-[260px]">
+      <div className="flex-1 p-3 min-h-[220px]">
         {children}
-      </div>
-      <div className="px-4 py-2 border-t border-[var(--slate-200)] bg-[var(--slate-50)] flex justify-between items-center text-[9px] font-mono text-[var(--slate-500)] uppercase tracking-widest">
-        <span>Source: {source}</span>
-        <span className="flex items-center gap-1 text-[var(--accent-blue)]"><Activity size={10} /> Live Telemetry</span>
       </div>
     </div>
   );
@@ -49,13 +50,13 @@ function ChartContainer({ title, source, children }: { title: string; source: st
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-[var(--slate-200)] p-3 shadow-md text-xs font-mono">
-        <div className="font-bold text-[var(--slate-800)] mb-2 border-b border-[var(--slate-100)] pb-1">{label}</div>
+      <div className="bg-[var(--slate-900)] border border-[var(--slate-700)] p-2 shadow-xl text-[10px] font-mono">
+        <div className="font-bold text-white mb-1 border-b border-[var(--slate-700)] pb-1">{label}</div>
         {payload.map((entry: any, idx: number) => (
           <div key={idx} className="flex items-center gap-2 mt-1">
-            <span className="w-2 h-2 rounded-sm" style={{ background: entry.color }} />
-            <span className="text-[var(--slate-500)]">{entry.name}:</span>
-            <span className="font-bold text-[var(--slate-900)]">{typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}</span>
+            <span className="w-1.5 h-1.5 rounded-sm" style={{ background: entry.color }} />
+            <span className="text-[var(--slate-400)]">{entry.name}:</span>
+            <span className="font-bold text-[var(--slate-200)]">{typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}</span>
           </div>
         ))}
       </div>
@@ -167,62 +168,62 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-[var(--slate-100)] text-[var(--slate-800)]">
+    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-[#0a0e14] text-white">
       
       {/* Header Bar */}
-      <div className="bg-white border-b border-[var(--slate-200)] px-8 py-4 flex justify-between items-center shrink-0 z-10">
+      <div className="bg-[var(--slate-900)] border-b border-[var(--slate-800)] px-6 py-3 flex justify-between items-center shrink-0 z-10">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded bg-[var(--accent-navy)] text-white flex items-center justify-center">
-            <Activity size={20} />
+          <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-teal)] flex items-center justify-center border border-white/10">
+            <Activity size={16} color="white" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-[var(--slate-500)] uppercase tracking-widest mb-0.5">Statistical Analytics</div>
-            <h1 className="text-lg font-bold text-[var(--slate-900)]">Performance Telemetry</h1>
+            <div className="text-[9px] font-bold text-[var(--slate-400)] uppercase tracking-widest mb-0.5">Statistical Analytics</div>
+            <h1 className="text-sm font-bold text-white tracking-wide">Performance Telemetry Node</h1>
           </div>
         </div>
-        <div className="text-xs font-mono font-bold text-[var(--slate-500)] bg-[var(--slate-50)] px-3 py-1.5 border border-[var(--slate-200)] flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[var(--accent-teal)] animate-pulse" />
+        <div className="text-[9px] font-mono font-bold text-[var(--accent-teal)] bg-[var(--accent-teal)]/10 px-3 py-1.5 border border-[var(--accent-teal)]/30 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-teal)] animate-pulse shadow-[0_0_8px_var(--accent-teal)]" />
           SYSTEM LIVE
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-        <div className="max-w-[1400px] mx-auto space-y-8">
+      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="w-full space-y-6">
 
           {/* Section 1 */}
           <div>
             <SectionHeader title="Core Demographic & Load Trajectory" subtitle="Population forecasts against energy grid peak capacities" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ChartContainer title="Demographic Shift Forecast" source="Model: Logistic Growth (R²=0.98)">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={demographicData} margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
+                  <AreaChart data={demographicData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
                     <defs>
                       <linearGradient id="demAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={0.2} />
+                        <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={0.4} />
                         <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--slate-200)" />
-                    <XAxis dataKey="year" tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} tickLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Year', position: 'insideBottom', offset: -15, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold', textAnchor: 'middle' }} />
-                    <YAxis tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} tickLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Population (Millions)', angle: -90, position: 'insideLeft', offset: -5, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold' }} />
+                    <CartesianGrid strokeDasharray="1 3" vertical={false} stroke="var(--slate-700)" />
+                    <XAxis dataKey="year" tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} tickLine={{ stroke: 'var(--slate-700)' }} />
+                    <YAxis tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} tickLine={{ stroke: 'var(--slate-700)' }} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--slate-600)', paddingTop: '20px' }} />
-                    <Area type="monotone" name="Simulated Projection" dataKey="Population" stroke="var(--accent-blue)" strokeWidth={2} fill="url(#demAreaGrad)" dot={false} />
-                    <Area type="monotone" name="Baseline (Unmitigated)" dataKey="Baseline" stroke="var(--slate-400)" strokeDasharray="4 4" strokeWidth={1.5} fill="none" dot={false} />
+                    <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--slate-400)', paddingTop: '10px' }} />
+                    <Area type="monotone" name="Simulated Projection" dataKey="Population" stroke="var(--accent-blue)" strokeWidth={1.5} fill="url(#demAreaGrad)" dot={false} />
+                    <Area type="monotone" name="Baseline (Unmitigated)" dataKey="Baseline" stroke="var(--slate-500)" strokeDasharray="4 4" strokeWidth={1} fill="none" dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </ChartContainer>
 
               <ChartContainer title="Peak Grid Load Simulation" source="BESCOM Telemetry & Grid Model">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={energyLoadData} margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--slate-200)" />
-                    <XAxis dataKey="hour" tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} tickLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Hour of Day', position: 'insideBottom', offset: -15, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold', textAnchor: 'middle' }} />
-                    <YAxis tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} tickLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Load (GW)', angle: -90, position: 'insideLeft', offset: -5, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold' }} />
+                  <LineChart data={energyLoadData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
+                    <CartesianGrid strokeDasharray="1 3" vertical={false} stroke="var(--slate-700)" />
+                    <XAxis dataKey="hour" tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} tickLine={{ stroke: 'var(--slate-700)' }} />
+                    <YAxis tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} tickLine={{ stroke: 'var(--slate-700)' }} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--slate-600)', paddingTop: '20px' }} />
-                    <Line type="stepAfter" name="Baseline Draw" dataKey="Baseline" stroke="var(--slate-400)" strokeDasharray="4 4" strokeWidth={1.5} dot={false} />
-                    <Line type="stepAfter" name="Simulated Draw" dataKey="Simulated" stroke="var(--accent-navy)" strokeWidth={2} dot={{ r: 3, fill: 'var(--accent-navy)' }} />
+                    <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--slate-400)', paddingTop: '10px' }} />
+                    <Line type="stepAfter" name="Baseline Draw" dataKey="Baseline" stroke="var(--slate-500)" strokeDasharray="4 4" strokeWidth={1} dot={false} />
+                    <Line type="stepAfter" name="Simulated Draw" dataKey="Simulated" stroke="var(--accent-teal)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--accent-teal)', strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -232,21 +233,21 @@ export default function AnalyticsPage() {
           {/* Section 2 */}
           <div>
             <SectionHeader title="Emissions & Economic Impact" subtitle="Sector-wise carbon generation and GDP correlation" />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               
               <div className="lg:col-span-2">
                 <ChartContainer title="Carbon Sector Distribution" source="IPCC Tier 2 Emission Model">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={co2SectorData} margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--slate-200)" />
-                      <XAxis dataKey="year" tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Year', position: 'insideBottom', offset: -15, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold' }} />
-                      <YAxis tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Emissions (Mt)', angle: -90, position: 'insideLeft', offset: -5, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold' }} />
+                    <ComposedChart data={co2SectorData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                      <CartesianGrid strokeDasharray="1 3" vertical={false} stroke="var(--slate-700)" />
+                      <XAxis dataKey="year" tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} />
+                      <YAxis tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '20px' }} />
-                      <Bar dataKey="Transport" name="Transport" stackId="a" fill="var(--accent-navy)" maxBarSize={30} />
-                      <Bar dataKey="Energy" name="Energy Grid" stackId="a" fill="var(--slate-400)" maxBarSize={30} />
-                      <Bar dataKey="Industry" name="Industrial" stackId="a" fill="var(--slate-300)" maxBarSize={30} />
-                      <Line type="monotone" name="Total Net" dataKey="Total" stroke="var(--accent-teal)" strokeWidth={2} dot={{ r: 4, fill: 'white', stroke: 'var(--accent-teal)', strokeWidth: 2 }} />
+                      <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '10px' }} />
+                      <Bar dataKey="Transport" name="Transport" stackId="a" fill="var(--accent-blue)" maxBarSize={20} />
+                      <Bar dataKey="Energy" name="Energy Grid" stackId="a" fill="var(--slate-600)" maxBarSize={20} />
+                      <Bar dataKey="Industry" name="Industrial" stackId="a" fill="var(--slate-500)" maxBarSize={20} />
+                      <Line type="monotone" name="Total Net" dataKey="Total" stroke="var(--accent-teal)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--slate-900)', stroke: 'var(--accent-teal)', strokeWidth: 1.5 }} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </ChartContainer>
@@ -254,12 +255,12 @@ export default function AnalyticsPage() {
 
               <ChartContainer title="Growth/Health Correlation" source="Solow-Swan Matrix">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--slate-200)" />
-                    <XAxis type="number" dataKey="gdp" name="GDP Growth" unit="%" tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'GDP Growth (%)', position: 'insideBottom', offset: -15, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold' }} />
-                    <YAxis type="number" dataKey="health" name="City Health" tick={{ fill: 'var(--slate-500)', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-300)' }} label={{ value: 'Health Index', angle: -90, position: 'insideLeft', offset: 0, fontSize: 10, fill: 'var(--slate-400)', fontWeight: 'bold' }} />
-                    <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Projections" data={economicData} fill="var(--accent-blue)" shape="circle" />
+                  <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                    <CartesianGrid strokeDasharray="1 3" stroke="var(--slate-700)" />
+                    <XAxis type="number" dataKey="gdp" name="GDP Growth" unit="%" tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} />
+                    <YAxis type="number" dataKey="health" name="City Health" tick={{ fill: 'var(--slate-500)', fontSize: 9, fontFamily: 'monospace' }} axisLine={{ stroke: 'var(--slate-700)' }} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--slate-600)' }} />
+                    <Scatter name="Projections" data={economicData} fill="var(--accent-teal)" shape="circle" />
                   </ScatterChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -269,42 +270,42 @@ export default function AnalyticsPage() {
           {/* Section 3: Dense Data Table with Sparklines */}
           <div>
             <SectionHeader title="District Operational Telemetry" subtitle="Micro-metric volatility and congestion severity tracking" />
-            <div className="bg-white border border-[var(--slate-200)] shadow-sm">
+            <div className="bg-[#0f141e] border border-[var(--slate-800)] shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[var(--slate-50)] text-[9px] uppercase font-bold text-[var(--slate-500)] border-b border-[var(--slate-200)] tracking-widest">
-                      <th className="py-3 px-4 w-12 text-center">Rank</th>
-                      <th className="py-3 px-4">District Sector</th>
-                      <th className="py-3 px-4 w-32 text-right">Congestion Index</th>
-                      <th className="py-3 px-4 w-24 text-center">Trend</th>
-                      <th className="py-3 px-4 w-48">12H Volatility (Spark)</th>
-                      <th className="py-3 px-4">Severity Load</th>
+                    <tr className="bg-[var(--slate-900)]/80 text-[8px] uppercase font-bold text-[var(--slate-500)] border-b border-[var(--slate-800)] tracking-widest">
+                      <th className="py-2 px-3 w-10 text-center">Rnk</th>
+                      <th className="py-2 px-3">District Sector</th>
+                      <th className="py-2 px-3 w-28 text-right">Congestion IDX</th>
+                      <th className="py-2 px-3 w-20 text-center">Trend</th>
+                      <th className="py-2 px-3 w-40">12H Volatility (Spark)</th>
+                      <th className="py-2 px-3">Severity Load</th>
                     </tr>
                   </thead>
                   <tbody>
                     {districtTableData.map((d, idx) => (
-                      <tr key={d.name} className="border-b border-[var(--slate-100)] hover:bg-[var(--slate-50)] transition-colors">
-                        <td className="py-3 px-4 text-center text-xs font-bold text-[var(--slate-400)]">{idx + 1}</td>
-                        <td className="py-3 px-4 text-xs font-bold text-[var(--slate-800)] uppercase tracking-wider">{d.name}</td>
-                        <td className="py-3 px-4 text-right font-mono text-sm font-bold text-[var(--slate-900)]">{d.index}.0</td>
-                        <td className="py-3 px-4 text-center">
+                      <tr key={d.name} className="border-b border-[var(--slate-800)]/50 hover:bg-[var(--slate-800)]/30 transition-colors">
+                        <td className="py-2 px-3 text-center text-[10px] font-mono text-[var(--slate-600)]">0{idx + 1}</td>
+                        <td className="py-2 px-3 text-[10px] font-bold text-[var(--slate-300)] uppercase tracking-wider">{d.name}</td>
+                        <td className="py-2 px-3 text-right font-mono text-[11px] font-bold text-white">{d.index}.0</td>
+                        <td className="py-2 px-3 text-center">
                           {d.trend === 'up' 
-                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--accent-red)] bg-[var(--accent-red)]/10 px-2 py-0.5 rounded uppercase"><TrendingUp size={12}/> High</span>
-                            : <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--accent-teal)] bg-[var(--accent-teal)]/10 px-2 py-0.5 rounded uppercase"><TrendingUp size={12} className="rotate-180"/> Low</span>
+                            ? <span className="inline-flex items-center gap-1 text-[8px] font-bold text-[var(--accent-red)] bg-[var(--accent-red)]/10 px-1.5 py-0.5 rounded-sm uppercase tracking-widest border border-[var(--accent-red)]/20"><TrendingUp size={10}/> High</span>
+                            : <span className="inline-flex items-center gap-1 text-[8px] font-bold text-[var(--accent-teal)] bg-[var(--accent-teal)]/10 px-1.5 py-0.5 rounded-sm uppercase tracking-widest border border-[var(--accent-teal)]/20"><TrendingUp size={10} className="rotate-180"/> Low</span>
                           }
                         </td>
-                        <td className="py-3 px-4 h-12">
-                          <div className="h-6 w-full">
+                        <td className="py-2 px-3 h-8">
+                          <div className="h-4 w-full">
                             <Sparkline data={d.sparkData} dataKey="v" color={d.trend === 'up' ? 'var(--accent-red)' : 'var(--accent-teal)'} />
                           </div>
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1 h-1.5 rounded-full bg-[var(--slate-200)] overflow-hidden">
-                              <div className={`h-full rounded-full ${d.index > 80 ? 'bg-[var(--accent-red)]' : d.index > 60 ? 'bg-[var(--accent-amber)]' : 'bg-[var(--accent-teal)]'}`} style={{ width: `${d.index}%` }} />
+                        <td className="py-2 px-3">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-1 rounded-sm bg-[var(--slate-800)] overflow-hidden">
+                              <div className={`h-full rounded-sm ${d.index > 80 ? 'bg-[var(--accent-red)]' : d.index > 60 ? 'bg-[var(--accent-amber)]' : 'bg-[var(--accent-teal)]'}`} style={{ width: `${d.index}%` }} />
                             </div>
-                            <span className="text-[10px] font-mono font-bold text-[var(--slate-500)] w-8 text-right">{d.index}%</span>
+                            <span className="text-[9px] font-mono font-bold text-[var(--slate-400)] w-6 text-right">{d.index}%</span>
                           </div>
                         </td>
                       </tr>
@@ -312,8 +313,9 @@ export default function AnalyticsPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 border-t border-[var(--slate-200)] bg-[var(--slate-50)] text-[9px] font-mono text-[var(--slate-500)] uppercase tracking-widest text-right">
-                Source: BPR Traffic Matrix · Update Freq: 15min
+              <div className="px-3 py-1.5 border-t border-[var(--slate-800)] bg-[var(--slate-900)]/80 text-[8px] font-mono text-[var(--slate-500)] uppercase tracking-widest text-right flex justify-between">
+                <span>Data Source: BPR Traffic Matrix</span>
+                <span><Activity size={10} className="inline mr-1"/> Update Freq: 15min</span>
               </div>
             </div>
           </div>
