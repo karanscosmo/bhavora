@@ -1,399 +1,468 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-
-import { useSimulationStore } from '@/store/useSimulationStore';
-import { exportToPDF } from '@/lib/exportUtils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDisasterStore, useAppStore, useUIStore } from '@/stores';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { BarChart2, Brain, Car, Droplet, Hospital, Layers, Locate, MessageCircle, Minus, Plus, PowerOff, TrendingUp, Waves, Zap } from 'lucide-react';
 
+const PROTOCOLS = [
+  { id: 'flood', name: 'Flood Response', icon: '🌊', color: '#3B82F6', description: 'Activate BBMP drainage, deploy pumps, issue evacuation orders' },
+  { id: 'fire', name: 'Fire Evacuation', icon: '🔥', color: '#EF4444', description: 'KFES dispatch, civilian evacuation, traffic diversion' },
+  { id: 'power', name: 'Power Outage Response', icon: '⚡', color: '#F59E0B', description: 'BESCOM emergency, load redistribution, backup activation' },
+  { id: 'medical', name: 'Mass Medical Emergency', icon: '🏥', color: '#10B981', description: '108 dispatch, hospital alerts, field triage setup' },
+  { id: 'earthquake', name: 'Earthquake Response', icon: '🌍', color: '#7C3AED', description: 'NDRF activation, structural assessment, rescue coordination' },
+  { id: 'industrial', name: 'Industrial Accident', icon: '🏭', color: '#F97316', description: 'HAZMAT team, evacuation radius, media coordination' },
+];
 
-export default function DisasterResponsePage() {
-  const store = useSimulationStore();
-  const { climateEvent, disasterEvent } = store;
+function ProtocolModal({ onClose, onActivate }: { onClose: () => void; onActivate: (protocol: string) => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [activating, setActivating] = useState(false);
 
-  const [floodData, setFloodData] = useState<Record<string, unknown> | null>(null);
-  const [rerouted, setRerouted] = useState(false);
-  
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapboxMap | null>(null);
-
-  // Fetch disaster scenario data
-  useEffect(() => {
-    const fetchFloodData = async () => {
-      try {
-        const res = await fetch('/api/disaster/flood', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ climateEvent })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setFloodData(data);
-        }
-      } catch (e) {
-        console.error("Failed to load flood engine", e);
-      }
-    };
-    fetchFloodData();
-  }, [climateEvent]);
-
-  // Initialize Mapbox
-  useEffect(() => {
-    let map: MapboxMap | null = null;
-    import('mapbox-gl').then((mapboxglModule) => {
-      const mapboxgl = mapboxglModule.default;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-
-      if (!mapContainerRef.current) return;
-
-      map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [77.5946, 12.9716],
-        zoom: 11,
-        pitch: 45,
-        attributionControl: false
-      });
-      mapRef.current = map;
-      
-      map.on('load', () => {
-        if (!map) return;
-        
-        // Add flood polygons source
-        map.addSource('flood-zones', {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] }
-        });
-
-        map.addLayer({
-          id: 'layer-flood',
-          type: 'fill',
-          source: 'flood-zones',
-          paint: {
-            'fill-color': '#ba1a1a',
-            'fill-opacity': 0.6
-          }
-        });
-
-        // Add alternate routes source
-        map.addSource('alternate-routes', {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] }
-        });
-
-        map.addLayer({
-          id: 'layer-alternate-routes',
-          type: 'line',
-          source: 'alternate-routes',
-          paint: {
-            'line-color': '#10b981', // emerald
-            'line-width': 5,
-            'line-dasharray': [2, 2]
-          }
-        });
-      });
-    });
-
-    return () => { if (map) map.remove(); };
-  }, []);
-
-  // Update map when flood data changes
-  useEffect(() => {
-    if (!mapRef.current || !floodData) return;
-    const map = mapRef.current;
-    
-    // Check if style is loaded before trying to update source
-    if (!map.isStyleLoaded()) {
-      map.once('styledata', updateMapData);
-    } else {
-      updateMapData();
-    }
-
-    function updateMapData() {
-      const floodSource = map.getSource('flood-zones') as mapboxgl.GeoJSONSource | undefined;
-      if (floodSource && floodData && floodData.floodZones) {
-        // Create synthetic polygons around flood zones
-        const features = (floodData.floodZones as Array<{lat: number, lng: number}>).map((z) => ({
-          type: 'Feature' as const,
-          geometry: {
-            type: 'Polygon' as const,
-            coordinates: [[
-              [z.lng - 0.02, z.lat - 0.02],
-              [z.lng + 0.02, z.lat - 0.02],
-              [z.lng + 0.02, z.lat + 0.02],
-              [z.lng - 0.02, z.lat + 0.02],
-              [z.lng - 0.02, z.lat - 0.02]
-            ]]
-          },
-          properties: {}
-        }));
-        floodSource.setData({ type: 'FeatureCollection', features });
-      }
-    }
-  }, [floodData]);
-
-
-
-  // Compute active variables based on current store climate hazard
-  // (We use API data if available, fallback to defaults)
-  const isHazard = climateEvent !== "None";
-  
-  const activeLoad = "68.0%";
-  const disruptions = floodData && Array.isArray(floodData.affectedRoads) ? `${floodData.affectedRoads.length} Nodes` : "0 Nodes";
-  const hospitalLoad = floodData ? Number(floodData.hospitalStress) : 45;
-  const hospitalTrend = isHazard ? "+12%" : "Stable";
-  const hospitalTrendColor = isHazard ? "text-error" : "text-on-surface-variant";
-  const stormwaterLevel = isHazard ? "4.2m" : "1.2m";
-  const stormwaterStatus = isHazard ? "CRITICAL" : "NORMAL";
-  const stormwaterProgress = isHazard ? 95 : 30;
-  const stormwaterColor = isHazard ? "bg-secondary" : "bg-primary";
-  const floodRecommendations = floodData?.recommendations as string[] | undefined;
-  const recTitle = rerouted ? "Rerouting Executed Successfully" : (floodRecommendations?.[1] || "Normal Protocol");
-  const recBody = rerouted ? "Traffic successfully diverted to Inner Ring Road. Congestion score improved by 18%." : (floodRecommendations?.[0] || "No actions required.");
-  const displayMapBlinkers = isHazard;
-
-  const handleHazardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    store.setInputs({ climateEvent: val });
-    store.runSimulation({ climateEvent: val });
+  const handleActivate = async () => {
+    if (!selected) return;
+    setActivating(true);
+    await new Promise(r => setTimeout(r, 2000));
+    onActivate(selected);
+    setActivating(false);
+    onClose();
   };
 
   return (
-    <div className="absolute inset-0 flex overflow-hidden animate-fade-in" id="disaster-report">
-      {/* Interactive Map (The Base Layer) */}
-      <div className="flex-1 relative bg-gray-900 overflow-hidden">
-        {/* Simulated Map Canvas */}
-        <div ref={mapContainerRef} className="absolute inset-0 z-0 w-full h-full"></div>
-
-        {/* Map Overlays: Critical Infrastructure Hazards */}
-        <div className="absolute inset-0 z-10 p-6 pointer-events-none">
-          {/* Blinking Alerts */}
-          {displayMapBlinkers && (
-            <>
-              <div className="absolute top-1/4 left-1/3 pointer-events-auto group cursor-pointer">
-                <div className="w-6 h-6 bg-error rounded-full flex items-center justify-center text-white animate-pulse shadow-lg">
-                  <Waves />
-                </div>
-                <div className="absolute left-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-label-md font-bold text-error">Central Inundation</p>
-                  <p className="text-body-sm text-on-surface-variant">Depth: {stormwaterLevel}. Arterial corridors restricted.</p>
-                </div>
-              </div>
-
-              <div className="absolute bottom-1/3 right-1/4 pointer-events-auto group cursor-pointer">
-                <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white animate-pulse shadow-lg" style={{ animationDelay: "0.5s" }}>
-                  <Zap />
-                </div>
-                <div className="absolute right-8 top-0 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-xl w-48 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-label-md font-bold text-secondary">Grid Instability</p>
-                  <p className="text-body-sm text-on-surface-variant">Peak substation strain monitored.</p>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* SVG Cascade Effect Layer */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60">
-            <defs>
-              <linearGradient id="gradient-error" x1="0%" x2="100%" y1="0%" y2="0%">
-                <stop offset="0%" stopColor="#ba1a1a" stopOpacity="0.2"></stop>
-                <stop offset="100%" stopColor="#ba1a1a" stopOpacity="0.8"></stop>
-              </linearGradient>
-            </defs>
-            <path d="M 400 300 Q 500 450 700 400" fill="transparent" stroke="url(#gradient-error)" strokeWidth="2" strokeDasharray="8" className="animate-pulse"></path>
-            <circle cx="400" cy="300" fill="#ba1a1a" r="4"></circle>
-            <circle cx="700" cy="400" fill="#ba1a1a" r="4"></circle>
-          </svg>
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
+      <div style={{
+        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+        background: '#0A1628', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '14px',
+        padding: '24px', width: '520px', zIndex: 301, boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+        animation: 'scale-in 0.16s ease-out',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>Execute Emergency Protocol</div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>Select and confirm response protocol for active incident</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}>×</button>
         </div>
 
-        {/* Floating Map Controls */}
-        <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-2">
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-1 rounded-xl shadow-lg flex flex-col">
-            <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
-              <Plus />
-            </button>
-            <div className="h-[1px] bg-outline-variant/20 mx-2"></div>
-            <button className="p-3 hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
-              <Minus />
-            </button>
-          </div>
-          <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors cursor-pointer">
-            <Layers />
-          </button>
-          <button className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-3 rounded-xl shadow-lg hover:bg-surface-container-high transition-colors cursor-pointer">
-            <Locate />
-          </button>
-        </div>
-
-        {/* Map HUD Overlays (Top) */}
-        <div className="absolute top-6 left-6 right-6 flex justify-between pointer-events-none z-20">
-          <div className="flex gap-4 pointer-events-auto">
-            <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 px-4 py-2 rounded-full shadow-lg flex items-center gap-3">
-              <span className="text-label-md font-bold uppercase tracking-tight text-on-surface-variant">Active Load:</span>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-error"></span>
-                <span className="font-mono-label text-error">{activeLoad}</span>
-              </div>
-            </div>
-            <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 px-4 py-2 rounded-full shadow-lg flex items-center gap-3">
-              <span className="text-label-md font-bold uppercase tracking-tight text-on-surface-variant">Disruptions:</span>
-              <span className="font-mono-label text-on-surface">{disruptions}</span>
-            </div>
-          </div>
-          <div className="flex gap-4 pointer-events-auto">
-            <select 
-              value={climateEvent}
-              onChange={handleHazardChange}
-              className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-full px-6 py-2 text-label-md font-bold shadow-lg focus:ring-2 focus:ring-primary outline-none cursor-pointer text-sm"
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+          {PROTOCOLS.map(p => (
+            <button
+              key={p.id}
+              onClick={() => setSelected(p.id)}
+              style={{
+                padding: '12px',
+                borderRadius: '8px',
+                border: `1px solid ${selected === p.id ? p.color : 'rgba(255,255,255,0.06)'}`,
+                background: selected === p.id ? `${p.color}12` : 'rgba(255,255,255,0.02)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 150ms',
+              }}
             >
-              <option value="None">No Climate Hazard</option>
-              <option value="100-Year Flood">Flood Event (100-Year)</option>
-              <option value="Extreme Heatwave">Extreme Heatwave</option>
-              <option value="Severe Drought">Severe Drought</option>
-            </select>
-          </div>
+              <div style={{ fontSize: '20px', marginBottom: '5px' }}>{p.icon}</div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: selected === p.id ? '#fff' : 'rgba(255,255,255,0.7)' }}>{p.name}</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '3px', lineHeight: 1.3 }}>{p.description}</div>
+            </button>
+          ))}
         </div>
 
-        {/* Operations Comms */}
-        <button className="absolute bottom-6 left-6 bg-white/80 backdrop-blur-xl border border-outline-variant/30 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 hover:scale-[1.02] transition-transform z-50 pointer-events-auto cursor-pointer">
-          <div className="flex -space-x-3">
-            <div className="w-8 h-8 rounded-full border-2 border-white bg-primary-fixed overflow-hidden flex items-center justify-center text-[10px] font-bold text-on-primary-fixed">JD</div>
-            <div className="w-8 h-8 rounded-full border-2 border-white bg-secondary-fixed overflow-hidden flex items-center justify-center text-[10px] font-bold text-on-secondary-fixed">AK</div>
-            <div className="w-8 h-8 rounded-full border-2 border-white bg-tertiary-fixed overflow-hidden flex items-center justify-center text-[10px] font-bold text-on-tertiary-fixed">+4</div>
-          </div>
-          <div className="h-6 w-[1px] bg-outline-variant/30"></div>
-          <div className="text-left">
-            <p className="text-label-md font-bold text-on-surface">Operations Comms</p>
-            <p className="text-[10px] text-on-surface-variant">6 Personnel Active on Ground</p>
-          </div>
-          <MessageCircle />
-        </button>
-      </div>
-
-      {/* Right Side Intelligence Panel (Bento Style) */}
-      <div className="w-[480px] bg-white h-full border-l border-outline-variant/20 flex flex-col shadow-2xl overflow-y-auto">
-        <div className="p-8 space-y-8">
-          {/* Priority AI Recommendation */}
-          <div className="relative p-6 rounded-2xl bg-primary text-on-primary shadow-xl overflow-hidden group">
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  <Brain />
-                  AI Strategy Engine
-                </div>
-                <span className="text-[10px] font-mono-label opacity-70">EXEC_T_00.2s</span>
-              </div>
-              <h3 className="font-headline-sm mb-2">{recTitle}</h3>
-              <p className="text-body-sm opacity-90 mb-4 leading-relaxed">
-                {recBody}
-              </p>
-              <div className="flex gap-2">
-                <button className="bg-white text-primary px-4 py-2 rounded-lg text-label-md font-bold shadow-md hover:bg-surface-bright transition-colors cursor-pointer">Execute Protocols</button>
-                <button className="bg-primary-container text-white px-4 py-2 rounded-lg text-label-md font-medium border border-white/20 cursor-pointer">Analyze Impact</button>
-              </div>
+        {selected && (
+          <div style={{ padding: '12px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '8px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', color: '#EF4444', fontWeight: 700, marginBottom: '4px' }}>⚠ Confirmation Required</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+              Activating <strong style={{ color: '#fff' }}>{PROTOCOLS.find(p => p.id === selected)?.name}</strong> will:
+              <br />• Dispatch emergency teams and notify authorities
+              <br />• Activate traffic diversion systems
+              <br />• Send public alert notifications
             </div>
           </div>
+        )}
 
-          {/* Hospital Load & Critical Infrastructure Bento */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-surface p-4 rounded-2xl border border-outline-variant/30 flex flex-col justify-between h-40">
-              <div>
-                <Hospital />
-                <div className="text-label-md text-on-surface-variant font-bold uppercase">Hospital Load</div>
-              </div>
-              <div className="flex items-end justify-between">
-                <span className="text-display-sm font-bold text-on-surface tracking-tighter">{hospitalLoad}%</span>
-                <span className={`font-mono-label text-[10px] pb-2 flex items-center ${hospitalTrendColor}`}>
-                  {hospitalTrend !== 'Stable' && <TrendingUp />}
-                  {hospitalTrend}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button onClick={onClose} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '13px' }}>Cancel</button>
+          <button
+            onClick={handleActivate}
+            disabled={!selected || activating}
+            style={{
+              padding: '8px 20px', background: '#EF4444', border: 'none',
+              borderRadius: '6px', color: '#fff', fontSize: '13px', fontWeight: 700,
+              cursor: selected && !activating ? 'pointer' : 'not-allowed',
+              opacity: selected && !activating ? 1 : 0.5,
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}
+          >
+            {activating ? (
+              <><span style={{ animation: 'live-pulse 1s infinite' }}>●</span> Activating...</>
+            ) : '⚡ Execute Protocol'}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ResourceDrawer({ onClose }: { onClose: () => void }) {
+  const { addNotification } = useAppStore();
+  const RESOURCES = [
+    { name: 'BBMP Drainage Team A', status: 'Standby', count: '12 personnel', icon: '🔧' },
+    { name: 'KFES Unit 3 & 7', status: 'Dispatched', count: '6 trucks', icon: '🚒' },
+    { name: '108 Ambulance Cluster', status: 'On-route', count: '8 units', icon: '🚑' },
+    { name: 'NDRF Team Bengaluru', status: 'Standby', count: '40 personnel', icon: '🪖' },
+    { name: 'BESCOM Rapid Response', status: 'Active', count: '4 teams', icon: '⚡' },
+  ];
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 300 }} />
+      <div style={{
+        position: 'fixed', right: 0, top: 0, bottom: 0, width: '380px',
+        background: '#0A1628', borderLeft: '1px solid rgba(0,212,255,0.12)',
+        zIndex: 301, display: 'flex', flexDirection: 'column', animation: 'slide-right 0.2s ease-out',
+        boxShadow: '-24px 0 80px rgba(0,0,0,0.5)',
+      }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Resource Deployment</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}>×</button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {RESOURCES.map((r, i) => (
+            <div key={i} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '18px' }}>{r.icon}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>{r.name}</span>
+                </div>
+                <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '9px', fontWeight: 700,
+                  background: r.status === 'Active' || r.status === 'On-route' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                  color: r.status === 'Active' || r.status === 'On-route' ? '#10B981' : '#F59E0B',
+                  border: `1px solid ${r.status === 'Active' || r.status === 'On-route' ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)'}`,
+                }}>
+                  {r.status}
                 </span>
               </div>
-              <div className="w-full bg-surface-container rounded-full h-1 mt-2">
-                <div className="bg-primary h-full rounded-full transition-all duration-[1s]" style={{ width: `${hospitalLoad}%` }}></div>
-              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>{r.count}</div>
+              <button
+                onClick={() => { addNotification({ title: 'Resource Deployed', message: `${r.name} deployed to incident zone`, severity: 'success' }); }}
+                style={{ padding: '4px 10px', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: '4px', fontSize: '11px', color: '#00D4FF', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Deploy Now
+              </button>
             </div>
-            
-            <div className="bg-surface p-4 rounded-2xl border border-outline-variant/30 flex flex-col justify-between h-40">
-              <div>
-                <Droplet />
-                <div className="text-label-md text-on-surface-variant font-bold uppercase">Stormwater Level</div>
-              </div>
-              <div className="flex items-end justify-between">
-                <span className="text-display-sm font-bold text-on-surface tracking-tighter">{stormwaterLevel}</span>
-                <span className={`font-mono-label text-[10px] pb-2 ${stormwaterStatus === 'CRITICAL' ? 'text-error font-bold animate-pulse' : 'text-on-surface-variant'}`}>{stormwaterStatus}</span>
-              </div>
-              <div className="w-full bg-surface-container rounded-full h-1 mt-2">
-                <div className={`${stormwaterColor} h-full rounded-full transition-all duration-[1s]`} style={{ width: `${stormwaterProgress}%` }}></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Cascading Alerts List */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-headline-sm text-body-lg font-bold">Cascading Alerts</h4>
-              <span className="text-label-md text-primary font-bold cursor-pointer">View History</span>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex gap-4 p-4 rounded-xl hover:bg-surface-container-low transition-all border border-transparent hover:border-outline-variant/30 group">
-                <div className="w-12 h-12 rounded-full bg-error-container flex-shrink-0 flex items-center justify-center text-error group-hover:scale-110 transition-transform">
-                  <PowerOff />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-label-md text-on-surface">Substation strain alert</span>
-                    <span className="text-[10px] font-mono-label text-on-surface-variant">Just now</span>
-                  </div>
-                  <p className="text-body-sm text-on-surface-variant leading-snug">
-                    {disasterEvent !== 'None' ? `Breached thresholds: Alert is [${disasterEvent}].` : "Strain triggers backup operations."}
-                  </p>
-                  <div className="mt-2 flex gap-2">
-                    <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant text-[10px] rounded font-bold">HSR Layout</span>
-                    <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant text-[10px] rounded font-bold">Priority 1</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 p-4 rounded-xl hover:bg-surface-container-low transition-all border border-transparent hover:border-outline-variant/30 group">
-                <div className="w-12 h-12 rounded-full bg-secondary-container flex-shrink-0 flex items-center justify-center text-on-secondary-container group-hover:scale-110 transition-transform">
-                  <Car />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-label-md text-on-surface">Bottleneck Detected</span>
-                    <span className="text-[10px] font-mono-label text-on-surface-variant">14m ago</span>
-                  </div>
-                  <p className="text-body-sm text-on-surface-variant leading-snug">ORR traffic moving at under 8km/h. Emergency routing active.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Metrics and Trends */}
-          <div className="p-6 rounded-2xl bg-surface-container-high/20 border border-outline-variant/20">
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-label-md font-bold uppercase text-on-surface-variant">Disaster Severity Trend</span>
-              <BarChart2 />
-            </div>
-            <div className="h-32 flex items-end gap-2">
-              <div className="flex-1 bg-primary/10 rounded-t-lg transition-all hover:bg-primary/30 h-[40%]"></div>
-              <div className="flex-1 bg-primary/10 rounded-t-lg transition-all hover:bg-primary/30 h-[60%]"></div>
-              <div className="flex-1 bg-primary/10 rounded-t-lg transition-all hover:bg-primary/30 h-[45%]"></div>
-              <div className="flex-1 bg-primary/10 rounded-t-lg transition-all hover:bg-primary/30 h-[80%]"></div>
-              <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[90%]"></div>
-              <div className="flex-1 bg-error/60 rounded-t-lg transition-all hover:bg-error/80 h-[100%] animate-pulse"></div>
-            </div>
-            <div className="flex justify-between mt-3">
-              <span className="text-[10px] font-mono-label text-on-surface-variant">08:00</span>
-              <span className="text-[10px] font-mono-label text-on-surface-variant">12:00</span>
-              <span className="text-[10px] font-mono-label text-on-surface-variant">Now</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
+    </>
+  );
+}
+
+export default function DisasterPage() {
+  const disaster = useDisasterStore();
+  const { addNotification } = useAppStore();
+  const { openAgentHub } = useUIStore();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<MapboxMap | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [showProtocolModal, setShowProtocolModal] = useState(false);
+  const [showResourceDrawer, setShowResourceDrawer] = useState(false);
+  const [notifyLoading, setNotifyLoading] = useState(false);
+  const [notifyDone, setNotifyDone] = useState(false);
+  const [endConfirm, setEndConfirm] = useState<string | null>(null);
+
+  const selectedIncident = disaster.activeIncidents.find(i => i.id === disaster.selectedIncidentId);
+
+  useEffect(() => {
+    let map: MapboxMap | null = null;
+    import('mapbox-gl').then(m => {
+      const mapboxgl = m.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      if (!mapRef.current) return;
+      map = new mapboxgl.Map({
+        container: mapRef.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [77.5946, 12.9716],
+        zoom: 11,
+        pitch: 25,
+        attributionControl: false,
+      });
+      mapInstanceRef.current = map;
+      map.on('load', () => {
+        if (!map) return;
+        setMapLoaded(true);
+        disaster.activeIncidents.forEach(incident => {
+          const el = document.createElement('div');
+          el.style.cssText = `width:20px;height:20px;border-radius:50%;background:rgba(239,68,68,0.9);border:2px solid #fff;cursor:pointer;box-shadow:0 0 0 0 rgba(239,68,68,0.4);animation:live-pulse 1.5s ease-in-out infinite;`;
+          el.addEventListener('click', () => disaster.selectIncident(incident.id));
+          new mapboxgl.Marker(el)
+            .setLngLat(incident.coordinates)
+            .setPopup(new mapboxgl.Popup({ offset: 14, closeButton: false })
+              .setHTML(`<div style="background:#0A1628;color:#fff;padding:10px;border-radius:8px;font-family:Inter,sans-serif;min-width:180px;border:1px solid rgba(239,68,68,0.3)"><div style="font-size:10px;color:#EF4444;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">ACTIVE</div><div style="font-size:13px;font-weight:600">${incident.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px">${incident.location}</div></div>`))
+            .addTo(map!);
+        });
+      });
+    });
+    return () => { if (map) map.remove(); };
+  }, []);
+
+  const handleNotifyAuthorities = async () => {
+    setNotifyLoading(true);
+    await new Promise(r => setTimeout(r, 1500));
+    setNotifyLoading(false);
+    setNotifyDone(true);
+    addNotification({ title: 'Authorities Notified', message: 'BBMP, BESCOM, KSRP, and 108 have been alerted', severity: 'success' });
+    setTimeout(() => setNotifyDone(false), 4000);
+  };
+
+  const handleEvacuate = () => {
+    addNotification({ title: 'Evacuation Alert Issued', message: 'Zone 4 evacuation orders sent via BBMP notification system', severity: 'warning' });
+  };
+
+  const handleRequestSupport = () => {
+    openAgentHub('disaster');
+    addNotification({ title: 'Support Request', message: 'Disaster Response Agent activated — describe support needed', severity: 'info' });
+  };
+
+  const handleEndIncident = (id: string) => {
+    disaster.endIncident(id);
+    setEndConfirm(null);
+    addNotification({ title: 'Incident Closed', message: 'Incident archived and response timeline exported', severity: 'success' });
+  };
+
+  return (
+    <div style={{ display: 'flex', height: 'calc(100vh - 64px)', overflow: 'hidden', position: 'relative' }}>
+      {/* ===== LEFT — Incident List ===== */}
+      <div style={{ width: '280px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', background: 'rgba(5,10,20,0.5)' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>Incident Command</div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <span style={{ padding: '2px 7px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, background: 'rgba(239,68,68,0.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.25)' }}>
+              {disaster.activeIncidents.filter(i => i.status === 'active').length} Active
+            </span>
+            <span style={{ padding: '2px 7px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, background: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.25)' }}>
+              {disaster.activeIncidents.filter(i => i.status === 'resolved').length} Resolved
+            </span>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+          {disaster.activeIncidents.length === 0 ? (
+            <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>✅</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>No Active Incidents</div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>All systems nominal. City operating normally.</div>
+            </div>
+          ) : (
+            disaster.activeIncidents.map(incident => (
+              <button
+                key={incident.id}
+                onClick={() => disaster.selectIncident(incident.id)}
+                style={{
+                  width: '100%', padding: '12px', marginBottom: '4px', borderRadius: '8px',
+                  background: disaster.selectedIncidentId === incident.id ? 'rgba(239,68,68,0.08)' : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${disaster.selectedIncidentId === incident.id ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.05)'}`,
+                  cursor: 'pointer', textAlign: 'left', transition: 'all 120ms',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>
+                    {incident.type === 'power' ? '⚡' : incident.type === 'flood' ? '🌊' : '🚨'} {incident.name}
+                  </span>
+                  <span style={{
+                    padding: '2px 6px', borderRadius: '4px', fontSize: '8px', fontWeight: 700,
+                    background: incident.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                    color: incident.severity === 'critical' ? '#EF4444' : '#F59E0B',
+                    border: `1px solid ${incident.severity === 'critical' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                  }}>
+                    {incident.severity.toUpperCase()}
+                  </span>
+                </div>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{incident.location}</div>
+                {incident.affectedCount && (
+                  <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '3px' }}>
+                    ⚠ {incident.affectedCount.toLocaleString()} affected
+                  </div>
+                )}
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '3px' }}>
+                  {Math.round((Date.now() - incident.startedAt.getTime()) / 60000)}m ago
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Quick actions */}
+        <div style={{ padding: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <button
+            onClick={handleNotifyAuthorities}
+            disabled={notifyLoading || notifyDone}
+            style={{
+              width: '100%', padding: '9px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+              background: notifyDone ? 'rgba(16,185,129,0.15)' : 'rgba(0,212,255,0.1)',
+              border: `1px solid ${notifyDone ? 'rgba(16,185,129,0.3)' : 'rgba(0,212,255,0.25)'}`,
+              color: notifyDone ? '#10B981' : '#00D4FF',
+              opacity: notifyLoading ? 0.6 : 1,
+            }}
+          >
+            {notifyDone ? '✓ Authorities Notified' : notifyLoading ? 'Notifying...' : '📡 Notify Authorities'}
+          </button>
+          <button
+            onClick={() => setShowResourceDrawer(true)}
+            style={{ width: '100%', padding: '9px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#F59E0B' }}
+          >
+            🚒 Deploy Resources
+          </button>
+          <button
+            onClick={handleEvacuate}
+            style={{ width: '100%', padding: '9px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444' }}
+          >
+            🚨 Evacuate Zone
+          </button>
+        </div>
+      </div>
+
+      {/* ===== CENTER — Map ===== */}
+      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        {/* Map controls bar */}
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(5,10,20,0.7)' }}>
+          <button
+            onClick={() => setShowProtocolModal(true)}
+            style={{
+              padding: '7px 16px', background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.15))',
+              border: '1px solid rgba(239,68,68,0.35)', borderRadius: '6px', color: '#EF4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              animation: disaster.activeProtocol ? 'none' : 'glow-pulse 2s ease-in-out infinite',
+            }}
+          >
+            ⚡ Execute Protocol
+          </button>
+          {disaster.activeProtocol && (
+            <span style={{ padding: '4px 10px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '20px', fontSize: '11px', color: '#EF4444', fontWeight: 700 }}>
+              ● ACTIVE — {disaster.activeProtocol.toUpperCase()}
+            </span>
+          )}
+          <button
+            onClick={handleRequestSupport}
+            style={{ padding: '7px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: 'rgba(255,255,255,0.6)', fontSize: '12px', cursor: 'pointer' }}
+          >
+            🆘 Request Support
+          </button>
+        </div>
+
+        {/* Map */}
+        <div style={{ flex: 1, position: 'relative' }}>
+          {!mapLoaded && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050A14', zIndex: 5 }}>
+              <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🗺</div>
+                Loading incident map...
+              </div>
+            </div>
+          )}
+          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+        </div>
+      </div>
+
+      {/* ===== RIGHT — Response Panel ===== */}
+      <div style={{ width: '320px', flexShrink: 0, borderLeft: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', background: 'rgba(5,10,20,0.5)' }}>
+        {/* Selected Incident Detail */}
+        {selectedIncident ? (
+          <>
+            <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                {selectedIncident.status === 'active' ? '● Active Incident' : '✓ Resolved'}
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>{selectedIncident.name}</div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{selectedIncident.location}</div>
+              {selectedIncident.affectedCount && (
+                <div style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 600, marginTop: '8px' }}>
+                  ⚠ {selectedIncident.affectedCount.toLocaleString()} residents affected
+                </div>
+              )}
+              <button
+                onClick={() => setEndConfirm(selectedIncident.id)}
+                style={{ marginTop: '10px', padding: '6px 12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '5px', color: '#EF4444', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                End Incident
+              </button>
+            </div>
+
+            {/* Response Timeline */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>Response Timeline</div>
+              {disaster.responseTimeline.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>
+                  Execute a protocol to generate response timeline
+                </div>
+              ) : (
+                <div style={{ position: 'relative', paddingLeft: '24px' }}>
+                  <div style={{ position: 'absolute', left: '7px', top: '12px', bottom: '12px', width: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                  {disaster.responseTimeline.map((step, i) => (
+                    <div key={i} style={{ position: 'relative', marginBottom: '16px' }}>
+                      <div style={{
+                        position: 'absolute', left: '-20px', top: '2px',
+                        width: '10px', height: '10px', borderRadius: '50%',
+                        background: step.status === 'done' ? '#10B981' : step.status === 'active' ? '#F59E0B' : 'rgba(255,255,255,0.15)',
+                        border: step.status === 'active' ? '2px solid #F59E0B' : 'none',
+                        animation: step.status === 'active' ? 'live-pulse 1.5s ease-in-out infinite' : 'none',
+                      }} />
+                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{step.time}</div>
+                      <div style={{ fontSize: '12px', color: step.status === 'done' ? '#fff' : step.status === 'active' ? '#F59E0B' : 'rgba(255,255,255,0.4)' }}>
+                        {step.action}
+                      </div>
+                      {step.status === 'done' && <div style={{ fontSize: '10px', color: '#10B981', marginTop: '2px' }}>✓ Complete</div>}
+                      {step.status === 'active' && <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px' }}>→ In Progress</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px' }}>
+            <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>👈</div>
+              <div style={{ fontSize: '12px' }}>Select an incident to view details</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      {showProtocolModal && (
+        <ProtocolModal
+          onClose={() => setShowProtocolModal(false)}
+          onActivate={(protocol) => {
+            disaster.activateProtocol(protocol);
+            addNotification({ title: 'Protocol Activated', message: `${protocol.toUpperCase()} response protocol activated — teams notified`, severity: 'success' });
+          }}
+        />
+      )}
+
+      {showResourceDrawer && <ResourceDrawer onClose={() => setShowResourceDrawer(false)} />}
+
+      {/* End Incident Confirmation */}
+      {endConfirm && (
+        <>
+          <div onClick={() => setEndConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 300 }} />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            background: '#0A1628', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px',
+            padding: '24px', width: '360px', zIndex: 301, boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+          }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>End Incident?</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '20px', lineHeight: 1.5 }}>
+              This will archive the incident and export the response timeline to Reports. This action cannot be undone.
+            </div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setEndConfirm(null)} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '13px' }}>Cancel</button>
+              <button onClick={() => handleEndIncident(endConfirm)} style={{ padding: '8px 16px', background: '#EF4444', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                End Incident
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

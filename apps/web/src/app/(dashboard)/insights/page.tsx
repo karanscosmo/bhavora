@@ -1,305 +1,431 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
-import { useSimulationStore } from '@/store/useSimulationStore';
-import { ArrowRight, Calendar, CheckCircle, Database, Droplet, Filter, History, Info, Link, Plug, Rss, Sparkles, Star, TrendingUp, Zap } from 'lucide-react';
-import type { Map as MapboxMap } from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAppStore, useUIStore } from '@/stores';
 
+// ===== INSIGHT DATA =====
+const INSIGHTS = [
+  {
+    id: 'i1',
+    category: 'Energy Infrastructure',
+    categoryColor: '#F59E0B',
+    title: 'Eastern Zone Grid Reinforcement Required by Q3 2025',
+    summary: 'Substation #11 (Electronic City) is at 87% capacity. Based on 18-month demand trend and 3 pending industrial permits in adjacent zone, overload is projected by Q3 2025.',
+    evidence: ['Demand growth: +28% since Jan 2024', 'Substation #7 last maintenance: 8 months ago', '3 industrial permits pending in adjacent zone', 'Population growth NE corridor: +18% (2yr)'],
+    sources: ['Energy Grid Model', 'BESCOM Reports', 'BBMP Permit DB'],
+    impact: 'Risk of blackout for 14,000 households in NE zone — ₹230 Cr economic exposure',
+    confidence: 92,
+    status: 'new',
+    methodology: ['Energy Grid Model (IEC 60038)', 'Load Duration Curve', 'Population Growth Model (Logistic)'],
+    ifNotActed: ['Blackout risk in NE zone by Q3 2027', '14,000 households affected', '₹230 Cr economic loss estimate'],
+  },
+  {
+    id: 'i2',
+    category: 'Transport Optimization',
+    categoryColor: '#00D4FF',
+    title: 'Silk Board Signal Optimization — Immediate ROI Opportunity',
+    summary: 'Adaptive signal timing at 6 key junctions on Silk Board corridor can reduce average vehicle delay by 4 minutes and cut intersection-level congestion by 22%.',
+    evidence: ['Current average speed: 8 km/h (34% below baseline)', '3 of 6 target signals using fixed timing', 'Peak hour volume: 4,200 PCU/hr vs 3,800 design capacity', 'BBMP signal upgrade budget approved Q2 2025'],
+    sources: ['BPR Traffic Model', 'BMTC Route Data', 'OSM Traffic Layer'],
+    impact: '↓ 22% congestion at 6 junctions, saving 4 min/vehicle × 45,000 daily commuters',
+    confidence: 87,
+    status: 'new',
+    methodology: ['BPR Traffic Function (TRB 1965)', 'Modal Split Logit Model'],
+    ifNotActed: ['Congestion spreads to adjacent roads within 6 months', 'Air quality worsens further in corridor'],
+  },
+  {
+    id: 'i3',
+    category: 'Water Sustainability',
+    categoryColor: '#3B82F6',
+    title: 'Bellandur Groundwater Emergency Protocol Required',
+    summary: 'Groundwater levels in Bellandur catchment have fallen 2.3m since January 2025. At current depletion rate, the eastern Bengaluru water deficit will reach 470 MLD by 2027.',
+    evidence: ['Groundwater depletion: 2.3m since Jan 2025', 'Current deficit: 350 MLD', '78% of Electronic City dependent on groundwater', 'Cauvery Stage 5 delayed by 6 months (BWSSB report)'],
+    sources: ['IWA Water Balance Model', 'BWSSB Data', 'Groundwater Authority Reports'],
+    impact: 'Without intervention: 280,000 residents face water scarcity risk by 2027',
+    confidence: 84,
+    status: 'under-review',
+    methodology: ['IWA Water Balance Methodology', 'Population Growth Model (Logistic)'],
+    ifNotActed: ['Water scarcity for 280,000 residents', 'Accelerated illegal borewells — subsidence risk', 'Industrial output reduction in Electronic City'],
+  },
+  {
+    id: 'i4',
+    category: 'Air Quality',
+    categoryColor: '#10B981',
+    title: 'Whitefield Industrial Dust Suppression — 12-Point AQI Improvement Opportunity',
+    summary: 'Implementing mandatory water curtain and dust suppression at 4 active construction sites and 2 industrial compounds in Whitefield can reduce PM2.5 by an estimated 18 µg/m³.',
+    evidence: ['Current Whitefield AQI: 168 (Unhealthy)', 'Construction activity +34% YoY', 'Wind vector analysis shows SE drift carrying dust to residential zones', 'Air quality monitoring: 3 stations in red zone'],
+    sources: ['AQI Composite Model', 'CPCB AQI Data', 'Bhavora Environmental Monitoring'],
+    impact: '↓ 18 AQI pts for 2.1L Whitefield residents within 2 weeks of enforcement',
+    confidence: 79,
+    status: 'actioned',
+    methodology: ['AQI Composite Model', 'IPCC Tier 2 Emission Methodology'],
+    ifNotActed: ['AQI exceeds 200 threshold by July 2025', 'Health advisory for sensitive groups required'],
+  },
+  {
+    id: 'i5',
+    category: 'Urban Mobility',
+    categoryColor: '#7C3AED',
+    title: 'Purple Line Frequency Increase — Overcrowding at 112% Capacity',
+    summary: 'The Nagawara–Gottigere Purple Line is operating at 112% of planned passenger capacity. Adding 2 additional trains during peak hours will reduce overcrowding to 85%.',
+    evidence: ['Current occupancy: 112% planned capacity', 'Ridership growth: +8% week-over-week', 'Platform dwell time: 45s vs 28s design', '3 additional trains available in BMRCL depot inventory'],
+    sources: ['Modal Split Logit Model', 'BMRCL Ridership Data', 'BPR Traffic Function'],
+    impact: '↓ 8% average wait time, relief for 180,000 daily Purple Line commuters',
+    confidence: 93,
+    status: 'new',
+    methodology: ['Transport Demand Model (4-step)', 'Modal Split Logit Model'],
+    ifNotActed: ['Safety incidents increase — overcrowding threshold breached', 'Commuters revert to private transport, worsening congestion'],
+  },
+];
 
-export default function InsightsPage() {
-  const store = useSimulationStore();
-  const { metrics, popGrowth, recommendations } = store;
-  
-  const mapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let map: MapboxMap | null = null;
-
-    import('mapbox-gl').then((mapboxglModule) => {
-      const mapboxgl = mapboxglModule.default;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-
-      if (mapRef.current) {
-        map = new mapboxgl.Map({
-          container: mapRef.current,
-          style: 'mapbox://styles/mapbox/dark-v11',
-          center: [77.5946, 12.9716],
-          zoom: 11.5,
-          pitch: 60,
-          attributionControl: false
-        });
-      }
-    });
-
-    return () => {
-      if (map) map.remove();
-    };
-  }, []);
-
-  // Compute dynamic stats
-  const powerRad = (12.4 * (1 + metrics.energyDemand / 100)).toFixed(1);
-  const powerGrowth = (28.5 * (1 + popGrowth / 100)).toFixed(1);
-  const powerCapex = Math.round(840 * (1 + metrics.energyDemand / 200));
-
-  const waterDemandIncrease = Math.max(1, Math.round(12 * (1 + metrics.waterDemand / 100)));
-  const waterProgress = Math.min(100, Math.max(10, Math.round(88 + metrics.waterDemand)));
-
-  const trafficMitigationText = metrics.trafficCongestion < 0 
-    ? `Reduces ORR congestion by ${Math.abs(metrics.trafficCongestion).toFixed(1)}%` 
-    : `Increases ORR congestion by ${metrics.trafficCongestion.toFixed(1)}%`;
-
+// ===== EXPLAINABILITY PANEL =====
+function ExplainPanel({ insight, onClose }: { insight: typeof INSIGHTS[0]; onClose: () => void }) {
   return (
-    <div className="max-w-[1440px] mx-auto p-8 animate-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-primary font-mono-label mb-2">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            LIVE INTELLIGENCE FEED
-          </div>
-          <h2 className="font-display-sm text-display-sm text-on-surface tracking-tight">Governance Insights</h2>
-          <p className="text-on-surface-variant text-body-lg">Predictive analytics for urban infrastructure expansion and optimization.</p>
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
+      <div style={{
+        position: 'fixed', right: 0, top: 0, bottom: 0, width: '420px',
+        background: '#0A1628', borderLeft: '1px solid rgba(0,212,255,0.15)',
+        zIndex: 301, display: 'flex', flexDirection: 'column',
+        boxShadow: '-24px 0 80px rgba(0,0,0,0.5)', animation: 'slide-right 0.2s ease-out',
+      }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>WHY IS BHAVORA RECOMMENDING THIS?</div>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', lineHeight: 1.4 }}>{insight.title}</div>
+          <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}>×</button>
         </div>
-        <div className="flex gap-3">
-          <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2 cursor-pointer">
-            <Filter /> Filter
-          </button>
-          <button className="bg-surface-container-high px-4 py-2 rounded-lg font-label-md text-on-surface-variant border border-outline-variant/30 flex items-center gap-2 cursor-pointer">
-            <Calendar /> 2024 - 2028
-          </button>
-        </div>
-      </div>
 
-      {/* Bento Grid of Intelligence Cards */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* Card 1: Power Infrastructure */}
-        <div className="col-span-12 lg:col-span-8 group">
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-6 h-full flex flex-col hover:-translate-y-1 transition-all duration-300 relative overflow-hidden shadow-sm hover:shadow-xl">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <Zap />
-            </div>
-            <div className="flex justify-between items-start mb-6 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <Plug />
-                </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Evidence Base */}
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Evidence Base</div>
+            {insight.evidence.map((e, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ color: '#10B981', flexShrink: 0, fontWeight: 700 }}>✓</span>
                 <div>
-                  <p className="font-mono-label text-primary">STRATEGIC INFRASTRUCTURE</p>
-                  <h3 className="font-headline-sm">Power Grid Expansion</h3>
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>{e}</span>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+                    Source: {insight.sources[i % insight.sources.length]} · Confidence {insight.confidence - i * 2}%
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-primary font-bold text-headline-sm">94.2%</div>
-                <div className="font-label-md text-on-surface-variant uppercase text-[10px]">Confidence Score</div>
-              </div>
-            </div>
-            <div className="flex-1 space-y-6 relative z-10">
-              <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl">
-                <p className="text-headline-lg font-display-sm text-on-surface leading-tight">
-                  {metrics.energyDemand > 15 ? (
-                    <span>North Bengaluru requires <span className="text-primary underline decoration-2 underline-offset-4">11 new substations</span> before 2028.</span>
-                  ) : (
-                    <span>North Bengaluru will require <span className="text-primary underline decoration-2 underline-offset-4">4 new substations</span> by 2026.</span>
-                  )}
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/10">
-                  <p className="font-label-md text-on-surface-variant mb-1">Impact Radius</p>
-                  <p className="font-bold text-headline-sm">{powerRad} KM</p>
-                </div>
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/10">
-                  <p className="font-label-md text-on-surface-variant mb-1">Growth Index</p>
-                  <p className="font-bold text-headline-sm">+{powerGrowth}%</p>
-                </div>
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/10">
-                  <p className="font-label-md text-on-surface-variant mb-1">Est. CapEx</p>
-                  <p className="font-bold text-headline-sm">₹{powerCapex} Cr</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-8 pt-6 border-t border-outline-variant/30 flex items-center justify-between relative z-10">
-              <div className="flex gap-4">
-                <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm cursor-pointer">
-                  <Link /> Source Data
-                </button>
-                <button className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-sm cursor-pointer">
-                  <History /> History
-                </button>
-              </div>
-              <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer">
-                Take Action <ArrowRight />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Water Demand */}
-        <div className="col-span-12 lg:col-span-4">
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-6 h-full flex flex-col hover:-translate-y-1 transition-all duration-300 border-l-4 border-l-secondary shadow-sm hover:shadow-xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
-                <Droplet />
-              </div>
-              <div>
-                <p className="font-mono-label text-secondary">RESOURCE ALLOCATION</p>
-                <h3 className="font-headline-sm">Water Resources</h3>
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="text-body-lg text-on-surface-variant mb-4">
-                Water demand expected to rise <span className="text-secondary font-bold">{waterDemandIncrease}%</span> in eastern districts over the next 18 months.
-              </p>
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center text-body-sm">
-                  <span className="text-on-surface-variant">Supply Threshold</span>
-                  <span className={`font-mono-label ${waterProgress > 80 ? 'text-error font-bold' : 'text-primary'}`}>
-                    {waterProgress > 80 ? `CRITICAL (${waterProgress}%)` : `STABLE (${waterProgress}%)`}
-                  </span>
-                </div>
-                <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-                  <div className="bg-secondary h-full transition-all duration-[1s]" style={{ width: `${waterProgress}%` }}></div>
-                </div>
-              </div>
-              <div className="bg-surface-container/50 p-4 rounded-xl border border-outline-variant/30 mb-6">
-                <p className="text-body-sm font-medium text-on-surface mb-2">Recommended Mitigation:</p>
-                <ul className="space-y-2">
-                  <li className="flex gap-2 text-body-sm text-on-surface-variant font-semibold">
-                    <CheckCircle className="text-secondary text-[16px]" />
-                    {metrics.waterDemand > 10 ? "Accelerate Cauvery Stage V phase" : "STP Pipeline diversion"}
-                  </li>
-                  <li className="flex gap-2 text-body-sm text-on-surface-variant font-semibold">
-                    <CheckCircle className="text-secondary text-[16px]" />
-                    Smart meter deployment
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <button className="w-full border-2 border-secondary text-secondary py-2.5 rounded-lg font-bold hover:bg-secondary/5 transition-all cursor-pointer">
-              Review Supply Plan
-            </button>
-          </div>
-        </div>
-
-        {/* Card 3: Transportation Map Simulation */}
-        <div className="col-span-12 lg:col-span-6 h-[400px]">
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl h-full flex flex-col overflow-hidden relative shadow-sm hover:-translate-y-1 transition-all">
-            <div className="absolute inset-0 bg-[#e5eeff]">
-              <div ref={mapRef} className="w-full h-full" />
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl border border-outline-variant/30 shadow-sm">
-                  <p className="font-mono-label text-primary uppercase text-[10px] mb-1">PROPOSED METRO LINE 3</p>
-                  <p className="font-bold text-headline-sm">Phase 2 Simulation</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-auto bg-white/90 backdrop-blur-xl p-6 border-t border-outline-variant/30 z-10">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-headline-sm font-display-sm text-on-surface">
-                    {trafficMitigationText}
-                  </p>
-                  <p className="text-body-sm text-on-surface-variant">Based on AI mobility simulations with 1.2M daily datapoints.</p>
-                </div>
-                <div className="flex -space-x-2">
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-primary text-white flex items-center justify-center text-[10px] font-bold">L3</div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-secondary text-white flex items-center justify-center text-[10px] font-bold">ORR</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Detailed Insight Card (Bento Slot) */}
-        <div className="col-span-12 lg:col-span-6 grid grid-rows-2 gap-6">
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all border-b-4 border-b-primary">
-            <div className="flex justify-between items-start">
-              <div className="flex gap-4">
-                <TrendingUp />
-                <div>
-                  <h4 className="font-bold text-body-lg">Demographic Shift</h4>
-                  <p className="text-body-sm text-on-surface-variant">In-migration trend analysis</p>
-                </div>
-              </div>
-              <span className="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-mono-label font-bold">UPDATED 2M AGO</span>
-            </div>
-            <p className="text-body-md text-on-surface-variant italic">&ldquo;Current zoning laws in SE Bengaluru are insufficient for predicted 2027 residential density under +{popGrowth}% growth scenario.&rdquo;</p>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Database />
-                <span className="text-body-sm font-medium">Census API + Mobile Pings</span>
-              </div>
-              <button className="text-primary font-bold text-body-sm hover:underline cursor-pointer">Re-zone Scenarios</button>
-            </div>
-          </div>
-
-          <div className="bg-[#213145] rounded-2xl p-6 flex flex-col justify-between text-white relative overflow-hidden shadow-sm hover:-translate-y-1 transition-transform">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-            <div className="relative z-10 flex justify-between items-start">
-              <div>
-                <p className="font-mono-label text-primary-fixed-dim text-[10px] uppercase opacity-80">Engine Performance</p>
-                <h4 className="font-headline-sm">Decision Engine V5</h4>
-              </div>
-              <div className="bg-primary text-white p-2 rounded-lg">
-                <Sparkles />
-              </div>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-body-sm opacity-80">Simulation Accuracy</span>
-                <span className="font-mono-label">0.992</span>
-              </div>
-              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-[#b4c5ff] h-full" style={{ width: '99%' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Dynamic recommendations from the active simulation runs */}
-      {recommendations.length > 0 && (
-        <div className="mt-8 bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-bold text-on-surface text-base mb-4 flex items-center gap-2">
-            <Rss />
-            Active Simulation Recommendations Briefs
-          </h3>
-          <div className="space-y-3">
-            {recommendations.map((rec, idx) => (
-              <div key={idx} className="p-3.5 bg-primary/5 rounded-xl border border-primary/10 text-xs font-semibold text-primary leading-relaxed flex items-start gap-2 animate-scale-in">
-                <Info />
-                <span>{rec}</span>
               </div>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* Footer Stats */}
-      <div className="mt-12 flex flex-wrap items-center justify-between border-t border-outline-variant/30 pt-8 gap-6">
-        <div className="flex gap-12 flex-wrap">
-          <div>
-            <p className="text-on-surface-variant font-label-md">DECISIONS PENDING</p>
-            <p className="text-headline-sm font-bold">14</p>
-          </div>
-          <div>
-            <p className="text-on-surface-variant font-label-md">ACTIVE SIMULATIONS</p>
-            <p className="text-headline-sm font-bold">03</p>
-          </div>
-          <div>
-            <p className="text-on-surface-variant font-label-md">AI TRUST RATING</p>
-            <div className="flex items-center gap-1">
-              <Star />
-              <p className="text-headline-sm font-bold">A+</p>
+          {/* Methodology */}
+          <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Methodology</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {insight.methodology.map((m, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {i > 0 && <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>+</span>}
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>{m}</span>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Confidence */}
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Overall Confidence: {insight.confidence}%</div>
+            <div style={{ height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${insight.confidence}%`, background: insight.confidence >= 85 ? '#10B981' : '#F59E0B', borderRadius: '4px' }} />
+            </div>
+            <div style={{ fontSize: '10px', color: insight.confidence >= 85 ? '#10B981' : '#F59E0B', marginTop: '4px', fontWeight: 600 }}>
+              {insight.confidence >= 85 ? 'High Confidence' : 'Medium Confidence'}
+            </div>
+          </div>
+
+          {/* If not acted */}
+          <div style={{ padding: '12px', background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.12)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#EF4444', marginBottom: '8px' }}>If NOT acted upon:</div>
+            {insight.ifNotActed.map((r, i) => (
+              <div key={i} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>→ {r}</div>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/30">
-          <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-          <span className="text-body-sm font-medium">Bhavora Node: BNG-01 Online</span>
+
+        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '8px' }}>
+          <button className="btn-primary" style={{ flex: 1, padding: '8px', fontSize: '12px' }}>Take Action</button>
+          <button className="btn-ghost" style={{ padding: '8px 12px', fontSize: '12px' }}>Download Evidence Pack</button>
         </div>
       </div>
+    </>
+  );
+}
+
+// ===== ACTION PLAN MODAL =====
+function ActionPlanModal({ insight, onClose }: { insight: typeof INSIGHTS[0]; onClose: () => void }) {
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
+      <div style={{
+        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+        background: '#0A1628', border: '1px solid rgba(0,212,255,0.12)', borderRadius: '14px',
+        padding: '24px', width: '560px', maxHeight: '80vh', overflowY: 'auto', zIndex: 301,
+        boxShadow: '0 24px 80px rgba(0,0,0,0.6)', animation: 'scale-in 0.16s ease-out',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div>
+            <div style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Action Plan</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>{insight.title}</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '20px' }}>×</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ padding: '12px', background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.08)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Objective</div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>{insight.summary}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>Action Steps</div>
+            {['Immediately: Commission infrastructure assessment report', 'Week 1: Engage department heads — BESCOM/BBMP/BWSSB', 'Week 2: Tender & procurement initiation', 'Month 2: Ground works commence', 'Month 4-6: Commissioning and system validation'].map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'flex-start' }}>
+                <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', fontSize: '10px', fontWeight: 700, color: '#00D4FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{step}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ padding: '12px', background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.1)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Expected Impact</div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>{insight.impact}</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+          <button className="btn-primary" style={{ flex: 1, padding: '10px', fontSize: '13px' }}>Activate Plan</button>
+          <button className="btn-ghost" style={{ padding: '10px 16px', fontSize: '13px' }}>Export PDF</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ===== INSIGHT CARD =====
+function InsightCard({
+  insight, isSelected, onSelect, onAction, onReview, onExplore, onWhy,
+}: {
+  insight: typeof INSIGHTS[0];
+  isSelected: boolean;
+  onSelect: () => void;
+  onAction: () => void;
+  onReview: () => void;
+  onExplore: () => void;
+  onWhy: () => void;
+}) {
+  const confColor = insight.confidence >= 85 ? '#10B981' : insight.confidence >= 65 ? '#F59E0B' : '#EF4444';
+  const statusColors: Record<string, { bg: string; border: string; text: string }> = {
+    new: { bg: 'rgba(0,212,255,0.08)', border: 'rgba(0,212,255,0.2)', text: '#00D4FF' },
+    'under-review': { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', text: '#F59E0B' },
+    actioned: { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', text: '#10B981' },
+    dismissed: { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.1)', text: 'rgba(255,255,255,0.4)' },
+  };
+  const sc = statusColors[insight.status] || statusColors.new;
+
+  return (
+    <div
+      onClick={onSelect}
+      className="glass-card"
+      style={{
+        padding: '16px', borderRadius: '12px', cursor: 'pointer',
+        borderColor: isSelected ? 'rgba(0,212,255,0.2)' : undefined,
+        boxShadow: isSelected ? '0 0 0 1px rgba(0,212,255,0.1)' : undefined,
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: `${insight.categoryColor}12`, color: insight.categoryColor, border: `1px solid ${insight.categoryColor}30` }}>
+            {insight.category}
+          </span>
+          <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
+            {insight.status.replace('-', ' ')}
+          </span>
+        </div>
+        {/* Confidence */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${insight.confidence}%`, background: confColor, borderRadius: '2px' }} />
+          </div>
+          <span style={{ fontFamily: 'monospace', fontSize: '11px', color: confColor, fontWeight: 700 }}>{insight.confidence}%</span>
+        </div>
+      </div>
+
+      {/* Title */}
+      <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '6px', lineHeight: 1.4 }}>{insight.title}</div>
+
+      {/* Summary */}
+      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, marginBottom: '10px' }}>
+        {insight.summary.substring(0, 140)}...
+      </div>
+
+      {/* Sources */}
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
+        {insight.sources.map(s => (
+          <span key={s} style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>{s}</span>
+        ))}
+      </div>
+
+      {/* Impact */}
+      <div style={{ fontSize: '12px', color: '#10B981', fontWeight: 500, marginBottom: '12px' }}>{insight.impact}</div>
+
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+        <button onClick={onAction} className="btn-primary" style={{ padding: '5px 11px', fontSize: '11px' }}>Take Action</button>
+        <button onClick={onReview} className="btn-ghost" style={{ padding: '5px 11px', fontSize: '11px' }}>Review Plan</button>
+        <button onClick={onExplore} className="btn-ghost" style={{ padding: '5px 11px', fontSize: '11px' }}>Explore Source</button>
+        <button onClick={onWhy} className="btn-ghost" style={{ padding: '5px 11px', fontSize: '11px' }}>Why? 🧠</button>
+      </div>
+    </div>
+  );
+}
+
+// ===== MAIN PAGE =====
+export default function InsightsPage() {
+  const { addNotification } = useAppStore();
+  const { openTakeAction, openAgentHub } = useUIStore();
+
+  const [selectedInsight, setSelectedInsight] = useState<string | null>('i1');
+  const [explainInsightId, setExplainInsightId] = useState<string | null>(null);
+  const [reviewInsightId, setReviewInsightId] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [minConfidence, setMinConfidence] = useState(0);
+  const [searchQ, setSearchQ] = useState('');
+
+  const categories = [...new Set(INSIGHTS.map(i => i.category))];
+  const statuses = ['new', 'under-review', 'actioned', 'dismissed'];
+
+  const filtered = useMemo(() => {
+    return INSIGHTS.filter(i => {
+      if (categoryFilter.length > 0 && !categoryFilter.includes(i.category)) return false;
+      if (statusFilter.length > 0 && !statusFilter.includes(i.status)) return false;
+      if (i.confidence < minConfidence) return false;
+      if (searchQ && !i.title.toLowerCase().includes(searchQ.toLowerCase()) && !i.summary.toLowerCase().includes(searchQ.toLowerCase())) return false;
+      return true;
+    });
+  }, [categoryFilter, statusFilter, minConfidence, searchQ]);
+
+  const selected = INSIGHTS.find(i => i.id === selectedInsight);
+  const explainInsight = INSIGHTS.find(i => i.id === explainInsightId);
+  const reviewInsight = INSIGHTS.find(i => i.id === reviewInsightId);
+
+  return (
+    <div style={{ display: 'flex', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
+      {/* ===== LEFT — Insights Feed ===== */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+        {/* Filter Bar */}
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(5,10,20,0.5)', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            value={searchQ}
+            onChange={e => setSearchQ(e.target.value)}
+            placeholder="Search insights..."
+            className="input-dark"
+            style={{ width: '180px' }}
+          />
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+            {statuses.map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
+                style={{
+                  padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, cursor: 'pointer',
+                  background: statusFilter.includes(s) ? 'rgba(0,212,255,0.12)' : 'transparent',
+                  border: `1px solid ${statusFilter.includes(s) ? 'rgba(0,212,255,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                  color: statusFilter.includes(s) ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Min Confidence</span>
+            <input type="range" min={0} max={90} step={10} value={minConfidence} onChange={e => setMinConfidence(Number(e.target.value))} style={{ width: '80px' }} />
+            <span style={{ fontSize: '10px', color: '#00D4FF', fontFamily: 'monospace' }}>{minConfidence}%</span>
+          </div>
+          <span style={{ marginLeft: 'auto', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>{filtered.length} insights</span>
+        </div>
+
+        {/* Feed */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>No insights match your filters</div>
+              <button onClick={() => { setCategoryFilter([]); setStatusFilter([]); setMinConfidence(0); setSearchQ(''); }} style={{ marginTop: '12px', padding: '7px 14px', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: '6px', color: '#00D4FF', fontSize: '12px', cursor: 'pointer' }}>Reset Filters</button>
+            </div>
+          ) : (
+            filtered.map(insight => (
+              <motion.div key={insight.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                <InsightCard
+                  insight={insight}
+                  isSelected={selectedInsight === insight.id}
+                  onSelect={() => setSelectedInsight(insight.id)}
+                  onAction={() => {
+                    openTakeAction();
+                    addNotification({ title: 'Action Initiated', message: `Intervention for "${insight.title}" added to queue`, severity: 'info', path: '/overview' });
+                  }}
+                  onReview={() => setReviewInsightId(insight.id)}
+                  onExplore={() => {
+                    openAgentHub('executive');
+                    addNotification({ title: 'Source Explorer', message: `Viewing data sources for "${insight.title}"`, severity: 'info' });
+                  }}
+                  onWhy={() => setExplainInsightId(insight.id)}
+                />
+              </motion.div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* ===== RIGHT — Detail Panel ===== */}
+      <div style={{ width: '360px', flexShrink: 0, overflowY: 'auto', padding: '20px', background: 'rgba(5,10,20,0.3)' }}>
+        {selected ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '10px', color: selected.categoryColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>{selected.category}</div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', lineHeight: 1.4, marginBottom: '8px' }}>{selected.title}</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>{selected.summary}</div>
+            </div>
+
+            {/* Full evidence */}
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>Evidence Base</div>
+              {selected.evidence.map((e, i) => (
+                <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
+                  <span style={{ color: '#10B981', fontWeight: 700, fontSize: '12px' }}>✓</span>
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{e}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ padding: '12px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.1)', borderRadius: '8px' }}>
+              <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Expected Impact</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>{selected.impact}</div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <button onClick={() => { openTakeAction(); }} className="btn-primary" style={{ padding: '10px', fontSize: '13px' }}>⚡ Take Action</button>
+              <button onClick={() => setReviewInsightId(selected.id)} className="btn-ghost" style={{ padding: '10px', fontSize: '13px' }}>📋 Review Full Plan</button>
+              <button onClick={() => setExplainInsightId(selected.id)} className="btn-ghost" style={{ padding: '10px', fontSize: '13px' }}>🧠 Why This Recommendation?</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '48px 24px', color: 'rgba(255,255,255,0.3)' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🧠</div>
+            <div style={{ fontSize: '13px' }}>Select an insight to see full details</div>
+          </div>
+        )}
+      </div>
+
+      {/* Overlays */}
+      {explainInsight && <ExplainPanel insight={explainInsight} onClose={() => setExplainInsightId(null)} />}
+      {reviewInsight && <ActionPlanModal insight={reviewInsight} onClose={() => setReviewInsightId(null)} />}
     </div>
   );
 }

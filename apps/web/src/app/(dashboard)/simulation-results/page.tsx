@@ -1,17 +1,37 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
-import { useSimulationStore } from '@/store/useSimulationStore';
-import { Car, ChevronRight, Cloud, Download, Droplet, Leaf, Shield, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useSimulationStore, useCityDataStore } from '@/stores';
+import { seededRand } from '@/lib/simulation';
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+// Generating deterministic locations for heatmap
+const generateDeterministicPoints = (seed: number, count: number, center: [number, number], radius: number) => {
+  const rand = seededRand(seed);
+  return Array.from({ length: count }, () => {
+    const r = rand() * radius;
+    const theta = rand() * 2 * Math.PI;
+    return [
+      center[0] + r * Math.cos(theta),
+      center[1] + r * Math.sin(theta)
+    ];
+  });
+};
 
 export default function SimulationResultsPage() {
-  const store = useSimulationStore();
-  const results = store;
+  const { results, activePolicy, activeScenarioName, timeline } = useSimulationStore();
+  const cityData = useCityDataStore();
   
   const mapBeforeRef = useRef<HTMLDivElement>(null);
   const mapAfterRef = useRef<HTMLDivElement>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'metrics' | 'justification' | 'timeline'>('metrics');
+  
+  // Seeded points
+  const beforePoints = useMemo(() => generateDeterministicPoints(12345, 120, [77.5946, 12.9716], 0.15), []);
+  const afterPoints = useMemo(() => generateDeterministicPoints(67890, 60, [77.5946, 12.9716], 0.12), []);
 
   useEffect(() => {
     let map1: MapboxMap | null = null;
@@ -21,12 +41,13 @@ export default function SimulationResultsPage() {
       const mapboxgl = mapboxglModule.default;
       mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
+      // Initialize Baseline (Before) Map
       if (mapBeforeRef.current) {
         map1 = new mapboxgl.Map({
           container: mapBeforeRef.current,
-          style: 'mapbox://styles/mapbox/light-v11',
+          style: 'mapbox://styles/mapbox/dark-v11',
           center: [77.5946, 12.9716],
-          zoom: 11,
+          zoom: 10.5,
           pitch: 30,
           attributionControl: false
         });
@@ -35,23 +56,41 @@ export default function SimulationResultsPage() {
           if (!map1) return;
           map1.addSource('traffic-heavy', {
             type: 'geojson',
-            data: { type: 'FeatureCollection', features: Array.from({ length: 150 }).map(() => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946 + (Math.random() - 0.5) * 0.2, 12.9716 + (Math.random() - 0.5) * 0.2] } })) as any }
+            data: {
+              type: 'FeatureCollection',
+              features: beforePoints.map((coords, idx) => ({
+                type: 'Feature',
+                id: idx,
+                geometry: { type: 'Point', coordinates: coords },
+                properties: {}
+              }))
+            } as any
           });
+
           map1.addLayer({
             id: 'traffic-heavy-layer',
             type: 'heatmap',
             source: 'traffic-heavy',
-            paint: { 'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.5, 'rgba(255,69,0,0.8)', 1, 'rgba(255,0,0,1)'], 'heatmap-radius': 20 }
+            paint: {
+              'heatmap-color': [
+                'interpolate', ['linear'], ['heatmap-density'],
+                0, 'rgba(0,0,0,0)',
+                0.5, 'rgba(239, 68, 68, 0.7)',
+                1, 'rgba(239, 68, 68, 0.95)'
+              ],
+              'heatmap-radius': 22
+            }
           });
         });
       }
 
+      // Initialize Simulated (After) Map
       if (mapAfterRef.current) {
         map2 = new mapboxgl.Map({
           container: mapAfterRef.current,
-          style: 'mapbox://styles/mapbox/light-v11',
+          style: 'mapbox://styles/mapbox/dark-v11',
           center: [77.5946, 12.9716],
-          zoom: 11,
+          zoom: 10.5,
           pitch: 30,
           attributionControl: false
         });
@@ -60,236 +99,200 @@ export default function SimulationResultsPage() {
           if (!map2) return;
           map2.addSource('traffic-light', {
             type: 'geojson',
-            data: { type: 'FeatureCollection', features: Array.from({ length: 40 }).map(() => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [77.5946 + (Math.random() - 0.5) * 0.2, 12.9716 + (Math.random() - 0.5) * 0.2] } })) as any }
+            data: {
+              type: 'FeatureCollection',
+              features: afterPoints.map((coords, idx) => ({
+                type: 'Feature',
+                id: idx,
+                geometry: { type: 'Point', coordinates: coords },
+                properties: {}
+              }))
+            } as any
           });
+
           map2.addLayer({
             id: 'traffic-light-layer',
             type: 'heatmap',
             source: 'traffic-light',
-            paint: { 'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.5, 'rgba(0,255,0,0.8)', 1, 'rgba(0,128,0,1)'], 'heatmap-radius': 15 }
+            paint: {
+              'heatmap-color': [
+                'interpolate', ['linear'], ['heatmap-density'],
+                0, 'rgba(0,0,0,0)',
+                0.5, 'rgba(16, 185, 129, 0.6)',
+                1, 'rgba(16, 185, 129, 0.9)'
+              ],
+              'heatmap-radius': 18
+            }
           });
         });
       }
+
+      setMapLoaded(true);
     });
 
     return () => {
       if (map1) map1.remove();
       if (map2) map2.remove();
     };
-  }, []);
-
-  // Advanced Score Calculations
-  const sustainabilityScore = Math.min(10, Math.max(0, (10 - (results?.metrics?.carbonEmissions || 0) * 0.1 - (results?.metrics?.energyDemand || 0) * 0.05))).toFixed(1);
-  const resilienceScore = Math.min(10, Math.max(0, (10 - ((results?.metrics?.infrastructureStress || 68) - 68) * 0.1 - (results?.metrics?.waterDemand || 0) * 0.1))).toFixed(1);
-  const economicScore = Math.min(10, Math.max(0, (7 + (results?.metrics?.jobsCreated || 0) * 0.1))).toFixed(1);
-  
-  const recScore = ((parseFloat(sustainabilityScore) + parseFloat(resilienceScore) + parseFloat(economicScore)) / 3).toFixed(1);
+  }, [beforePoints, afterPoints]);
 
   return (
-    <div className="p-6 md:p-8 max-w-[1440px] mx-auto animate-fade-in" id="simulation-results-content">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-        <div>
-          <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
-            <span>Simulations</span>
-            <ChevronRight />
-            <span className="text-primary font-bold">Results</span>
-          </nav>
-          <h1 className="font-display-sm text-display-sm text-on-surface">Simulation Analysis</h1>
-          <p className="text-on-surface-variant font-body-md max-w-xl">Comprehensive impact assessment of the Scenario Simulation vs Baseline Urban Density.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl px-6 py-4 flex flex-col items-center">
-            <span className="text-label-md text-on-surface-variant uppercase tracking-wider">Rec. Score</span>
-            <div className="flex items-baseline gap-1">
-              <span className="font-display-sm text-display-sm text-primary">{recScore}</span>
-              <span className="text-on-surface-variant font-body-sm">/ 10</span>
-            </div>
+    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      
+      {/* Header */}
+      <div>
+        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
+          <span style={{ cursor: 'pointer' }}>Simulations</span>
+          {' / '}Simulation Analysis
+        </nav>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>
+          Simulation Analysis {activeScenarioName ? `— ${activeScenarioName}` : ''}
+        </h1>
+        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
+          Comparative model visualization of current policy interventions vs the historical Bengaluru baseline density.
+        </p>
+      </div>
+
+      {/* Main Split Maps Container */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', height: '360px' }}>
+        
+        {/* Baseline (Before) Map Card */}
+        <div className="glass-card" style={{ position: 'relative', overflow: 'hidden', borderRadius: '12px' }}>
+          <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 10, background: 'rgba(5, 10, 20, 0.85)', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>BASELINE</span>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>Dense Congestion Heatmap</div>
           </div>
+          <div ref={mapBeforeRef} style={{ width: '100%', height: '100%' }} />
+        </div>
+
+        {/* Simulated (After) Map Card */}
+        <div className="glass-card" style={{ position: 'relative', overflow: 'hidden', borderRadius: '12px' }}>
+          <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 10, background: 'rgba(5, 10, 20, 0.85)', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(0,212,255,0.2)' }}>
+            <span style={{ fontSize: '10px', color: '#00D4FF', textTransform: 'uppercase', letterSpacing: '0.08em' }}>SIMULATED</span>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>Alleviated Grid Pattern</div>
+          </div>
+          <div ref={mapAfterRef} style={{ width: '100%', height: '100%' }} />
         </div>
       </div>
 
-      {/* Bento Grid Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-start">
-            <div className="bg-surface-container p-2 rounded-lg">
-              <Car />
-            </div>
-            <span className={`${(results?.metrics?.trafficCongestion || -10) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              {(results?.metrics?.trafficCongestion || -10) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {Math.abs(results?.metrics?.trafficCongestion || -10)}%
-            </span>
-          </div>
-          <div className="mt-4">
-            <p className="text-on-surface-variant text-label-md">Traffic Impact</p>
-            <h3 className="text-headline-sm font-bold">{results?.metrics?.trafficCongestion > 0 ? '+' : ''}{results?.metrics?.trafficCongestion || -10}% Congestion</h3>
-          </div>
+      {/* Bottom Layout - Tabbed Analytics Details */}
+      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '16px' }}>
+        
+        {/* Left Side: Key Math Delta Indicators */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Key Indicators Impact</h3>
+          {[
+            { name: 'Traffic', before: results.traffic.before, after: results.traffic.after, delta: results.traffic.delta, unit: '%' },
+            { name: 'AQI', before: results.aqi.before, after: results.aqi.after, delta: results.aqi.delta, unit: '' },
+            { name: 'Water MLD', before: results.water.before, after: results.water.after, delta: results.water.delta, unit: '' },
+            { name: 'GDP Growth', before: results.gdp.before, after: results.gdp.after, delta: results.gdp.delta, unit: '%' },
+          ].map(ind => {
+            const isGood = ind.name === 'GDP Growth' ? ind.delta > 0 : ind.delta < 0;
+            return (
+              <div key={ind.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{ind.name}</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                    Baseline: {ind.before}{ind.unit}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#00D4FF' }}>{ind.after}{ind.unit}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 600, color: isGood ? '#10B981' : '#EF4444', marginTop: '2px' }}>
+                    {ind.delta > 0 ? '+' : ''}{ind.delta}%
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-start">
-            <div className="bg-surface-container p-2 rounded-lg">
-              <Zap />
-            </div>
-            <span className={`${(results?.metrics?.energyDemand || 24) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              {(results?.metrics?.energyDemand || 24) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {Math.abs(results?.metrics?.energyDemand || 24)}%
-            </span>
+        {/* Right Side: Tabbed panel (Justification / Methodology vs Timeline details) */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          
+          {/* Tab selector */}
+          <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+            {[
+              { id: 'metrics', label: 'Detailed Summary' },
+              { id: 'justification', label: 'Methodology & Justification' },
+              { id: 'timeline', label: 'Timeline Projection' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                style={{
+                  padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                  background: activeTab === tab.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                  color: activeTab === tab.id ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+                  transition: 'all 120ms',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-          <div className="mt-4">
-            <p className="text-on-surface-variant text-label-md">Energy Impact</p>
-            <h3 className="text-headline-sm font-bold">{results?.metrics?.energyDemand > 0 ? '+' : ''}{results?.metrics?.energyDemand || 24}% Load</h3>
-          </div>
-        </div>
 
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-start">
-            <div className="bg-surface-container p-2 rounded-lg">
-              <Droplet />
-            </div>
-            <span className={`${(results?.metrics?.waterDemand || 4) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              {(results?.metrics?.waterDemand || 4) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {Math.abs(results?.metrics?.waterDemand || 4)}%
-            </span>
-          </div>
-          <div className="mt-4">
-            <p className="text-on-surface-variant text-label-md">Water Impact</p>
-            <h3 className="text-headline-sm font-bold">{results?.metrics?.waterDemand > 0 ? '+' : ''}{results?.metrics?.waterDemand || 4}% Demand</h3>
-          </div>
-        </div>
+          {/* Tab contents */}
+          <div style={{ flex: 1 }}>
+            {activeTab === 'metrics' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
+                  Adjusting these policies has projected a Net City Health score of <strong style={{ color: '#00D4FF' }}>{results.cityHealth.after}/100</strong> (from {results.cityHealth.before}/100 baseline). The confidence factor matches standard simulation limits.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>Active Policy Levers</span>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span>Metro Network: {activePolicy.metroExpansion}%</span>
+                      <span>EV Transition: {activePolicy.evAdoptionRate}%</span>
+                      <span>Renewables: {activePolicy.renewableShare}%</span>
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>Key Recommendations</span>
+                    <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span>✓ Expand hope farm metro corridor</span>
+                      <span>✓ Deploy 50 charges in East zone</span>
+                      <span>✓ Maintain Cauvery flow rate</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-start">
-            <div className="bg-surface-container p-2 rounded-lg">
-              <Cloud />
-            </div>
-            <span className={`${(results?.metrics?.carbonEmissions || -18) > 0 ? 'text-error' : 'text-tertiary'} font-bold flex items-center`}>
-              {(results?.metrics?.carbonEmissions || -18) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {Math.abs(results?.metrics?.carbonEmissions || -18)}%
-            </span>
-          </div>
-          <div className="mt-4">
-            <p className="text-on-surface-variant text-label-md">Carbon Impact</p>
-            <h3 className="text-headline-sm font-bold">{results?.metrics?.carbonEmissions > 0 ? '+' : ''}{results?.metrics?.carbonEmissions || -18}% Emissions</h3>
-          </div>
-        </div>
-      </div>
+            {activeTab === 'justification' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
+                  This simulation utilizes standard, established mathematical equations based on urban design methodologies:
+                </p>
+                <ul style={{ paddingLeft: '18px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', display: 'flex', flexDirection: 'column', gap: '6px', margin: 0 }}>
+                  <li><strong>Bureau of Public Roads (BPR) traffic formula:</strong> Projects corridor-level delays using capacity and volume indices.</li>
+                  <li><strong>IPCC Tier 2 Emission standards:</strong> Evaluates regional carbon values using fuel consumption ratios.</li>
+                  <li><strong>Solow-Swan adapted GDP growth:</strong> Models infrastructure boosts to total factor productivity.</li>
+                </ul>
+              </div>
+            )}
 
-      {/* Advanced Scores Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-on-surface">Sustainability Score</h3>
-            <Leaf />
+            {activeTab === 'timeline' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Annual city growth projection (2025–2050)</span>
+                </div>
+                <div style={{ height: '120px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={timeline.filter((_, i) => i % 5 === 0 || timeline[i].year === 2050)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                      <XAxis dataKey="year" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                      <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                      <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                      <Line type="monotone" dataKey="population" stroke="#00D4FF" name="Population" strokeWidth={1.5} dot={false} />
+                      <Line type="monotone" dataKey="city_health" stroke="#10B981" name="City Health" strokeWidth={1.5} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-extrabold text-emerald-500">{sustainabilityScore}</span>
-            <span className="text-on-surface-variant font-bold mb-1">/ 10</span>
-          </div>
-          <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">Based on carbon footprint reduction and renewable energy grid integration.</p>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-on-surface">Resilience Score</h3>
-            <Shield />
-          </div>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-extrabold text-primary">{resilienceScore}</span>
-            <span className="text-on-surface-variant font-bold mb-1">/ 10</span>
-          </div>
-          <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">Based on infrastructure stress margins, water reserves, and disaster readiness.</p>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 hover:-translate-y-1 transition-transform">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-on-surface">Economic Score</h3>
-            <TrendingUp />
-          </div>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-extrabold text-amber-500">{economicScore}</span>
-            <span className="text-on-surface-variant font-bold mb-1">/ 10</span>
-          </div>
-          <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">Based on job creation, industrial expansion, and metro throughput increase.</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-headline-sm text-on-surface">Baseline Scenario</h3>
-            <span className="bg-surface-container px-3 py-1 rounded-full text-label-md text-on-surface-variant">Current (2025)</span>
-          </div>
-          <div className="relative h-96 rounded-xl overflow-hidden bg-surface-variant/20 border border-outline-variant/30">
-            <div ref={mapBeforeRef} className="absolute inset-0 z-0 bg-slate-200" />
-            <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-xl px-4 py-2 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-error"></div>
-              <span className="text-label-md text-on-surface">Congestion Peak</span>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-6 overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-headline-sm text-on-surface">Post-Simulation</h3>
-            <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-md font-bold">Optimized</span>
-          </div>
-          <div className="relative h-96 rounded-xl overflow-hidden bg-surface-variant/20 border border-outline-variant/30">
-            <div ref={mapAfterRef} className="absolute inset-0 z-0 bg-slate-200" />
-            <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-xl px-4 py-2 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-tertiary"></div>
-              <span className="text-label-md text-on-surface">Optimized Flow</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Impact Summary */}
-      <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 shadow-sm rounded-2xl p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h3 className="font-headline-sm text-on-surface">Impact Detailed Summary</h3>
-            <p className="text-on-surface-variant text-body-sm">Granular breakdown of simulation variances and risk assessment.</p>
-          </div>
-          <button className="flex items-center gap-2 text-primary font-bold hover:underline">
-            <Download />
-            Export Dataset
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-outline-variant/30 text-left">
-                <th className="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Parameter</th>
-                <th className="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Baseline</th>
-                <th className="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Simulated</th>
-                <th className="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Variance</th>
-                <th className="pb-4 px-4 text-label-md text-on-surface-variant uppercase tracking-widest">Risk Level</th>
-              </tr>
-            </thead>
-            <tbody className="text-body-md">
-              <tr className="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
-                <td className="py-5 px-4 font-semibold text-on-surface">Transit Throughput</td>
-                <td className="py-5 px-4">12,400 p/h</td>
-                <td className="py-5 px-4">15,800 p/h</td>
-                <td className="py-5 px-4 text-tertiary font-bold">+27.4%</td>
-                <td className="py-5 px-4"><span className="bg-tertiary/10 text-tertiary px-2 py-1 rounded text-label-md font-bold">LOW</span></td>
-              </tr>
-              <tr className="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
-                <td className="py-5 px-4 font-semibold text-on-surface">Grid Stress Index</td>
-                <td className="py-5 px-4">64.2</td>
-                <td className="py-5 px-4">79.5</td>
-                <td className="py-5 px-4 text-error font-bold">+23.8%</td>
-                <td className="py-5 px-4"><span className="bg-error-container text-on-error-container px-2 py-1 rounded text-label-md font-bold">CRITICAL</span></td>
-              </tr>
-              <tr className="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
-                <td className="py-5 px-4 font-semibold text-on-surface">Public Space Ratio</td>
-                <td className="py-5 px-4">14%</td>
-                <td className="py-5 px-4">22%</td>
-                <td className="py-5 px-4 text-tertiary font-bold">+8.0%</td>
-                <td className="py-5 px-4"><span className="bg-tertiary/10 text-tertiary px-2 py-1 rounded text-label-md font-bold">LOW</span></td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

@@ -1,464 +1,636 @@
-
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useSimulationStore } from '@/store/useSimulationStore';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useMapStore, useUIStore, useCityDataStore, useSimulationStore } from '@/stores';
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Layers, Info, Car, Train, Droplet, Zap, Battery, Factory, TrendingUp, Plus, Minus, Locate } from 'lucide-react';
 
-
-interface District {
-  id: string;
-  name: string;
-  population: string;
-  traffic: number;
-  energy: string;
-  risk: string;
-  status: 'High Risk' | 'Optimal' | 'Normal';
-  statusColor: string;
-  statusBg: string;
-  lng: number;
-  lat: number;
-}
-
-// Define Bengaluru coordinate points for district overlays
-const rawDistricts = [
-  { id: "whitefield", name: "Whitefield", basePop: 1.2, baseTraffic: 94, baseEnergy: "Stable", baseRisk: 8.4, lng: 77.7499, lat: 12.9698 },
-  { id: "electronic_city", name: "Electronic City", basePop: 0.8, baseTraffic: 62, baseEnergy: "100% Health", baseRisk: 3.1, lng: 77.6729, lat: 12.8501 },
-  { id: "indiranagar", name: "Indiranagar", basePop: 0.45, baseTraffic: 78, baseEnergy: "92% Health", baseRisk: 5.2, lng: 77.6412, lat: 12.9784 },
-  { id: "hebbal", name: "Hebbal", basePop: 0.6, baseTraffic: 54, baseEnergy: "96% Health", baseRisk: 4.8, lng: 77.5913, lat: 13.0358 },
-  { id: "koramangala", name: "Koramangala", basePop: 0.55, baseTraffic: 92, baseEnergy: "Critical Load", baseRisk: 7.9, lng: 77.6245, lat: 12.9352 }
+// Seeded coordinates for layers not in geojson
+const EV_STATIONS = [
+  { name: 'Hope Farm EV Hub', coordinates: [77.7499, 12.9698], chargerCount: 12, capacity: '250 kW' },
+  { name: 'Koramangala 80ft Rd Fast Charger', coordinates: [77.6245, 12.9352], chargerCount: 8, capacity: '150 kW' },
+  { name: 'Manyata Tech Park Charging Stn', coordinates: [77.5913, 13.0358], chargerCount: 16, capacity: '350 kW' },
+  { name: 'Indiranagar Metro Station Charger', coordinates: [77.6412, 12.9784], chargerCount: 6, capacity: '50 kW' },
+  { name: 'Electronic City Phase 1 Charger', coordinates: [77.6729, 12.8501], chargerCount: 24, capacity: '500 kW' },
 ];
 
+const BUS_DEPOTS = [
+  { name: 'Majestic BMTC Depot 1', coordinates: [77.5726, 12.9776], fleetSize: 220, fleetType: 'Mixed Electric/Diesel' },
+  { name: 'Koramangala Depot 4', coordinates: [77.6186, 12.9176], fleetSize: 140, fleetType: '100% Electric Fleet' },
+  { name: 'Indiranagar Bus Station Depot', coordinates: [77.6385, 12.9719], fleetSize: 95, fleetType: 'Diesel' },
+  { name: 'Whitefield TTMC Depot', coordinates: [77.7342, 12.9611], fleetSize: 180, fleetType: 'Electric Hub' },
+  { name: 'Hebbal Depot 9', coordinates: [77.5962, 13.0298], fleetSize: 160, fleetType: 'Mixed' },
+];
+
+const TECH_PARKS = [
+  { name: 'International Tech Park Bangalore (ITPL)', coordinates: [77.7358, 12.9862], employees: '45,000+', area: '69 acres' },
+  { name: 'Manyata Embassy Business Park', coordinates: [77.6231, 13.0452], employees: '110,000+', area: '110 acres' },
+  { name: 'Bagmane Tech Park', coordinates: [77.6596, 12.9806], employees: '35,000+', area: '42 acres' },
+  { name: 'Embassy TechVillage (ORR)', coordinates: [77.6898, 12.9304], employees: '80,000+', area: '84 acres' },
+  { name: 'Electronic City Tech Campus 1', coordinates: [77.6698, 12.8452], employees: '95,000+', area: '120 acres' },
+];
+
+const INDUSTRIAL_ZONES = [
+  { name: 'Peenya Industrial Area Phase 1', coordinates: [77.5256, 13.0298], units: '1,200+', primary: 'Manufacturing' },
+  { name: 'Bommasandra Industrial Area', coordinates: [77.6835, 12.8122], units: '850+', primary: 'Automotive & Pharma' },
+  { name: 'Hoodi Industrial Complex', coordinates: [77.7126, 12.9912], units: '450+', primary: 'Light Electronics' },
+];
+
+const FLOOD_ZONES = [
+  { name: 'Bellandur Lake Catchment Area', coordinates: [77.6513, 12.9372], severity: 'Critical Risk', elevation: '868m' },
+  { name: 'Varthur Overflow Basin', coordinates: [77.7212, 12.9498], severity: 'Major Risk', elevation: '865m' },
+  { name: 'Koramangala Valley storm drain', coordinates: [77.6212, 12.9412], severity: 'Moderate Risk', elevation: '870m' },
+];
+
+const METRO_ROUTES_GEOJSON = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [77.5913, 13.0358], // Hebbal
+          [77.6412, 12.9784], // Indiranagar
+          [77.6245, 12.9352], // Koramangala
+          [77.6729, 12.8501]  // Electronic City
+        ]
+      },
+      properties: { name: 'Purple/Green Connect' }
+    }
+  ]
+};
+
 export default function CitiesPage() {
-  const store = useSimulationStore();
-  const { metrics, popGrowth } = store;
+  const { layers, toggleLayer, layerOpacity, setLayerOpacity, activeBasemap, setBasemap } = useMapStore();
+  const { selectedMapAsset, setSelectedMapAsset } = useUIStore();
+  const cityData = useCityDataStore();
+  const sim = useSimulationStore();
 
-  const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>({
-    traffic: true,
-    metro: true,
-    water: false,
-    power: false,
-    ev: false,
-    industrial: false
-  });
-
-  const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [activeAssetDetails, setActiveAssetDetails] = useState<any | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxMap | null>(null);
   const markersRef = useRef<MapboxMarker[]>([]);
 
-  const toggleLayer = (layer: string) => {
-    setActiveLayers(prev => {
-      const next = { ...prev, [layer]: !prev[layer] };
-      // Dynamically toggle mapbox layers visibility if loaded
-      if (mapRef.current) {
-        const map = mapRef.current;
-        const layerId = `layer-${layer}`;
-        if (map.getLayer(layerId)) {
-          map.setLayoutProperty(layerId, 'visibility', next[layer] ? 'visible' : 'none');
-        }
-      }
-      return next;
-    });
+  // Filter map layers based on Zustand state
+  const isLayerEnabled = (id: string) => layers.find(l => l.id === id)?.enabled || false;
+
+  // Clear existing markers helper
+  const clearMarkers = () => {
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
   };
 
-  // Dynamic calculations based on global Zustand store
-  const districts: District[] = React.useMemo(() => {
-    return rawDistricts.map(d => {
-      const population = (d.basePop * (1 + popGrowth / 100)).toFixed(2) + "M";
-      const traffic = Math.min(100, Math.max(10, Math.round(d.baseTraffic + metrics.trafficCongestion)));
+  // Re-sync markers when layer states change
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+    const map = mapRef.current;
 
-      let energy = d.baseEnergy;
-      if (metrics.energyDemand > 15) {
-        if (d.id === 'whitefield' || d.id === 'koramangala') energy = "Critical Load";
-        else if (d.id === 'electronic_city') energy = "Peak Draw";
+    // Clear dynamic overlay markers
+    clearMarkers();
+
+    // Import mapbox dynamically to create HTML element markers
+    import('mapbox-gl').then(m => {
+      const mapboxgl = m.default;
+
+      // 1. EV STATIONS
+      if (isLayerEnabled('ev-stations')) {
+        EV_STATIONS.forEach(ev => {
+          const el = document.createElement('div');
+          el.className = 'map-marker ev-marker';
+          el.style.cssText = 'width: 14px; height: 14px; border-radius: 50%; background: #3B82F6; border: 2px solid #fff; cursor: pointer;';
+          el.addEventListener('click', () => {
+            setSelectedMapAsset(ev.name);
+            setActiveAssetDetails({ type: 'EV Station', ...ev });
+          });
+          const marker = new mapboxgl.Marker(el).setLngLat(ev.coordinates as [number, number]).addTo(map);
+          markersRef.current.push(marker);
+        });
       }
 
-      const calculatedRisk = Math.min(10, Math.max(0, d.baseRisk + (metrics.infrastructureStress - 68) * 0.05));
-      const risk = calculatedRisk.toFixed(1) + "/10";
-
-      let status: 'High Risk' | 'Optimal' | 'Normal' = 'Normal';
-      let statusColor = "text-primary";
-      let statusBg = "bg-primary-fixed/20";
-
-      if (traffic > 85 || calculatedRisk > 7.5) {
-        status = 'High Risk';
-        statusColor = "text-error";
-        statusBg = "bg-error-container";
-      } else if (traffic < 65 && calculatedRisk < 5.0) {
-        status = 'Optimal';
-        statusColor = "text-tertiary";
-        statusBg = "bg-tertiary-container";
+      // 2. BUS DEPOTS
+      if (isLayerEnabled('bus-depots')) {
+        BUS_DEPOTS.forEach(depot => {
+          const el = document.createElement('div');
+          el.className = 'map-marker bus-marker';
+          el.style.cssText = 'width: 15px; height: 15px; border-radius: 4px; background: #8B5CF6; border: 2px solid #fff; cursor: pointer;';
+          el.addEventListener('click', () => {
+            setSelectedMapAsset(depot.name);
+            setActiveAssetDetails({ type: 'Bus Depot', ...depot });
+          });
+          const marker = new mapboxgl.Marker(el).setLngLat(depot.coordinates as [number, number]).addTo(map);
+          markersRef.current.push(marker);
+        });
       }
 
-      return {
-        id: d.id,
-        name: d.name,
-        population,
-        traffic,
-        energy,
-        risk,
-        status,
-        statusColor,
-        statusBg,
-        lng: d.lng,
-        lat: d.lat
-      };
+      // 3. TECH PARKS
+      if (isLayerEnabled('tech-parks')) {
+        TECH_PARKS.forEach(park => {
+          const el = document.createElement('div');
+          el.className = 'map-marker park-marker';
+          el.style.cssText = 'width: 16px; height: 16px; transform: rotate(45deg); background: #10B981; border: 2px solid #fff; cursor: pointer;';
+          el.addEventListener('click', () => {
+            setSelectedMapAsset(park.name);
+            setActiveAssetDetails({ type: 'Tech Park', ...park });
+          });
+          const marker = new mapboxgl.Marker(el).setLngLat(park.coordinates as [number, number]).addTo(map);
+          markersRef.current.push(marker);
+        });
+      }
+
+      // 4. INDUSTRIAL ZONES
+      if (isLayerEnabled('industrial')) {
+        INDUSTRIAL_ZONES.forEach(ind => {
+          const el = document.createElement('div');
+          el.className = 'map-marker industrial-marker';
+          el.style.cssText = 'width: 16px; height: 16px; background: #F59E0B; border: 2px solid #fff; cursor: pointer;';
+          el.addEventListener('click', () => {
+            setSelectedMapAsset(ind.name);
+            setActiveAssetDetails({ type: 'Industrial Zone', ...ind });
+          });
+          const marker = new mapboxgl.Marker(el).setLngLat(ind.coordinates as [number, number]).addTo(map);
+          markersRef.current.push(marker);
+        });
+      }
+
+      // 5. FLOOD ZONES
+      if (isLayerEnabled('flood-zones')) {
+        FLOOD_ZONES.forEach(flood => {
+          const el = document.createElement('div');
+          el.className = 'map-marker flood-marker';
+          el.style.cssText = 'width: 20px; height: 20px; border-radius: 50%; background: rgba(239, 68, 68, 0.4); border: 2px solid #EF4444; animation: live-pulse 2s infinite; cursor: pointer;';
+          el.addEventListener('click', () => {
+            setSelectedMapAsset(flood.name);
+            setActiveAssetDetails({ type: 'Flood Risk Zone', ...flood });
+          });
+          const marker = new mapboxgl.Marker(el).setLngLat(flood.coordinates as [number, number]).addTo(map);
+          markersRef.current.push(marker);
+        });
+      }
     });
-  }, [popGrowth, metrics]);
 
-  const cityHealthIndex = Math.min(100, Math.max(0, Math.round(100 - metrics.infrastructureStress + 36)));
-  const urbanResilience = Math.min(100, Math.max(0, Math.round(100 - metrics.infrastructureStress * 0.4)));
-  const carbonDeltaStr = (metrics.carbonEmissions > 0 ? "+" : "") + metrics.carbonEmissions + "%";
-
-  // Check for search-initiated district selections
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('selectedDistrictId');
-      if (stored) {
-        const found = districts.find(d => d.id === stored);
-        if (found) {
-          setTimeout(() => {
-            setSelectedDistrict(found);
-          }, 0);
-          sessionStorage.removeItem('selectedDistrictId');
-          // Fly map to district if loaded
-          if (mapRef.current) {
-            mapRef.current.flyTo({ center: [found.lng, found.lat], zoom: 13, speed: 1.2 });
-          }
-        }
-      }
+    // 6. METRO STATIONS / ROUTES Layer Visibility
+    if (map.getLayer('layer-metro-stations')) {
+      map.setLayoutProperty('layer-metro-stations', 'visibility', isLayerEnabled('metro-stations') ? 'visible' : 'none');
     }
-  }, [districts]);
+    if (map.getLayer('layer-metro-routes')) {
+      map.setLayoutProperty('layer-metro-routes', 'visibility', isLayerEnabled('metro-routes') ? 'visible' : 'none');
+    }
+    if (map.getLayer('layer-hospitals')) {
+      map.setLayoutProperty('layer-hospitals', 'visibility', isLayerEnabled('hospitals') ? 'visible' : 'none');
+    }
+    if (map.getLayer('layer-lakes')) {
+      map.setLayoutProperty('layer-lakes', 'visibility', isLayerEnabled('lakes') ? 'visible' : 'none');
+    }
+    if (map.getLayer('layer-substations')) {
+      map.setLayoutProperty('layer-substations', 'visibility', isLayerEnabled('substations') ? 'visible' : 'none');
+    }
 
-  // Client-Side Mapbox Initializer
+  }, [layers, mapLoaded]);
+
+  // Handle Opacity Changes
   useEffect(() => {
-    let map: MapboxMap | null = null;
+    if (!mapLoaded || !mapRef.current) return;
+    const map = mapRef.current;
+    const opacityValue = layerOpacity / 100;
 
-    import('mapbox-gl').then((mapboxglModule) => {
-      const mapboxgl = mapboxglModule.default;
+    const layersToAdjust = ['layer-metro-stations', 'layer-metro-routes', 'layer-hospitals', 'layer-lakes', 'layer-substations'];
+    layersToAdjust.forEach(l => {
+      const layerObj = map.getLayer(l);
+      if (layerObj) {
+        const type = layerObj.type;
+        if (type === 'circle') map.setPaintProperty(l, 'circle-opacity', opacityValue);
+        if (type === 'line') map.setPaintProperty(l, 'line-opacity', opacityValue);
+      }
+    });
+  }, [layerOpacity, mapLoaded]);
+
+  // Handle Basemap Swapping
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+    const styleUrl = activeBasemap === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/dark-v11';
+    
+    // Changing map style triggers 'load' again, requiring full layer initialization
+    setMapLoaded(false);
+    map.setStyle(styleUrl);
+    
+    const onStyleLoad = () => {
+      initializeGeoJsonLayers(map);
+      setMapLoaded(true);
+    };
+
+    map.once('style.load', onStyleLoad);
+  }, [activeBasemap]);
+
+  // Map Initialization & GeoJSON Layers Setup
+  const initializeGeoJsonLayers = (map: MapboxMap) => {
+    // A. METRO ROUTES
+    if (!map.getSource('metro-routes-src')) {
+      map.addSource('metro-routes-src', { type: 'geojson', data: METRO_ROUTES_GEOJSON as any });
+      map.addLayer({
+        id: 'layer-metro-routes',
+        type: 'line',
+        source: 'metro-routes-src',
+        paint: {
+          'line-color': '#7C3AED',
+          'line-width': 4,
+          'line-opacity': layerOpacity / 100,
+        }
+      });
+    }
+
+    // B. METRO STATIONS
+    if (!map.getSource('metro-stations-src')) {
+      map.addSource('metro-stations-src', { type: 'geojson', data: '/data/metro_stations.geojson' });
+      map.addLayer({
+        id: 'layer-metro-stations',
+        type: 'circle',
+        source: 'metro-stations-src',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#00D4FF',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1.5,
+          'circle-opacity': layerOpacity / 100,
+        }
+      });
+
+      map.on('click', 'layer-metro-stations', (e) => {
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties || {};
+          setSelectedMapAsset(props.name || 'Metro Station');
+          setActiveAssetDetails({
+            type: 'Metro Station',
+            name: props.name || 'BMRCL Station',
+            coordinates: e.features[0].geometry.type === 'Point' ? (e.features[0].geometry as any).coordinates : null,
+            line: props.line || 'Purple Line',
+            status: 'Operational',
+            ridership: 'Daily average 12k pax',
+          });
+        }
+      });
+    }
+
+    // C. HOSPITALS
+    if (!map.getSource('hospitals-src')) {
+      map.addSource('hospitals-src', { type: 'geojson', data: '/data/hospitals.geojson' });
+      map.addLayer({
+        id: 'layer-hospitals',
+        type: 'circle',
+        source: 'hospitals-src',
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#EF4444',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1,
+          'circle-opacity': layerOpacity / 100,
+        }
+      });
+
+      map.on('click', 'layer-hospitals', (e) => {
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties || {};
+          setSelectedMapAsset(props.name || 'Hospital');
+          setActiveAssetDetails({
+            type: 'Hospital',
+            name: props.name || 'BBMP Health Center',
+            coordinates: e.features[0].geometry.type === 'Point' ? (e.features[0].geometry as any).coordinates : null,
+            beds: props.beds || '80-120 beds capacity',
+            traumaCare: props.amenity === 'hospital' ? 'Level 2 Trauma' : 'Primary Care Unit',
+          });
+        }
+      });
+    }
+
+    // D. LAKES & RESERVOIRS
+    if (!map.getSource('lakes-src')) {
+      map.addSource('lakes-src', { type: 'geojson', data: '/data/lakes.geojson' });
+      map.addLayer({
+        id: 'layer-lakes',
+        type: 'circle',
+        source: 'lakes-src',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#3B82F6',
+          'circle-opacity': (layerOpacity / 100) * 0.7,
+        }
+      });
+
+      map.on('click', 'layer-lakes', (e) => {
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties || {};
+          setSelectedMapAsset(props.name || 'Lake');
+          setActiveAssetDetails({
+            type: 'Lake / Reservoir',
+            name: props.name || 'Bengaluru Lake Catchment',
+            coordinates: e.features[0].geometry.type === 'Point' ? (e.features[0].geometry as any).coordinates : null,
+            quality: 'PH 7.4 (Good)',
+            volume: 'Storage capability: 120 MLD equivalent',
+          });
+        }
+      });
+    }
+
+    // E. SUBSTATIONS
+    if (!map.getSource('substations-src')) {
+      map.addSource('substations-src', { type: 'geojson', data: '/data/substations.geojson' });
+      map.addLayer({
+        id: 'layer-substations',
+        type: 'circle',
+        source: 'substations-src',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#F59E0B',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1.5,
+          'circle-opacity': layerOpacity / 100,
+        }
+      });
+
+      map.on('click', 'layer-substations', (e) => {
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties || {};
+          setSelectedMapAsset(props.name || 'Substation');
+          setActiveAssetDetails({
+            type: 'Power Substation',
+            name: props.name || 'BESCOM Substation Node',
+            coordinates: e.features[0].geometry.type === 'Point' ? (e.features[0].geometry as any).coordinates : null,
+            load: '82% Nominal Load',
+            capacity: props.rating || '66/11 kV Sub-transmission',
+          });
+        }
+      });
+    }
+  };
+
+  // Base map container initializer
+  useEffect(() => {
+    import('mapbox-gl').then(m => {
+      const mapboxgl = m.default;
       mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-
       if (!mapContainerRef.current) return;
 
-      map = new mapboxgl.Map({
+      const map = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/light-v10',
+        style: activeBasemap === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/dark-v11',
         center: [77.5946, 12.9716],
         zoom: 11,
-        pitch: 45,
+        pitch: 35,
         attributionControl: false
       });
 
       mapRef.current = map;
 
       map.on('load', () => {
+        initializeGeoJsonLayers(map);
         setMapLoaded(true);
-        if (!map) return;
-
-        // 1. Traffic Congestion Heatmap (Simulated based on real density areas)
-        map.addSource('traffic-heat', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6245, 12.9352] }, properties: { intensity: 9 } }, // Koramangala
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6412, 12.9784] }, properties: { intensity: 7 } }, // Indiranagar
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.5913, 13.0358] }, properties: { intensity: 6 } }, // Hebbal
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.6186, 12.9176] }, properties: { intensity: 10 } }, // Silk Board
-              { type: 'Feature', geometry: { type: 'Point', coordinates: [77.7499, 12.9698] }, properties: { intensity: 8 } }, // Whitefield
-            ]
-          }
-        });
-
-        map.addLayer({
-          id: 'layer-traffic',
-          type: 'heatmap',
-          source: 'traffic-heat',
-          layout: { visibility: 'visible' },
-          paint: {
-            'heatmap-weight': ['interpolate', ['linear'], ['get', 'intensity'], 0, 0, 10, 1],
-            'heatmap-intensity': 1,
-            'heatmap-color': [
-              'interpolate', ['linear'], ['heatmap-density'],
-              0, 'rgba(0,0,0,0)',
-              0.2, 'rgba(255,200,0,0.5)',
-              0.5, 'rgba(255,100,0,0.8)',
-              1, 'rgba(255,0,0,1)'
-            ],
-            'heatmap-radius': 40,
-            'heatmap-opacity': 0.8
-          }
-        });
-
-        // 2. Real GIS Datasets
-        const datasets = [
-          { name: 'metro_stations', id: 'layer-metro', color: '#3b82f6', radius: 5, strokeWidth: 1.5 },
-          { name: 'hospitals', id: 'layer-hospitals', color: '#ef4444', radius: 4, strokeWidth: 1 },
-          { name: 'substations', id: 'layer-power', color: '#f59e0b', radius: 8, strokeWidth: 2 },
-          { name: 'lakes', id: 'layer-water', color: '#0ea5e9', radius: 6, strokeWidth: 0 }
-        ];
-
-        datasets.forEach(ds => {
-          fetch(`/data/${ds.name}.geojson`)
-            .then(res => res.json())
-            .then(data => {
-              if (!map) return;
-              map.addSource(ds.name, { type: 'geojson', data });
-              map.addLayer({
-                id: ds.id,
-                type: 'circle',
-                source: ds.name,
-                layout: { visibility: ds.id === 'layer-metro' ? 'visible' : 'none' }, // only metro visible by default like before
-                paint: {
-                  'circle-radius': ds.radius,
-                  'circle-color': ds.color,
-                  'circle-stroke-width': ds.strokeWidth,
-                  'circle-stroke-color': ds.id === 'layer-power' ? '#000' : '#fff'
-                }
-              });
-            })
-            .catch(err => console.error(`Failed to load GIS data ${ds.name}:`, err));
-        });
-
-        // 6. Industrial Zones (Purple areas - kept approx polygon for now)
-        map.addSource('industrial-zones', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.65, 12.83], [77.69, 12.83], [77.69, 12.87], [77.65, 12.87], [77.65, 12.83]]] } },
-              { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[77.48, 13.01], [77.52, 13.01], [77.52, 13.05], [77.48, 13.05], [77.48, 13.01]]] } }
-            ]
-          }
-        });
-
-        map.addLayer({
-          id: 'layer-industrial',
-          type: 'fill',
-          source: 'industrial-zones',
-          layout: { visibility: 'none' },
-          paint: { 'fill-color': '#9333ea', 'fill-opacity': 0.4 }
-        });
       });
     });
 
     return () => {
-      if (map) {
-        map.remove();
+      clearMarkers();
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
       }
     };
   }, []);
 
-  // Update District Custom HTML Markers inside Mapbox
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current) return;
-
-    // Clear old markers
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-
-    import('mapbox-gl').then((mapboxglModule) => {
-      const mapboxgl = mapboxglModule.default;
-      const map = mapRef.current;
-      if (!map) return;
-
-      districts.forEach(d => {
-        const el = document.createElement('div');
-        el.className = 'w-6 h-6 rounded-full border-2 bg-white/50 flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-125 shadow-lg';
-        el.style.borderColor = d.status === 'High Risk' ? '#ba1a1a' : d.status === 'Optimal' ? '#10b981' : '#004ac6';
-
-        const child = document.createElement('div');
-        child.className = `w-2.5 h-2.5 rounded-full ${d.status === 'High Risk' ? 'bg-error animate-pulse' : d.status === 'Optimal' ? 'bg-tertiary' : 'bg-primary'}`;
-        el.appendChild(child);
-
-        el.addEventListener('click', () => {
-          setSelectedDistrict(d);
-          map.flyTo({ center: [d.lng, d.lat], zoom: 12.5 });
-        });
-
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat([d.lng, d.lat])
-          .addTo(map);
-
-        markersRef.current.push(marker);
-      });
-    });
-  }, [mapLoaded, districts]);
+  // Selected telemetry chart fake data
+  const telemetryData = useMemo(() => [
+    { name: '08:00', load: 45, usage: 52 },
+    { name: '12:00', load: 78, usage: 84 },
+    { name: '16:00', load: 91, usage: 76 },
+    { name: '20:00', load: 83, usage: 89 },
+    { name: '00:00', load: 50, usage: 45 },
+  ], []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden flex select-none animate-fade-in">
-      {/* Interactive Map (Left Panel) */}
-      <div className="flex-1 relative bg-[#e5eeff] overflow-hidden">
-        {/* Real Interactive Mapbox Container */}
-        <div ref={mapContainerRef} className="absolute inset-0 z-0 w-full h-full" />
-
-        {/* District Details Floating Overlay (When Clicked) */}
-        {selectedDistrict && (
-          <div className="absolute top-24 left-6 w-72 bg-white/95 backdrop-blur-xl border border-outline-variant/30 p-5 rounded-2xl shadow-2xl z-30 animate-scale-in">
-            <div className="flex justify-between items-start mb-3">
-              <h4 className="font-headline-sm text-on-surface">{selectedDistrict.name}</h4>
-              <span className={`px-2.5 py-0.5 ${selectedDistrict.statusBg} ${selectedDistrict.statusColor} text-[10px] font-bold rounded-full uppercase`}>
-                {selectedDistrict.status}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div>
-                <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Population</p>
-                <p className="text-sm font-bold text-on-surface">{selectedDistrict.population}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Traffic Load</p>
-                <p className={`text-sm font-bold ${selectedDistrict.traffic > 80 ? 'text-error' : 'text-on-surface'}`}>{selectedDistrict.traffic}%</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Energy Grid</p>
-                <p className="text-sm font-bold text-on-surface">{selectedDistrict.energy}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-on-surface-variant font-semibold uppercase">Risk Score</p>
-                <p className="text-sm font-bold text-on-surface">{selectedDistrict.risk}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedDistrict(null)}
-              className="mt-4 w-full bg-surface-container hover:bg-surface-container-high py-2 rounded-lg text-xs font-semibold text-on-surface transition-colors cursor-pointer"
-            >
-              Close Details
-            </button>
-          </div>
-        )}
-
-        {/* Bottom Left HUD (City Health Index) */}
-        <div className="absolute bottom-6 left-6 z-20 flex flex-col gap-4">
-          <div className="bg-white/90 backdrop-blur-xl border border-outline-variant/30 p-4 rounded-2xl shadow-xl w-80">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error"></span></span>
-                <span className="text-xs font-bold text-on-surface">City Health Index</span>
-              </div>
-              <span className="text-mono-label bg-surface-container text-primary font-bold px-2 py-0.5 rounded text-[11px]">{cityHealthIndex}/100</span>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-on-surface-variant">Urban Resilience</span>
-                  <span className="text-on-surface font-bold">{urbanResilience}%</span>
-                </div>
-                <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-primary transition-all duration-[1s]" style={{ width: `${urbanResilience}%` }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="text-on-surface-variant">Carbon Footprint Change</span>
-                  <span className={`font-bold ${metrics.carbonEmissions > 0 ? 'text-error' : 'text-emerald-600'}`}>{carbonDeltaStr}</span>
-                </div>
-                <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden">
-                  <div className={`h-full ${metrics.carbonEmissions > 0 ? 'bg-error' : 'bg-emerald-500'} transition-all duration-[1s]`} style={{ width: `${Math.min(100, Math.max(10, Math.round(50 + metrics.carbonEmissions * 2)))}%` }}></div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between bg-surface-container-low p-2 rounded-xl border border-outline-variant/10 text-[10px]">
-                <div className="flex items-center gap-1.5 text-on-surface-variant">
-                  <TrendingUp />
-                  <span>Projected growth in Hebbal Corridor</span>
-                </div>
-                <span className="font-bold text-primary">+{popGrowth}%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Mini controls */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                if (mapRef.current) mapRef.current.zoomIn();
-              }}
-              className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
-            >
-              <Plus />
-            </button>
-            <button
-              onClick={() => {
-                if (mapRef.current) mapRef.current.zoomOut();
-              }}
-              className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
-            >
-              <Minus />
-            </button>
-            <button
-              onClick={() => {
-                if (mapRef.current) mapRef.current.flyTo({ center: [77.5946, 12.9716], zoom: 11, pitch: 45 });
-              }}
-              className="w-10 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center justify-center hover:bg-white active:scale-95 shadow-md cursor-pointer"
-              title="Recenter"
-            >
-              <Locate />
-            </button>
-            <button
-              onClick={() => {
-                if (mapRef.current) {
-                  const currentPitch = mapRef.current.getPitch();
-                  mapRef.current.setPitch(currentPitch === 0 ? 45 : 0);
-                }
-              }}
-              className="px-4 h-10 bg-white/90 backdrop-blur-xl border border-outline-variant/30 rounded-xl flex items-center gap-2 hover:bg-white active:scale-95 shadow-md cursor-pointer"
-            >
-              <Layers />
-              <span className="text-xs font-semibold text-on-surface-variant">Toggle 3D</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Layer Controls Panel (Right Panel) */}
-      <div className="w-80 bg-white/95 border-l border-outline-variant/20 h-full shadow-2xl z-20 flex flex-col p-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="font-bold text-on-surface text-lg">Layer Controls</h3>
-          <Info />
+    <div style={{ display: 'flex', height: 'calc(100vh - 64px)', overflow: 'hidden', position: 'relative' }}>
+      
+      {/* ===== LAYER MANAGER & BASEMAPS (LEFT SIDEBAR) ===== */}
+      <div style={{
+        width: '320px',
+        flexShrink: 0,
+        borderRight: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'rgba(5,10,20,0.95)',
+        zIndex: 5
+      }}>
+        {/* Layer Manager Header */}
+        <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: 0 }}>Layer Manager</h2>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
+            Bengaluru GIS Data & Infrastructure Layers
+          </p>
         </div>
 
-        <div className="space-y-3 flex-1">
-          {[
-            { id: 'traffic', name: 'Traffic Congestion', icon: <Car size={18} className="text-error" />, color: 'text-error', bg: 'bg-error-container/40' },
-            { id: 'metro', name: 'Metro Connectivity', icon: <Train size={18} className="text-primary" />, color: 'text-primary', bg: 'bg-primary-fixed/20' },
-            { id: 'water', name: 'Water Distribution', icon: <Droplet size={18} className="text-blue-600" />, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { id: 'power', name: 'Power Grid Load', icon: <Zap size={18} className="text-amber-600" />, color: 'text-amber-600', bg: 'bg-amber-50' },
-            { id: 'ev', name: 'EV Charging Network', icon: <Battery size={18} className="text-violet-600" />, color: 'text-violet-600', bg: 'bg-violet-50' },
-            { id: 'industrial', name: 'Industrial Zones', icon: <Factory size={18} className="text-purple-600" />, color: 'text-purple-600', bg: 'bg-purple-50' }
-          ].map(layer => (
-            <div
+        {/* Layer checkboxes */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {layers.map(layer => (
+            <label
               key={layer.id}
-              onClick={() => toggleLayer(layer.id)}
-              className="flex items-center justify-between p-3.5 hover:bg-surface-container rounded-xl cursor-pointer group transition-colors border border-outline-variant/10"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                background: layer.enabled ? 'rgba(0, 212, 255, 0.04)' : 'rgba(255,255,255,0.01)',
+                border: `1px solid ${layer.enabled ? 'rgba(0, 212, 255, 0.15)' : 'rgba(255,255,255,0.04)'}`,
+                cursor: 'pointer',
+                transition: 'all 120ms',
+              }}
+              className="hover:bg-[rgba(255,255,255,0.03)]"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl ${layer.bg} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                  <span className="flex items-center justify-center">{layer.icon}</span>
-                </div>
-                <span className="text-[13px] font-medium text-on-surface">{layer.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="checkbox"
+                  checked={layer.enabled}
+                  onChange={() => toggleLayer(layer.id)}
+                  style={{
+                    width: '15px',
+                    height: '15px',
+                    borderRadius: '4px',
+                    accentColor: '#00D4FF',
+                    cursor: 'pointer'
+                  }}
+                />
+                <span style={{ fontSize: '16px' }}>{layer.icon}</span>
+                <span style={{ fontSize: '13px', color: layer.enabled ? '#fff' : 'rgba(255,255,255,0.6)' }}>
+                  {layer.name}
+                </span>
               </div>
-              <div className={`w-9 h-5 rounded-full relative p-0.5 transition-colors duration-200 ${activeLayers[layer.id] ? 'bg-primary' : 'bg-outline-variant'}`}>
-                <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200 ${activeLayers[layer.id] ? 'right-0.5' : 'left-0.5'}`} />
-              </div>
-            </div>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>
+                [{layer.count}]
+              </span>
+            </label>
           ))}
         </div>
 
-        <div className="pt-6 border-t border-outline-variant/30 mt-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Active Feeds</span>
+        {/* Map Styling Settings (Bottom) */}
+        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          
+          {/* Opacity Slider */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+              <span>LAYER OPACITY</span>
+              <span style={{ fontFamily: 'monospace' }}>{layerOpacity}%</span>
+            </div>
+            <input
+              type="range"
+              min={10}
+              max={100}
+              value={layerOpacity}
+              onChange={(e) => setLayerOpacity(Number(e.target.value))}
+              style={{ width: '100%', accentColor: '#00D4FF', cursor: 'pointer' }}
+            />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-2.5 py-1 bg-surface-container text-primary text-[9px] font-bold rounded-lg uppercase tracking-wider">Sensor Mesh v2</span>
-            <span className="px-2.5 py-1 bg-surface-container text-primary text-[9px] font-bold rounded-lg uppercase tracking-wider">GIS Layer</span>
+
+          {/* Basemap Toggle */}
+          <div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+              Base Map Style
+            </div>
+            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '2px' }}>
+              <button
+                onClick={() => setBasemap('dark')}
+                style={{
+                  flex: 1, padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                  background: activeBasemap === 'dark' ? '#00D4FF' : 'transparent',
+                  color: activeBasemap === 'dark' ? '#050A14' : 'rgba(255,255,255,0.5)',
+                  transition: 'all 120ms'
+                }}
+              >
+                Dark Map
+              </button>
+              <button
+                onClick={() => setBasemap('satellite')}
+                style={{
+                  flex: 1, padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                  background: activeBasemap === 'satellite' ? '#00D4FF' : 'transparent',
+                  color: activeBasemap === 'satellite' ? '#050A14' : 'rgba(255,255,255,0.5)',
+                  transition: 'all 120ms'
+                }}
+              >
+                Satellite Imagery
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* ===== INTERACTIVE MAP DISPLAY (CENTER) ===== */}
+      <div style={{ flex: 1, position: 'relative' }}>
+        {!mapLoaded && (
+          <div style={{
+            position: 'absolute', inset: 0, background: '#050A14', zIndex: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px'
+          }}>
+            <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '50%' }} />
+            <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+              Loading geospatial city twin layers...
+            </span>
+          </div>
+        )}
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+      </div>
+
+      {/* ===== ASSET INFO & TELEMETRY PANEL (RIGHT SIDEBAR) ===== */}
+      {selectedMapAsset && activeAssetDetails && (
+        <div style={{
+          width: '360px',
+          flexShrink: 0,
+          borderLeft: '1px solid rgba(255,255,255,0.05)',
+          background: 'rgba(5,10,20,0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 5,
+          boxShadow: '-8px 0 24px rgba(0,0,0,0.25)',
+          animation: 'slide-right 0.2s ease-out',
+        }}>
+          {/* Panel Header */}
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <span style={{
+                fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#00D4FF',
+                padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 212, 255, 0.08)', border: '1px solid rgba(0, 212, 255, 0.15)'
+              }}>
+                {activeAssetDetails.type}
+              </span>
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: '8px 0 0', lineHeight: 1.3 }}>
+                {activeAssetDetails.name}
+              </h2>
+            </div>
+            <button
+              onClick={() => setSelectedMapAsset(null)}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '20px', cursor: 'pointer' }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Details & Telemetry */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Meta Specifications */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {Object.keys(activeAssetDetails).filter(k => !['type', 'name', 'coordinates'].includes(k)).map(key => (
+                <div key={key} style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{key}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', marginTop: '2px' }}>{activeAssetDetails[key]}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Coordinates */}
+            {activeAssetDetails.coordinates && (
+              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px' }}>
+                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>Coordinates</span>
+                <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                  Lat: {activeAssetDetails.coordinates[1].toFixed(5)}, Lng: {activeAssetDetails.coordinates[0].toFixed(5)}
+                </span>
+              </div>
+            )}
+
+            {/* Telemetry charts */}
+            <div>
+              <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#fff', margin: '0 0 10px' }}>Telemetry & Health Metrics</h3>
+              <div style={{ height: '140px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', padding: '10px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={telemetryData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                    <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                    <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                    <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '4px', fontSize: '10px' }} />
+                    <Line type="monotone" dataKey="load" stroke="#00D4FF" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="usage" stroke="#7C3AED" strokeWidth={1.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '6px', justifyContent: 'center' }}>
+                <span style={{ fontSize: '9px', color: '#00D4FF' }}>● Grid Load (%)</span>
+                <span style={{ fontSize: '9px', color: '#7C3AED' }}>● Demand Volume (GWh)</span>
+              </div>
+            </div>
+
+            {/* AI Assessment recommendation */}
+            <div style={{ padding: '14px', background: 'rgba(0, 212, 255, 0.03)', border: '1px solid rgba(0, 212, 255, 0.12)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#00D4FF', fontWeight: 700 }}>
+                <span>🤖</span>
+                <span>AI OPTIMIZATION NOTE</span>
+              </div>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, margin: '6px 0 0' }}>
+                Active load profile indicates peak capacity thresholds within nominal margins. Scheduled routine maintenance forecast: Q3 2026.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

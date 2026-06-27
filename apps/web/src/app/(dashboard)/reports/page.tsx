@@ -1,307 +1,290 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useSimulationStore } from '@/store/useSimulationStore';
+import { useSimulationStore, useAppStore } from '@/stores';
 import { exportToPDF, exportToCSV } from '@/lib/exportUtils';
-import { BarChart2, Bus, Car, CheckCircle, ChevronRight, FileCheck, FileText, Info, Leaf, ShieldCheck, Table, TriangleAlert, Zap, Hourglass, Download } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
+interface ReportSpec {
+  id: string;
+  title: string;
+  category: 'Demographics' | 'Transport' | 'Energy' | 'Water' | 'Environment' | 'Economy';
+  description: string;
+  confidence: number;
+  author: string;
+  version: string;
+  status: 'Published' | 'Under Review' | 'Draft';
+  metrics: { label: string; value: string | number; delta?: string; isGood?: boolean }[];
+  summary: string;
+}
+
+const REPORTS_LIST: ReportSpec[] = [
+  {
+    id: 'rep-demographics',
+    title: 'Demographic & Housing Density Forecast 2025–2050',
+    category: 'Demographics',
+    description: '15-year population trajectory and carrying capacity models for BBMP zones.',
+    confidence: 89,
+    author: 'Urban AI Model 4-C',
+    version: 'v3.2',
+    status: 'Published',
+    summary: 'Projections indicate Bengaluru will exceed 22M residents by 2050. The current residential zoning will face critical density factors in Whitefield and Koramangala. Housing capacity must expand by 4.2% annually to maintain current stability indexes.',
+    metrics: [
+      { label: 'Projected Pop (2050)', value: '22.4M', delta: '+64% vs 2025' },
+      { label: 'Density Threshold', value: '18,500/km²', delta: 'Critical' },
+      { label: 'Housing Demand Delta', value: '+142k units/yr', delta: 'High' }
+    ]
+  },
+  {
+    id: 'rep-transit',
+    title: 'Transit Throughput & Corridor Congestion Study',
+    category: 'Transport',
+    description: 'BPR-derived analysis of Outer Ring Road, Silk Board, and metro expansion corridors.',
+    confidence: 91,
+    author: 'GIS Mobility Engine',
+    version: 'v2.1',
+    status: 'Published',
+    summary: 'Evaluating peak commute congestion indices against baseline models. Public transit modal share increases with metro corridor investments, projecting a 12% delay decrease along the central spine.',
+    metrics: [
+      { label: 'Peak Congestion Index', value: '62%', delta: '-5% Improvement', isGood: true },
+      { label: 'Metro Commuters Count', value: '450k/day', delta: '+12% ridership' },
+      { label: 'Average Delay Reduction', value: '4.8 mins/commute', delta: 'Optimal', isGood: true }
+    ]
+  },
+  {
+    id: 'rep-energy',
+    title: 'Energy Load Duration Curve & Grid Resilience Assessment',
+    category: 'Energy',
+    description: 'Peak draw capacity forecasts and renewable integration limits for BESCOM substations.',
+    confidence: 86,
+    author: 'Substation Telemetry Network',
+    version: 'v4.0',
+    status: 'Under Review',
+    summary: 'Substation capacity limitations in East zone pose overload risks during Q3 summer peaks. Integration of renewable grids must reach 35% by 2028 to maintain current sub-transmission buffer specs.',
+    metrics: [
+      { label: 'Substation Peak Load', value: '4.1 GW', delta: '91% Capacity Utilization' },
+      { label: 'Renewable Fraction', value: '25%', delta: '+8% vs 2024' },
+      { label: 'Grid Outage Risk', value: 'Low-Medium', delta: 'Stable' }
+    ]
+  },
+  {
+    id: 'rep-water',
+    title: 'Water Supply Balance & Catchment Conservation Report',
+    category: 'Water',
+    description: 'IWA water balance models, groundwater drawdown vectors, and Cauvery stage 5 forecasts.',
+    confidence: 84,
+    author: 'Hydro-Intelligence Lab',
+    version: 'v1.4',
+    status: 'Published',
+    summary: 'Bengaluru groundwater levels show an average decline of 2.3m since last year. Cauvery Stage 5 will provide crucial buffer volumes but eastern outer districts continue to face tanker reliance risks.',
+    metrics: [
+      { label: 'Daily Water Deficit', value: '350 MLD', delta: 'Critical Gap' },
+      { label: 'Groundwater Level Delta', value: '-2.3m', delta: 'Rapid Depletion' },
+      { label: 'Cauvery Supply Buffer', value: '775 MLD (2026)', delta: 'Pending Stage 5' }
+    ]
+  },
+  {
+    id: 'rep-environment',
+    title: 'Carbon Footprint & Air Quality Abatement Review',
+    category: 'Environment',
+    description: 'IPCC Tier 2 Sector greenhouse gas inventory and PM2.5 particulate drift vectors.',
+    confidence: 88,
+    author: 'Environmental Monitor Node',
+    version: 'v3.0',
+    status: 'Published',
+    summary: 'Particulate matters drift vectors indicate heavy drift from eastern construction corridors. Implementation of strict dust mitigation protocols will boost Whitefield AQI metrics by an estimated 12 points.',
+    metrics: [
+      { label: 'CO2 Annual Value', value: '42,000 kt', delta: '-8% vs 2025 Plan', isGood: true },
+      { label: 'Average AQI Index', value: '142', delta: 'Moderate' },
+      { label: 'Construction Dust drift', value: '34% Sector Contribution', delta: 'High' }
+    ]
+  },
+  {
+    id: 'rep-economy',
+    title: 'Economic Yield & Total Factor Productivity Audit',
+    category: 'Economy',
+    description: 'Solow-Swan investment multipliers and employment-density index updates.',
+    confidence: 78,
+    author: 'Urban Finance Advisory',
+    version: 'v2.5',
+    status: 'Draft',
+    summary: 'TFP is projected to increase by 6.8% under high-capacity transport infrastructure profiles. Real estate capital appreciation values around metro terminals show high yield ratios.',
+    metrics: [
+      { label: 'GDP Growth Multiplier', value: '6.8%', delta: '+1.2% Growth Index', isGood: true },
+      { label: 'TFP Index Growth', value: '1.14', delta: 'Optimal' },
+      { label: 'New Jobs Forecast', value: '185k jobs/yr', delta: 'Target Met' }
+    ]
+  }
+];
 
 export default function ReportsPage() {
-  const store = useSimulationStore();
-  const { metrics, evAdoption, popGrowth, renewableGrowth, metroExpansion, indExpansion, climateEvent, disasterEvent } = store;
-  const [isExporting, setIsExporting] = useState(false);
+  const { results, activePolicy } = useSimulationStore();
+  const { addNotification } = useAppStore();
+  
+  const [selectedReportId, setSelectedReportId] = useState<string>('rep-demographics');
+  const [exporting, setExporting] = useState(false);
 
-  const handleExportPDF = async (reportId: string, filename: string) => {
-    setIsExporting(true);
-    await exportToPDF('reports-dashboard', filename);
-    setIsExporting(false);
-  };
+  const selectedReport = REPORTS_LIST.find(r => r.id === selectedReportId) || REPORTS_LIST[0];
 
-  const handleExportCSV = () => {
-    const data = store.savedScenarios?.map(s => ({
-      Scenario: s.name,
-      Date: s.date,
-      PopulationGrowth: s.inputs.popGrowth,
-      EVAdoption: s.inputs.evAdoption,
-      MetroExpansion: s.inputs.metroExpansion,
-      CarbonEmissions: s.metrics.carbonEmissions,
-      TrafficCongestion: s.metrics.trafficCongestion
-    })) || [];
-    
-    if (data.length === 0) {
-      alert("No scenario data available for CSV export.");
-      return;
+  const handleExportPDF = async (report: ReportSpec) => {
+    setExporting(true);
+    try {
+      await exportToPDF('reports-detail-panel', `${report.id}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      addNotification({ title: 'Report Downloaded', message: `PDF report "${report.title}" exported successfully`, severity: 'success' });
+    } catch {
+      addNotification({ title: 'Export Failed', message: 'Could not generate report PDF', severity: 'critical' });
     }
-    
-    exportToCSV(data, 'bhavora-scenarios.csv');
+    setExporting(false);
   };
 
-  // Dynamic calculations for report indices
-  const trafficIndexValue = Math.min(100, Math.max(10, Math.round(78 + metrics.trafficCongestion)));
-  const trafficDeltaLabel = metrics.trafficCongestion > 0 
-    ? `↑ ${metrics.trafficCongestion.toFixed(1)}%` 
-    : `↓ ${Math.abs(metrics.trafficCongestion).toFixed(1)}%`;
-  const energyIndexValue = Math.min(100, Math.max(10, Math.round(65 + metrics.energyDemand)));
-  const energyDeltaLabel = metrics.energyDemand > 0 
-    ? `↑ ${metrics.energyDemand.toFixed(1)}%` 
-    : `↓ ${Math.abs(metrics.energyDemand).toFixed(1)}%`;
-  const energyLoadGw = (4.2 * (1 + metrics.energyDemand / 100)).toFixed(1);
-
-  // Dynamic SVG path calculations for population curve
-  const y1 = Math.min(220, Math.max(20, 180 - popGrowth * 1.5));
-  const y2 = Math.min(220, Math.max(20, 140 - popGrowth * 3.0));
-  const y3 = Math.min(220, Math.max(20, 80 - popGrowth * 4.5));
-  const y4 = Math.min(220, Math.max(20, 40 - popGrowth * 6.0));
-  const svgPath = `M0 220 L200 ${y1} L400 ${y2} L600 ${y3} L800 ${y4}`;
-  const areaGradientPath = `${svgPath} L800 220 Z`;
-
-  const popGrowthEst2030 = (13.6 * (1 + popGrowth * 0.01)).toFixed(1);
+  const handleExportCSV = (report: ReportSpec) => {
+    const csvData = report.metrics.map(m => ({
+      ReportTitle: report.title,
+      Category: report.category,
+      Author: report.author,
+      Version: report.version,
+      Indicator: m.label,
+      Value: m.value,
+      Details: m.delta
+    }));
+    try {
+      exportToCSV(csvData, `${report.id}_Data_${new Date().toISOString().split('T')[0]}.csv`);
+      addNotification({ title: 'Data Exported', message: 'CSV dataset downloaded successfully', severity: 'success' });
+    } catch {
+      addNotification({ title: 'Export Failed', message: 'Could not export CSV dataset', severity: 'critical' });
+    }
+  };
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto animate-fade-in" id="reports-dashboard">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-        <div>
-          <nav className="flex items-center gap-2 text-on-surface-variant text-sm mb-2">
-            <span>Analysis</span>
-            <ChevronRight />
-            <span className="text-primary font-medium">Infrastructure Forecasts</span>
-          </nav>
-          <h1 className="font-display-sm text-display-sm tracking-tight text-on-surface">Predictive Infrastructure Outlook</h1>
-          <p className="text-on-surface-variant mt-1">Projecting 15-year urban evolution patterns for the Bengaluru Metropolitan Area.</p>
-        </div>
-        <div className="flex gap-3 no-print">
-          <button onClick={handleExportCSV} className="bg-surface-container text-on-surface-variant px-6 py-2 rounded-lg font-bold text-sm border border-outline-variant/30 hover:bg-surface-container-high transition-all flex items-center gap-2">
-            <Table /> CSV Dump
-          </button>
-          <button onClick={() => handleExportPDF('reports-dashboard', 'bhavora-full-report.pdf')} disabled={isExporting} className="bg-primary text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-primary/90 transition-all flex items-center gap-2 disabled:opacity-50">
-            {isExporting ? <Hourglass size={18} /> : <Download size={18} />}
-            <span className="text-xs">{isExporting ? 'Exporting...' : 'Export PDF'}</span>
-          </button>
-        </div>
+    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      
+      {/* Header */}
+      <div>
+        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
+          <span>Analysis</span>
+          <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
+          <span style={{ color: '#00D4FF', fontWeight: 600 }}>Predictive Outlook Reports</span>
+        </nav>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>Predictive Infrastructure Outlook</h1>
+        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
+          Evaluate regional carrying capacity, transit indices, and grid stability reports based on Bengaluru urban models.
+        </p>
       </div>
 
-      {/* Bento Grid of Forecasts */}
-      <div className="grid grid-cols-12 gap-8">
-        {/* Main Predictive Curve: Population & Housing */}
-        <div className="col-span-12 lg:col-span-8 bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-6 rounded-2xl shadow-sm group">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="font-headline-sm text-headline-sm text-on-surface">Population Growth Trajectory</h2>
-              <p className="text-on-surface-variant text-body-sm">Aggregated demographic forecast (2024 - 2035)</p>
-            </div>
-            <div className="flex bg-surface-container rounded-lg p-1">
-              <button className="px-3 py-1 text-xs font-bold bg-white rounded shadow-sm text-primary">Logarithmic</button>
-              <button className="px-3 py-1 text-xs font-medium text-on-surface-variant">Linear</button>
-            </div>
-          </div>
-          <div className="h-64 w-full relative">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 800 240">
-              {/* Grid Lines */}
-              <line stroke="#E2E8F0" strokeDasharray="4" x1="0" x2="800" y1="40" y2="40"></line>
-              <line stroke="#E2E8F0" strokeDasharray="4" x1="0" x2="800" y1="100" y2="100"></line>
-              <line stroke="#E2E8F0" strokeDasharray="4" x1="0" x2="800" y1="160" y2="160"></line>
-              <line stroke="#E2E8F0" strokeWidth="2" x1="0" x2="800" y1="220" y2="220"></line>
-              {/* Area Gradient */}
-              <defs>
-                <linearGradient id="areaGradient" x1="0%" x2="0%" y1="0%" y2="100%">
-                  <stop offset="0%" stopColor="#004ac6" stopOpacity="0.1"></stop>
-                  <stop offset="100%" stopColor="#004ac6" stopOpacity="0"></stop>
-                </linearGradient>
-              </defs>
-              <path d={areaGradientPath} fill="url(#areaGradient)" className="transition-all duration-1000"></path>
-              {/* Main Curve */}
-              <path d={svgPath} fill="none" stroke="#004ac6" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" className="transition-all duration-1000"></path>
-              {/* Forecast Points */}
-              <circle cx="200" cy={y1} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
-              <circle cx="400" cy={y2} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
-              <circle cx="600" cy={y3} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
-              <circle cx="800" cy={y4} fill="#004ac6" r="6" stroke="white" strokeWidth="2" className="transition-all hover:r-8 duration-1000"></circle>
-              {/* Year Labels */}
-              <text fill="#64748b" fontSize="10" fontWeight="600" x="0" y="240">2024 (Now)</text>
-              <text fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle" x="200" y="240">2026</text>
-              <text fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle" x="400" y="240">2028</text>
-              <text fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle" x="600" y="240">2030</text>
-              <text fill="#64748b" fontSize="10" fontWeight="600" textAnchor="end" x="800" y="240">2035</text>
-            </svg>
-            <div className="absolute top-10 left-[75%] bg-[#213145] text-white px-3 py-2 rounded-lg text-xs shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <div className="font-bold mb-1">Target: 2030</div>
-              <div className="flex justify-between gap-4">
-                <span className="text-white/80">Population:</span>
-                <span className="font-mono-label font-bold text-white">{popGrowthEst2030}M (+{popGrowth}%)</span>
+      {/* Main Grid View */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 480px', gap: '16px', alignItems: 'start' }}>
+        
+        {/* Left Side: 6 Reports List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {REPORTS_LIST.map(report => {
+            const isSelected = selectedReportId === report.id;
+            const confColor = report.confidence >= 85 ? '#10B981' : report.confidence >= 65 ? '#F59E0B' : '#EF4444';
+
+            return (
+              <div
+                key={report.id}
+                onClick={() => setSelectedReportId(report.id)}
+                className="glass-card"
+                style={{
+                  padding: '16px', borderRadius: '10px', cursor: 'pointer',
+                  borderColor: isSelected ? 'rgba(0, 212, 255, 0.3)' : undefined,
+                  background: isSelected ? 'rgba(0, 212, 255, 0.03)' : undefined,
+                  transition: 'all 150ms',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    {report.category}
+                  </span>
+                  <span style={{ fontSize: '10px', color: confColor, fontWeight: 700 }}>
+                    Confidence {report.confidence}%
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>
+                  {report.title}
+                </h3>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.4 }}>
+                  {report.description}
+                </p>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>
+                  <span>Author: {report.author}</span>
+                  <span>·</span>
+                  <span>Ver: {report.version}</span>
+                  <span>·</span>
+                  <span style={{ color: report.status === 'Published' ? '#10B981' : '#F59E0B' }}>{report.status}</span>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
-        {/* Forecast Cards - Side */}
-        <div className="col-span-12 lg:col-span-4 space-y-8">
-          {/* Traffic Intensity Forecast */}
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-6 rounded-2xl shadow-sm border-l-4 border-l-error">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Traffic Congestion Index</h3>
-                <p className="text-headline-sm font-bold text-on-surface mt-1">{trafficIndexValue}<span className={`text-sm font-medium ml-2 ${metrics.trafficCongestion > 0 ? 'text-error' : 'text-emerald-600'}`}>{trafficDeltaLabel}</span></p>
-              </div>
-              <Car />
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-1.5 mb-2 overflow-hidden">
-              <div className="bg-error h-1.5 rounded-full transition-all duration-[1s]" style={{ width: `${trafficIndexValue}%` }}></div>
-            </div>
-            <p className="text-body-sm text-on-surface-variant italic">Peak bottlenecks observed in East/South corridors with current transit load profiles.</p>
-          </div>
-
-          {/* Energy Grid Load Forecast */}
-          <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 p-6 rounded-2xl shadow-sm border-l-4 border-l-secondary">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Grid Load (Forecasted)</h3>
-                <p className="text-headline-sm font-bold text-on-surface mt-1">{energyLoadGw} GW<span className={`text-sm font-medium ml-2 ${metrics.energyDemand > 0 ? 'text-error' : 'text-emerald-600'}`}>{energyDeltaLabel}</span></p>
-              </div>
-              <Zap />
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-1.5 mb-2 overflow-hidden">
-              <div className="bg-secondary h-1.5 rounded-full transition-all duration-[1s]" style={{ width: `${energyIndexValue}%` }}></div>
-            </div>
-            <p className="text-body-sm text-on-surface-variant italic">Demand surges require additional solar/grid capacity allocation before 2030.</p>
-          </div>
-        </div>
-
-        {/* Report Preview Section */}
-        <div className="col-span-12 bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden flex flex-col md:flex-row h-[600px]">
-          {/* Sidebar: Report Chapters */}
-          <div className="w-full md:w-80 bg-surface-container-low border-r border-outline-variant/30 p-6 flex flex-col">
-            <h3 className="font-headline-sm text-on-surface mb-6">Report Contents</h3>
-            <div className="space-y-1 flex-1 overflow-y-auto">
-              <button className="w-full text-left px-4 py-3 rounded-xl bg-white shadow-sm border border-primary/20 text-primary font-semibold flex items-center gap-3">
-                <FileText />
-                Executive Summary
-              </button>
-              <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <BarChart2 />
-                Demographic Shifts
-              </button>
-              <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <Bus />
-                Mobility Infrastructure
-              </button>
-              <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <Leaf />
-                Sustainability Matrix
-              </button>
-              <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 transition-colors text-on-surface-variant flex items-center gap-3">
-                <FileCheck />
-                Policy Framework 2035
-              </button>
-            </div>
-            <div className="pt-6 border-t border-outline-variant/30 mt-auto">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <ShieldCheck />
-                </div>
-                <div className="text-xs">
-                  <p className="font-bold text-on-surface">Verified Data</p>
-                  <p className="text-on-surface-variant">Authored by AI Catalyst v4.2</p>
-                </div>
-              </div>
+        {/* Right Side: Interactive Report Viewer details panel */}
+        <div id="reports-detail-panel" className="glass-card" style={{ padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(10,22,40,0.85)' }}>
+          <div>
+            <span style={{ fontSize: '9px', fontWeight: 700, color: '#00D4FF', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              {selectedReport.category} REPORT SPEC
+            </span>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '8px 0 4px', lineHeight: 1.3 }}>
+              {selectedReport.title}
+            </h2>
+            <div style={{ display: 'flex', gap: '8px', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>
+              <span>Version {selectedReport.version}</span>
+              <span>·</span>
+              <span>By {selectedReport.author}</span>
             </div>
           </div>
 
-          {/* Report Content Area */}
-          <div className="flex-1 bg-white p-8 overflow-y-auto relative">
-            <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
-              <span className="text-[120px] font-black -rotate-45">BHAVORA</span>
-            </div>
-            <div className="max-w-3xl mx-auto space-y-8 relative z-10">
-              <div className="border-b border-outline-variant/30 pb-8">
-                <p className="text-primary font-bold uppercase tracking-widest text-xs mb-2">Confidential Strategy Document</p>
-                <h2 className="text-display-sm font-bold text-on-surface">Executive Summary: Bengaluru 2035</h2>
-                <p className="text-on-surface-variant">Published Date: October 24, 2024 | Document ID: BHV-INF-2024-X89</p>
-              </div>
-
-              <section className="space-y-4">
-                <h4 className="font-headline-sm text-on-surface">1.0 Primary Forecast Hypothesis</h4>
-                <p className="text-body-lg text-on-surface-variant leading-relaxed">
-                  Based on target inputs (EV={evAdoption}%, Population Growth=+{popGrowth}%, Renewables Grid Mix={renewableGrowth}%, Metro Expansion={metroExpansion} lines), our predictive modeling indicates a significant shift in urban density. By 2035, the infrastructure stress index is projected to reach <span className="font-bold text-primary">{metrics.infrastructureStress}/100</span>. Additional zoning modifications must be scheduled.
-                </p>
-              </section>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
-                  <p className="text-xs font-bold text-on-surface-variant mb-1">IMPACT SCORE</p>
-                  <p className={`text-2xl font-bold ${metrics.infrastructureStress > 75 ? 'text-error' : 'text-primary'}`}>
-                    {metrics.infrastructureStress > 75 ? 'High Criticality' : 'Manageable Stress'}
-                  </p>
-                  <p className="text-xs text-on-surface-variant mt-2">Requires immediate budgetary reallocation.</p>
+          {/* Core Indicator Metrics */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {selectedReport.metrics.map((m, idx) => (
+              <div key={idx} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{m.label}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginTop: '2px' }}>{m.value}</div>
                 </div>
-                <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30">
-                  <p className="text-xs font-bold text-on-surface-variant mb-1">PROBABILITY</p>
-                  <p className="text-2xl font-bold text-secondary">92.4% Accuracy</p>
-                  <p className="text-xs text-on-surface-variant mt-2">Based on current real-estate absorption rates.</p>
-                </div>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: m.isGood ? '#10B981' : '#EF4444' }}>
+                  {m.delta}
+                </span>
               </div>
+            ))}
+          </div>
 
-              <section className="space-y-4">
-                <h4 className="font-headline-sm text-on-surface">2.0 Strategic Policy Recommendations</h4>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-4">
-                    <div className="mt-1 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
-                    <p className="text-on-surface-variant">
-                      <span className="font-bold text-on-surface">Grid Capacity Planning:</span> 
-                      {metrics.energyDemand > 15 
-                        ? "Energy demand surges. Add 11 new power substations near North Bengaluru corridors." 
-                        : "Grid stable. Align localized storage capacity in industrial expansion sectors."}
-                    </p>
-                  </li>
-                  <li className="flex items-start gap-4">
-                    <div className="mt-1 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                    <p className="text-on-surface-variant">
-                      <span className="font-bold text-on-surface">Water Security Mandates:</span> 
-                      {metrics.waterDemand > 10
-                        ? "Water stress is critical. Accelerate Cauvery Stage V phase allocations immediately."
-                        : "Reserves within threshold margins. Focus water reclamation networks on new housing complexes."}
-                    </p>
-                  </li>
-                </ul>
-              </section>
+          {/* Summary Abstract */}
+          <div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Summary Abstract</div>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>
+              {selectedReport.summary}
+            </p>
+          </div>
 
-              {(climateEvent !== "None" || disasterEvent !== "None") && (
-                <div className="bg-error-container text-on-error-container p-6 rounded-2xl border border-error/20">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TriangleAlert />
-                    <h5 className="font-bold text-error">Active Hazard Annex</h5>
-                  </div>
-                  <p className="text-sm">
-                    Simulated under emergency conditions: Climate Hazard [<strong>{climateEvent}</strong>] and Grid Alert [<strong>{disasterEvent}</strong>]. Stress vectors indicate elevated operational vulnerability near central junctions.
-                  </p>
-                </div>
-              )}
+          {/* Policy Context */}
+          <div style={{ padding: '12px', background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '9px', color: '#00D4FF', fontWeight: 700, display: 'block', marginBottom: '4px' }}>SIMULATOR CONTEXT</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+              Values calculated under current model profiles (Metro: {activePolicy.metroExpansion}%, EV: {activePolicy.evAdoptionRate}%, Renewables: {activePolicy.renewableShare}%).
+            </span>
+          </div>
 
-              <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
-                <div className="flex items-center gap-3 mb-2">
-                  <Info />
-                  <h5 className="font-bold text-primary">Analyst&apos;s Note</h5>
-                </div>
-                <p className="text-sm text-on-primary-container/80">
-                  The simulation assumes a steady-state GDP growth pattern. If industrial park expansions exceed {indExpansion} zones, recalculation is mandatory.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center pt-8 border-t border-outline-variant/30">
-                <p className="text-xs text-on-surface-variant">© 2024 BHAVORA Systems. All rights reserved.</p>
-              </div>
-            </div>
+          {/* Document actions */}
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }} className="no-print">
+            <button
+              onClick={() => handleExportPDF(selectedReport)}
+              disabled={exporting}
+              className="btn-primary"
+              style={{ flex: 1, padding: '10px', fontSize: '12px' }}
+            >
+              {exporting ? 'Generating PDF...' : '⬇ Export PDF Report'}
+            </button>
+            <button
+              onClick={() => handleExportCSV(selectedReport)}
+              className="btn-ghost"
+              style={{ padding: '10px 14px', fontSize: '12px' }}
+            >
+              📊 Export CSV
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Floating Export Toast */}
-      {isExporting && (
-        <div className="fixed bottom-8 right-28 bg-[#213145] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-bounce z-50">
-          <CheckCircle />
-          <span className="text-sm font-medium">Exporting PDF... This might take a moment.</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,15 +1,39 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Bhavora — Simulate Tomorrow. Decide Today.",
-  description: "AI Decision Twin for Cities. Simulate the future impact of infrastructure and policy decisions before investing public resources.",
+  title: "Bhavora — Urban Intelligence Operating System",
+  description: "Government-grade urban intelligence platform. Real-time city simulation, AI-driven decisions, and multi-agent operations for smart city programs and infrastructure authorities.",
+  keywords: ["urban intelligence", "smart city", "digital twin", "city simulation", "government technology", "Bengaluru", "BBMP", "infrastructure planning"],
+  authors: [{ name: "Bhavora Technologies" }],
+  openGraph: {
+    title: "Bhavora Urban Intelligence OS",
+    description: "Real-time city simulation. AI-driven decisions. Built for the cities of tomorrow.",
+    type: "website",
+  },
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#050A14",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -18,11 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
-      </head>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
+      <body className="min-h-full flex flex-col bg-background text-text-primary" style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}>
+        {children}
+      </body>
     </html>
   );
 }

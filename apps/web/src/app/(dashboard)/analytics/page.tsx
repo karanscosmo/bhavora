@@ -1,133 +1,251 @@
 "use client";
 
-import React from 'react';
-import { useSimulationStore } from '@/store/useSimulationStore';
+import React, { useMemo } from 'react';
+import { useSimulationStore, useCityDataStore } from '@/stores';
 import { ChevronRight } from 'lucide-react';
-import {  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, Legend, BarChart, Bar
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, Legend, BarChart, Bar, ComposedChart, ScatterChart, Scatter
 } from 'recharts';
 
 export default function AnalyticsPage() {
-  const store = useSimulationStore();
+  const { results, activePolicy, timeline } = useSimulationStore();
+  const cityData = useCityDataStore();
 
-  const popGrowth = store.popGrowth;
-  const metrics = store.metrics;
+  // 1. Demographic Shifts Data (2025–2050 timeline)
+  const demographicData = useMemo(() => {
+    return timeline.filter((_, i) => i % 5 === 0 || timeline[i].year === 2050).map(t => ({
+      year: String(t.year),
+      Population: parseFloat((t.population / 1000000).toFixed(2)),
+      Baseline: parseFloat((13.6 * Math.pow(1.021, t.year - 2025)).toFixed(2))
+    }));
+  }, [timeline]);
 
-  // 1. Demographic shifts data (Reacts to popGrowth)
-  const demographicData = [
-    { year: '2025', Baseline: 13.6, Simulated: 13.6 },
-    { year: '2027', Baseline: 14.1, Simulated: Number((14.1 * (1 + (popGrowth * 0.005))).toFixed(1)) },
-    { year: '2030', Baseline: 14.8, Simulated: Number((14.8 * (1 + (popGrowth * 0.01))).toFixed(1)) },
-    { year: '2032', Baseline: 15.3, Simulated: Number((15.3 * (1 + (popGrowth * 0.015))).toFixed(1)) },
-    { year: '2035', Baseline: 16.2, Simulated: Number((16.2 * (1 + (popGrowth * 0.02))).toFixed(1)) }
-  ];
+  // 2. Peak Grid Load Curves (Hourly drawing)
+  const energyLoadData = useMemo(() => {
+    const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:00'];
+    const factors = [0.5, 0.45, 0.85, 1.0, 0.9, 1.08, 0.65];
+    return hours.map((h, i) => {
+      const base = 4.1 * factors[i];
+      const simMultiplier = 1 + (results.energy.delta / 18500);
+      return {
+        hour: h,
+        Baseline: parseFloat(base.toFixed(2)),
+        Simulated: parseFloat((base * simMultiplier).toFixed(2))
+      };
+    });
+  }, [results]);
 
-  // 2. Energy Load Peak curves (Reacts to energyDemand)
-  const energyLoadData = [
-    { hour: '00:00', Baseline: 2.1, Simulated: Number((2.1 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
-    { hour: '04:00', Baseline: 1.8, Simulated: Number((1.8 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
-    { hour: '08:00', Baseline: 3.5, Simulated: Number((3.5 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
-    { hour: '12:00', Baseline: 4.2, Simulated: Number((4.2 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
-    { hour: '16:00', Baseline: 3.8, Simulated: Number((3.8 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
-    { hour: '20:00', Baseline: 4.5, Simulated: Number((4.5 * (1 + metrics.energyDemand / 100)).toFixed(1)) },
-    { hour: '23:00', Baseline: 2.8, Simulated: Number((2.8 * (1 + metrics.energyDemand / 100)).toFixed(1)) }
-  ];
+  // 3. District Transit Congestion comparisons
+  const trafficData = useMemo(() => {
+    const districts = [
+      { name: 'Whitefield', base: 94 },
+      { name: 'Electronic City', base: 62 },
+      { name: 'Koramangala', base: 92 },
+      { name: 'Hebbal', base: 65 },
+      { name: 'Indiranagar', base: 88 },
+    ];
+    // Scale delta appropriately
+    const deltaScale = results.traffic.delta / 67;
+    return districts.map(d => ({
+      district: d.name,
+      Baseline: d.base,
+      Simulated: Math.max(10, Math.round(d.base * (1 + deltaScale)))
+    }));
+  }, [results]);
 
-  // 3. Traffic Congestion comparison across districts (Reacts to trafficCongestion)
-  const trafficData = [
-    { district: 'Whitefield', Baseline: 94, Simulated: Math.max(10, Math.round(94 + metrics.trafficCongestion)) },
-    { district: 'ECity', Baseline: 62, Simulated: Math.max(10, Math.round(62 + metrics.trafficCongestion)) },
-    { district: 'Koramangala', Baseline: 92, Simulated: Math.max(10, Math.round(92 + metrics.trafficCongestion)) },
-    { district: 'Hebbal', Baseline: 65, Simulated: Math.max(10, Math.round(65 + metrics.trafficCongestion)) },
-    { district: 'Indiranagar', Baseline: 88, Simulated: Math.max(10, Math.round(88 + metrics.trafficCongestion)) }
-  ];
+  // 4. Carbon Footprint Sector Trend (Composed Bar & Line)
+  const co2SectorData = useMemo(() => {
+    const years = ['2025', '2030', '2035', '2040', '2045', '2050'];
+    return years.map((yr, idx) => {
+      const t = idx * 5;
+      const state = timeline.find(item => item.year === 2025 + t) || timeline[timeline.length - 1];
+      const transport = state.co2_ktyr * 0.43;
+      const energy = state.co2_ktyr * 0.39;
+      const industry = state.co2_ktyr * 0.18;
+      return {
+        year: yr,
+        Transport: parseFloat((transport / 1000).toFixed(1)),
+        Energy: parseFloat((energy / 1000).toFixed(1)),
+        Industry: parseFloat((industry / 1000).toFixed(1)),
+        Total: parseFloat((state.co2_ktyr / 1000).toFixed(1))
+      };
+    });
+  }, [timeline]);
+
+  // 5. Water Supply vs Demand balance (Composed Area Chart)
+  const waterBalanceData = useMemo(() => {
+    const years = ['2025', '2030', '2035', '2040', '2045', '2050'];
+    return years.map((yr, idx) => {
+      const t = idx * 5;
+      const state = timeline.find(item => item.year === 2025 + t) || timeline[timeline.length - 1];
+      const demand = state.population * 0.000135; // approx demand MLD
+      const supply = 1450 * (1 + (activePolicy.waterInfrastructure / 100) * 0.25 * Math.min(1, t / 10));
+      return {
+        year: yr,
+        Demand: Math.round(demand),
+        Supply: Math.round(supply),
+        Stress: state.water_stress
+      };
+    });
+  }, [timeline, activePolicy]);
+
+  // 6. Economic Indicators Scatter Plot
+  const economicData = useMemo(() => {
+    return timeline.filter((_, i) => i % 2 === 0).map(t => ({
+      gdp: t.gdp_growth,
+      health: t.city_health,
+      year: t.year
+    }));
+  }, [timeline]);
 
   return (
-    <div className="p-8 max-w-[1440px] mx-auto space-y-8 animate-fade-in">
+    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      
       {/* Header */}
       <div>
-        <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
+        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
           <span>Analytics Suite</span>
-          <ChevronRight />
-          <span className="text-primary font-bold">Performance Telemetry</span>
+          <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
+          <span style={{ color: '#00D4FF', fontWeight: 600 }}>Performance Telemetry</span>
         </nav>
-        <h1 className="font-display-sm text-display-sm text-on-surface">Statistical Analytics</h1>
-        <p className="text-on-surface-variant font-body-md max-w-xl">
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>Statistical Analytics</h1>
+        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
           Deep-dive forecasting and telemetry reports of demographic shifts, energy load curves, and transit throughputs.
         </p>
       </div>
 
-      {/* Grid of charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Chart 1: Population Growth Curve */}
-        <div className="bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
-          <div className="mb-4">
-            <h3 className="font-bold text-on-surface text-base">Demographic Shifts</h3>
-            <p className="text-xs text-on-surface-variant">Bangalore population trajectory (Millions)</p>
+      {/* Grid of charts (6 Types) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', flexWrap: 'wrap' }}>
+        
+        {/* Chart 1: Demographic Shifts */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>Demographic Shifts</h3>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>Bengaluru population trajectory projections (Millions)</p>
           </div>
-          <div className="h-64 w-full">
+          <div style={{ height: '220px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={demographicData}>
                 <defs>
-                  <linearGradient id="colorBase" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorSim" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#004ac6" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#004ac6" stopOpacity={0}/>
+                  <linearGradient id="demAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00D4FF" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#00D4FF" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="year" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                <Area type="monotone" dataKey="Baseline" stroke="#94a3b8" fillOpacity={1} fill="url(#colorBase)" strokeWidth={2} />
-                <Area type="monotone" dataKey="Simulated" stroke="#004ac6" fillOpacity={1} fill="url(#colorSim)" strokeWidth={3} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="year" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }} />
+                <Area type="monotone" dataKey="Population" stroke="#00D4FF" strokeWidth={2} fill="url(#demAreaGrad)" />
+                <Area type="monotone" dataKey="Baseline" stroke="rgba(255,255,255,0.35)" strokeDasharray="3 3" fill="none" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Chart 2: Hourly Power Load Grid */}
-        <div className="bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
-          <div className="mb-4">
-            <h3 className="font-bold text-on-surface text-base">Peak Grid Load</h3>
-            <p className="text-xs text-on-surface-variant">Simulated energy draw comparisons (GW)</p>
+        {/* Chart 2: Peak Grid Load */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>Peak Grid Load</h3>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>Simulated energy draw hourly curves (GW)</p>
           </div>
-          <div className="h-64 w-full">
+          <div style={{ height: '220px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={energyLoadData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                <Line type="monotone" dataKey="Baseline" stroke="#94a3b8" strokeWidth={2} />
-                <Line type="monotone" dataKey="Simulated" stroke="#d97706" strokeWidth={3} activeDot={{ r: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="hour" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }} />
+                <Line type="monotone" dataKey="Baseline" stroke="rgba(255,255,255,0.35)" strokeDasharray="3 3" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="Simulated" stroke="#F59E0B" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Chart 3: Traffic Congestion Deltas */}
-        <div className="bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm lg:col-span-2">
-          <div className="mb-4">
-            <h3 className="font-bold text-on-surface text-base">District Transit Latency</h3>
-            <p className="text-xs text-on-surface-variant">Congestion Index comparisons (Scale 0-100)</p>
+        {/* Chart 3: District Transit Latency */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>District Transit Latency</h3>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>Congestion Index comparisons (Scale 0-100)</p>
           </div>
-          <div className="h-72 w-full">
+          <div style={{ height: '220px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trafficData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="district" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                <Bar dataKey="Baseline" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Simulated" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="district" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }} />
+                <Bar dataKey="Baseline" fill="rgba(255,255,255,0.2)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Simulated" fill="#10B981" radius={[4, 4, 0, 0]} />
               </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Chart 4: Carbon Footprint Sector Trend */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>Carbon Footprint Sector Trend</h3>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>CO₂ Emissions Breakdown (Million tonnes / year)</p>
+          </div>
+          <div style={{ height: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={co2SectorData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="year" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }} />
+                <Bar dataKey="Transport" stackId="a" fill="#3B82F6" />
+                <Bar dataKey="Energy" stackId="a" fill="#F59E0B" />
+                <Bar dataKey="Industry" stackId="a" fill="#EF4444" />
+                <Line type="monotone" dataKey="Total" stroke="#00D4FF" strokeWidth={2} dot={true} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Chart 5: Water Supply vs Demand Balance */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>Water Supply & Demand</h3>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>Volumetric comparisons (MLD)</p>
+          </div>
+          <div style={{ height: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={waterBalanceData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="year" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }} />
+                <Area type="monotone" dataKey="Demand" stroke="#EF4444" fill="rgba(239, 68, 68, 0.08)" strokeWidth={1.5} />
+                <Area type="monotone" dataKey="Supply" stroke="#10B981" fill="rgba(16, 185, 129, 0.08)" strokeWidth={1.5} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Chart 6: Economic Growth vs City Health */}
+        <div className="glass-card" style={{ padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>Economic & Health Correlation</h3>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>GDP Growth rate vs overall City Health Index (2025–2050)</p>
+          </div>
+          <div style={{ height: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.04)" />
+                <XAxis type="number" dataKey="gdp" name="GDP Growth" unit="%" stroke="rgba(255,255,255,0.3)" tick={{ fontSize: 9 }} />
+                <YAxis type="number" dataKey="health" name="City Health" unit="" stroke="rgba(255,255,255,0.3)" tick={{ fontSize: 9 }} />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                <Scatter name="Projections" data={economicData} fill="#8B5CF6" line shape="circle" />
+              </ScatterChart>
             </ResponsiveContainer>
           </div>
         </div>

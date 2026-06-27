@@ -1,8 +1,9 @@
 import React from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNav } from '@/components/layout/TopNav';
-import { OperationsAgent } from '@/components/ui/OperationsAgent';
-import { BackgroundParticles } from '@/components/ui/BackgroundParticles';
+import { UrbanCanvas } from '@/components/ui/UrbanCanvas';
+import { AgentHub } from '@/components/ui/AgentHub';
+import { Toast } from '@/components/ui/Toast';
 
 export default function DashboardLayout({
   children,
@@ -10,14 +11,34 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-transparent text-on-surface min-h-screen relative">
-      <BackgroundParticles />
+    <div style={{ background: '#050A14', minHeight: '100vh', position: 'relative' }}>
+      {/* 5-layer animated canvas background */}
+      <UrbanCanvas />
+
+      {/* Top Navigation Bar */}
       <TopNav />
+
+      {/* Sidebar */}
       <Sidebar />
-      <main className="ml-64 mt-16 min-h-[calc(100vh-64px)] relative">
+
+      {/* Main content area */}
+      <main
+        style={{
+          marginLeft: '224px',
+          marginTop: '64px',
+          minHeight: 'calc(100vh - 64px)',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         {children}
-        <OperationsAgent />
       </main>
+
+      {/* AI Agent Hub FAB — portal renders on all pages */}
+      <AgentHub />
+
+      {/* Toast Notifications */}
+      <Toast />
     </div>
   );
 }

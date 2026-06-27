@@ -73,6 +73,18 @@ const specs: Record<string, object> = {
     accuracy: 'N/A',
     dataPoints: 'All platform data',
   },
+  'disaster-engine': {
+    name: 'Disaster Command Engine',
+    version: 'v3.0.6',
+    inputs: ['Live Weather Radar', 'Sensors Mesh', 'Resource Locations', 'Incident Reports'],
+    outputs: ['Response Timelines', 'Evacuation Routes', 'Dispatch Orders', 'Resource Load Levels'],
+    apis: ['/api/disaster/flood', '/api/dashboard/live-metrics'],
+    dataFlow: 'Live Radar & Incident Reports → Threat Evaluator → Response Planner → Dispatch Action',
+    details: 'Optimizes emergency routing and resource dispatch using dynamic flow networks and shortest path algorithms. Calibrated for flood events and infrastructure load triggers.',
+    latency: '< 1 second',
+    accuracy: '95.4%',
+    dataPoints: '85+ sensors',
+  },
 };
 
 export async function GET(

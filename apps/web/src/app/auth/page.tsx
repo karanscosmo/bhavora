@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { LogoIcon } from '@/components/ui/Logo';
+import { useAppStore } from '@/stores';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
 export default function AuthPage() {
   const router = useRouter();
+  const { addNotification } = useAppStore();
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,8 +18,9 @@ export default function AuthPage() {
   const [department, setDepartment] = useState('BBMP / Urban Development Cell');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // If already logged in, route to dashboard overview
+  // Auto redirect if already logged in
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const existingUser = localStorage.getItem('bhavoraUser');
@@ -30,151 +34,195 @@ export default function AuthPage() {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
+    setErrorMsg('');
 
     setTimeout(() => {
       setIsLoading(false);
-      if (mode === 'signin') {
-        const loggedUser = {
-          name: name || "Karan Sharma",
-          email: email || "karan.sharma@bbmp.gov.in",
-          department: department,
-          role: "Chief Urban Planner",
-          joined: "June 2026"
-        };
-        localStorage.setItem('bhavoraUser', JSON.stringify(loggedUser));
-        router.push('/overview');
-      } else if (mode === 'signup') {
-        const newUser = {
-          name: name || "New Urban Planner",
-          email: email,
-          department: department,
-          role: "Planner Node Admin",
-          joined: "June 2026"
-        };
-        localStorage.setItem('bhavoraUser', JSON.stringify(newUser));
-        router.push('/overview');
-      } else {
+      
+      if (mode === 'forgot') {
         setMessage("Password reset instructions dispatched. Check your BBMP inbox.");
+        addNotification({ title: 'Password Reset', message: `Instruction link sent to ${email}`, severity: 'info' });
+        return;
       }
-    }, 1500);
+
+      // Basic local validation
+      if (mode === 'signin' && email === 'unauthorized@bbmp.gov.in') {
+        setErrorMsg("Authentication Failed: Account does not have active clearance.");
+        addNotification({ title: 'Auth Failed', message: 'Clearance verification failure', severity: 'critical' });
+        return;
+      }
+
+      const displayName = name.trim() || (email.split('@')[0].split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+      const loggedUser = {
+        name: displayName,
+        email: email,
+        department: department,
+        role: mode === 'signin' ? "Chief Urban Planner" : "Node Planning Specialist",
+        joined: new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+      };
+      
+      localStorage.setItem('bhavoraUser', JSON.stringify(loggedUser));
+      addNotification({ title: 'Session Verified', message: `Welcome back, ${displayName}`, severity: 'success' });
+      router.push('/overview');
+    }, 1200);
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col items-center justify-center px-6 relative select-none">
-      {/* Background radial glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+    <div style={{
+      minHeight: '100vh',
+      background: '#050A14',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      position: 'relative'
+    }}>
+      {/* Background neon blobs */}
+      <div style={{ position: 'absolute', top: '25%', left: '30%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(0, 212, 255, 0.05)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '25%', right: '30%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(124, 58, 237, 0.04)', filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-      {/* Main card */}
-      <div className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col gap-6 animate-scale-in">
+      {/* Main Glass Auth Card */}
+      <div className="glass-card" style={{
+        width: '100%',
+        maxWidth: '400px',
+        padding: '32px',
+        borderRadius: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+        zIndex: 5
+      }}>
         
-        {/* Brand Header */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm shadow-md">B</div>
-            <span className="text-xl font-extrabold tracking-tight">BHAVORA</span>
-          </Link>
-          <p className="text-xs text-white/40 font-medium">Bhavishya City Intelligence Twin Portal</p>
+        {/* Brand System Info */}
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <LogoIcon size={36} />
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.01em' }}>BHAVORA OS</h2>
+          <span style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Bhavishya City Intelligence Twin Portal
+          </span>
         </div>
 
-        {/* Status messages */}
+        {/* Message notification overlays */}
         {message && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs px-4 py-2.5 rounded-xl text-center">
+          <div style={{ padding: '10px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '8px', fontSize: '11px', color: '#10B981', textAlign: 'center' }}>
             {message}
           </div>
         )}
+        {errorMsg && (
+          <div style={{ padding: '10px 12px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '8px', fontSize: '11px', color: '#EF4444', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Field (Sign Up and Sign In Live name helper) */}
-          {(mode === 'signup' || mode === 'signin') && (
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold text-white/40 tracking-wider">Account Full Name</label>
-              <input 
-                type="text" 
-                value={name} 
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          
+          {/* Full Name */}
+          {mode === 'signup' && (
+            <div>
+              <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>Account Full Name</label>
+              <input
+                type="text"
+                required
+                value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Karan Sharma"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-white/20"
+                placeholder="e.g. Karan Sharma"
+                className="input-dark"
+                style={{ width: '100%', fontSize: '13px' }}
               />
             </div>
           )}
 
-          {/* Email Field */}
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold text-white/40 tracking-wider">Departmental Email</label>
-            <input 
-              type="email" 
+          {/* Email */}
+          <div>
+            <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>Departmental Email</label>
+            <input
+              type="email"
               required
-              value={email} 
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="karan.sharma@bbmp.gov.in"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-white/20"
+              placeholder="e.g. planner@bbmp.gov.in"
+              className="input-dark"
+              style={{ width: '100%', fontSize: '13px' }}
             />
           </div>
 
-          {/* Department Field (Sign Up Only) */}
+          {/* Department Select */}
           {mode === 'signup' && (
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold text-white/40 tracking-wider">Municipal Department</label>
-              <select 
+            <div>
+              <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>Municipal Department</label>
+              <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full bg-[#131929] border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 outline-none cursor-pointer text-white/80"
+                className="input-dark"
+                style={{ width: '100%', fontSize: '13px', cursor: 'pointer' }}
               >
-                <option value="BBMP / Urban Development Cell">BBMP / Urban Dev</option>
-                <option value="BESCOM / Grid Operations">BESCOM / Grid Ops</option>
-                <option value="BWSSB / Water Management">BWSSB / Water Dev</option>
+                <option value="BBMP / Urban Development Cell">BBMP / Urban Development</option>
+                <option value="BESCOM / Grid Operations">BESCOM / Grid Operations</option>
+                <option value="BWSSB / Water Management">BWSSB / Water Management</option>
+                <option value="BMRCL / Mobility Strategy">BMRCL / Mobility Strategy</option>
               </select>
             </div>
           )}
 
-          {/* Password Field (Sign In and Sign Up) */}
+          {/* Password */}
           {mode !== 'forgot' && (
-            <div className="space-y-1">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] uppercase font-bold text-white/40 tracking-wider">Secure Password</label>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Secure Password</label>
                 {mode === 'signin' && (
-                  <span 
+                  <span
                     onClick={() => setMode('forgot')}
-                    className="text-[10px] text-blue-400 font-bold hover:underline cursor-pointer"
+                    style={{ fontSize: '10px', color: '#00D4FF', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Forgot Password?
                   </span>
                 )}
               </div>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 required
-                value={password} 
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-white/20"
+                className="input-dark"
+                style={{ width: '100%', fontSize: '13px' }}
               />
             </div>
           )}
 
-          {/* Submit Button */}
-          <button 
-            type="submit" 
+          {/* Action Button */}
+          <button
+            type="submit"
             disabled={isLoading}
-            className="w-full mt-4 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/25 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{
+              marginTop: '10px', width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
+              background: 'linear-gradient(135deg, #00D4FF, #0099CC)', color: '#050A14',
+              fontSize: '13px', fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
           >
-            {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-            {mode === 'signin' ? 'Sign In to Node' : mode === 'signup' ? 'Create Administrator Account' : 'Dispatch Recovery Link'}
+            {isLoading ? 'Processing Access Request...' : mode === 'signin' ? 'Verify Clearance' : mode === 'signup' ? 'Request Credentials' : 'Send Instructions'}
           </button>
         </form>
 
-        {/* Footer toggles */}
-        <div className="text-center text-xs text-white/40 font-medium">
-          {mode === 'signin' ? (
-            <p>
-              Requesting new admin access?{" "}
-              <span onClick={() => setMode('signup')} className="text-blue-400 font-bold hover:underline cursor-pointer">Register Node</span>
-            </p>
-          ) : (
-            <p>
-              Already registered?{" "}
-              <span onClick={() => setMode('signin')} className="text-blue-400 font-bold hover:underline cursor-pointer">Sign In</span>
-            </p>
+        {/* Mode switcher footer */}
+        <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+          {mode === 'signin' && (
+            <span>
+              New deployment planner?{' '}
+              <span onClick={() => setMode('signup')} style={{ color: '#00D4FF', fontWeight: 600, cursor: 'pointer' }}>Request Access</span>
+            </span>
+          )}
+          {mode === 'signup' && (
+            <span>
+              Already verified clearance?{' '}
+              <span onClick={() => setMode('signin')} style={{ color: '#00D4FF', fontWeight: 600, cursor: 'pointer' }}>Verify Credentials</span>
+            </span>
+          )}
+          {mode === 'forgot' && (
+            <span onClick={() => setMode('signin')} style={{ color: '#00D4FF', fontWeight: 600, cursor: 'pointer' }}>Return to Sign In</span>
           )}
         </div>
       </div>

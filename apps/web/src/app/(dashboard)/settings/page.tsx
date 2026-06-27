@@ -1,86 +1,95 @@
 "use client";
 
 import React, { useState } from 'react';
-import { BarChart2, Bell, ChevronRight } from 'lucide-react';
-
+import { useAppStore } from '@/stores';
+import { ChevronRight, BarChart2, Bell, Shield, Save } from 'lucide-react';
 
 export default function SettingsPage() {
-  const [confidence, setConfidence] = useState(95);
+  const { addNotification } = useAppStore();
+  const [confidence, setConfidence] = useState(90);
   const [horizon, setHorizon] = useState(15);
   const [notifications, setNotifications] = useState({
     trafficAlerts: true,
     gridAlerts: true,
-    weeklyDigest: false
+    weeklyDigest: false,
+    disasterAlerts: true
   });
 
   const toggleNotification = (key: keyof typeof notifications) => {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleSave = () => {
+    addNotification({ title: 'Preferences Saved', message: 'System configuration parameters updated successfully', severity: 'success' });
+  };
+
   return (
-    <div className="p-8 max-w-[1440px] mx-auto space-y-8 animate-fade-in">
+    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      
       {/* Header */}
       <div>
-        <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
+        <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
           <span>Identity Center</span>
-          <ChevronRight />
-          <span className="text-primary font-bold">Preferences</span>
+          <ChevronRight style={{ display: 'inline', width: '12px', height: '12px', verticalAlign: 'middle', margin: '0 4px' }} />
+          <span style={{ color: '#00D4FF', fontWeight: 600 }}>Preferences</span>
         </nav>
-        <h1 className="font-display-sm text-display-sm text-on-surface">System Settings</h1>
-        <p className="text-on-surface-variant font-body-md max-w-xl">
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>System Settings</h1>
+        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
           Configure model parameters, dashboard preferences, and alert thresholds.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Simulation Settings */}
-        <div className="lg:col-span-8 bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm space-y-6">
-          <h3 className="font-bold text-on-surface text-base border-b border-outline-variant/10 pb-3 flex items-center gap-2">
-            <BarChart2 />
-            Simulation Engine Calibration
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '16px', alignItems: 'start' }}>
+        
+        {/* Left: Simulation & Calibration Settings */}
+        <div className="glass-card" style={{ padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(10,22,40,0.85)' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '10px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart2 size={16} style={{ color: '#00D4FF' }} />
+            <span>Simulation Engine Calibration</span>
           </h3>
 
-          <div className="space-y-6 text-xs">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Slider 1: Confidence Interval */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center font-semibold">
-                <span className="text-on-surface-variant">Model Confidence Cutoff</span>
-                <span className="text-primary font-mono">{confidence}%</span>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: '6px' }}>
+                <span>Model Confidence Cutoff</span>
+                <span style={{ color: '#00D4FF', fontFamily: 'monospace' }}>{confidence}%</span>
               </div>
-              <input 
-                type="range" min="80" max="99" value={confidence} 
+              <input
+                type="range" min="80" max="98" step="2" value={confidence}
                 onChange={(e) => setConfidence(Number(e.target.value))}
-                className="w-full h-1 bg-surface-container rounded-lg appearance-none cursor-pointer accent-primary" 
+                style={{ width: '100%', accentColor: '#00D4FF', cursor: 'pointer' }}
               />
-              <p className="text-[10px] text-gray-400">Ignore calculations yielding statistical accuracy scores beneath this limit.</p>
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>Ignore calculations yielding statistical accuracy scores beneath this limit.</p>
             </div>
 
             {/* Slider 2: Forecasting Horizon */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center font-semibold">
-                <span className="text-on-surface-variant">Default Timeline Horizon</span>
-                <span className="text-primary font-mono">{horizon} years</span>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: '6px' }}>
+                <span>Default Timeline Horizon</span>
+                <span style={{ color: '#00D4FF', fontFamily: 'monospace' }}>{horizon} years</span>
               </div>
-              <input 
-                type="range" min="5" max="30" value={horizon} 
+              <input
+                type="range" min="5" max="30" step="5" value={horizon}
                 onChange={(e) => setHorizon(Number(e.target.value))}
-                className="w-full h-1 bg-surface-container rounded-lg appearance-none cursor-pointer accent-primary" 
+                style={{ width: '100%', accentColor: '#00D4FF', cursor: 'pointer' }}
               />
-              <p className="text-[10px] text-gray-400">Standard projection interval displayed across scenario results.</p>
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>Standard projection interval displayed across scenario results.</p>
             </div>
 
-            <div className="pt-4 border-t border-outline-variant/10 grid grid-cols-2 gap-4">
+            {/* Selects */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-2">GIS Database Source</p>
-                <select className="w-full bg-surface-container border-none text-[12px] rounded-xl px-3 py-2 outline-none cursor-pointer">
+                <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>GIS Database Source</label>
+                <select className="input-dark" style={{ width: '100%', fontSize: '12px', cursor: 'pointer' }}>
                   <option>Bangalore Open GIS Node (Primary)</option>
                   <option>Karnataka Land Records Database</option>
                   <option>Active Production Mode</option>
                 </select>
               </div>
               <div>
-                <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-2">Auto-calibration Interval</p>
-                <select className="w-full bg-surface-container border-none text-[12px] rounded-xl px-3 py-2 outline-none cursor-pointer">
+                <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>Auto-calibration Interval</label>
+                <select className="input-dark" style={{ width: '100%', fontSize: '12px', cursor: 'pointer' }}>
                   <option>Every 24 Hours</option>
                   <option>Every 7 Days</option>
                   <option>Manual Sync Only</option>
@@ -90,58 +99,64 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Notifications & Toggles */}
-        <div className="lg:col-span-4 bg-white border border-outline-variant/30 rounded-3xl p-6 shadow-sm flex flex-col justify-between min-h-[320px]">
-          <div>
-            <h3 className="font-bold text-on-surface text-base border-b border-outline-variant/10 pb-3 mb-4 flex items-center gap-2">
-              <Bell />
-              Alert Preferences
+        {/* Right: Notifications & Toggles */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          
+          <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(10,22,40,0.85)' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '10px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Bell size={16} style={{ color: '#F59E0B' }} />
+              <span>Alert Preferences</span>
             </h3>
 
-            <div className="space-y-4">
-              <div 
-                onClick={() => toggleNotification('trafficAlerts')}
-                className="flex items-center justify-between p-2 hover:bg-surface-container rounded-lg cursor-pointer transition-colors"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-on-surface">Traffic Congestion</p>
-                  <p className="text-[9px] text-on-surface-variant">Notify when index &gt; 80%</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { key: 'trafficAlerts', name: 'Traffic Congestion', desc: 'Notify when index > 80%' },
+                { key: 'gridAlerts', name: 'Grid Peak Overloads', desc: 'Notify when capacity stress > 90%' },
+                { key: 'weeklyDigest', name: 'Weekly Strategy Digest', desc: 'Send compiled PDF chapters' },
+                { key: 'disasterAlerts', name: 'Disaster Warning Triggers', desc: 'Evacuation notifications' },
+              ].map(item => (
+                <div
+                  key={item.key}
+                  onClick={() => toggleNotification(item.key as any)}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)',
+                    borderRadius: '8px', cursor: 'pointer', transition: 'all 120ms'
+                  }}
+                  className="hover:bg-[rgba(255,255,255,0.03)]"
+                >
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{item.name}</div>
+                    <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{item.desc}</div>
+                  </div>
+                  <div style={{
+                    width: '32px', height: '18px', borderRadius: '20px',
+                    background: (notifications as any)[item.key] ? '#00D4FF' : 'rgba(255,255,255,0.1)',
+                    position: 'relative', transition: 'background 150ms',
+                  }}>
+                    <div style={{
+                      width: '14px', height: '14px', borderRadius: '50%', background: '#0A1628',
+                      position: 'absolute', top: '2px',
+                      left: (notifications as any)[item.key] ? '16px' : '2px',
+                      transition: 'left 150ms'
+                    }} />
+                  </div>
                 </div>
-                <div className={`w-8 h-4.5 rounded-full relative p-0.5 transition-colors ${notifications.trafficAlerts ? 'bg-primary' : 'bg-outline-variant'}`}>
-                  <div className={`absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm transition-all ${notifications.trafficAlerts ? 'right-0.5' : 'left-0.5'}`} />
-                </div>
-              </div>
-
-              <div 
-                onClick={() => toggleNotification('gridAlerts')}
-                className="flex items-center justify-between p-2 hover:bg-surface-container rounded-lg cursor-pointer transition-colors"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-on-surface">Grid Peak Overloads</p>
-                  <p className="text-[9px] text-on-surface-variant">Notify when capacity stress &gt; 90%</p>
-                </div>
-                <div className={`w-8 h-4.5 rounded-full relative p-0.5 transition-colors ${notifications.gridAlerts ? 'bg-primary' : 'bg-outline-variant'}`}>
-                  <div className={`absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm transition-all ${notifications.gridAlerts ? 'right-0.5' : 'left-0.5'}`} />
-                </div>
-              </div>
-
-              <div 
-                onClick={() => toggleNotification('weeklyDigest')}
-                className="flex items-center justify-between p-2 hover:bg-surface-container rounded-lg cursor-pointer transition-colors"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-on-surface">Weekly Strategy Digest</p>
-                  <p className="text-[9px] text-on-surface-variant">Send compiled PDF chapters</p>
-                </div>
-                <div className={`w-8 h-4.5 rounded-full relative p-0.5 transition-colors ${notifications.weeklyDigest ? 'bg-primary' : 'bg-outline-variant'}`}>
-                  <div className={`absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm transition-all ${notifications.weeklyDigest ? 'right-0.5' : 'left-0.5'}`} />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          <button className="w-full mt-6 bg-primary text-white py-2.5 rounded-xl text-xs font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-md">
-            Save System Preferences
+          <button
+            onClick={handleSave}
+            style={{
+              width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
+              background: 'linear-gradient(135deg, #00D4FF, #0099CC)', color: '#050A14',
+              fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              boxShadow: '0 4px 14px rgba(0,212,255,0.2)'
+            }}
+          >
+            <Save size={16} /> Save System Preferences
           </button>
         </div>
       </div>

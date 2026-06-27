@@ -1,71 +1,199 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, LayoutDashboard, Network, Workflow, PieChart, FolderOpen, Activity, TriangleAlert, Lightbulb, FileText, BarChart2 } from 'lucide-react';
+import { LogoIcon } from '@/components/ui/Logo';
 
+const NAV_GROUPS = [
+  {
+    label: 'Operations',
+    items: [
+      { name: 'Command Center', path: '/overview', emoji: '⊞' },
+      { name: 'City Twin GIS', path: '/cities', emoji: '🏙' },
+      { name: 'Disaster Response', path: '/disaster', emoji: '⚠' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [
+      { name: 'Decision Twin', path: '/decision-twin', emoji: '⚙' },
+      { name: 'Simulation Results', path: '/simulation-results', emoji: '📈' },
+      { name: 'Impact Analysis', path: '/impact', emoji: '⬡' },
+      { name: 'AI Insights', path: '/insights', emoji: '🧠' },
+    ],
+  },
+  {
+    label: 'Analytics',
+    items: [
+      { name: 'Analytics Suite', path: '/analytics', emoji: '◈' },
+      { name: 'Reports', path: '/reports', emoji: '📄' },
+      { name: 'Scenario Vault', path: '/scenarios', emoji: '📁' },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { name: 'Platform Info', path: '/platform', emoji: 'ℹ' },
+      { name: 'Settings', path: '/settings', emoji: '◎' },
+    ],
+  },
+];
 
 export function Sidebar() {
   const pathname = usePathname();
-
-  const navItems = [
-    { name: 'Dashboard', path: '/overview', icon: <LayoutDashboard size={20} /> },
-    { name: 'Platform Info', path: '/platform', icon: <Network size={20} /> },
-    { name: 'Cities Twin', path: '/cities', icon: <Building2 size={20} /> },
-    { name: 'Decision Twin', path: '/decision-twin', icon: <Workflow size={20} /> },
-    { name: 'Impact Analysis', path: '/impact', icon: <PieChart size={20} /> },
-    { name: 'Saved Scenarios', path: '/scenarios', icon: <FolderOpen size={20} /> },
-    { name: 'Simulation Results', path: '/simulation-results', icon: <Activity size={20} /> },
-    { name: 'Disaster Mode', path: '/disaster', icon: <TriangleAlert size={20} /> },
-    { name: 'AI Insights', path: '/insights', icon: <Lightbulb size={20} /> },
-    { name: 'Reports', path: '/reports', icon: <FileText size={20} /> },
-    { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
-  ];
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col p-4 bg-surface border-r border-outline-variant/20 shadow-lg select-none">
-      <div className="mb-4 px-2">
-        <h2 className="text-on-surface font-headline-sm flex items-center gap-2">
-          <Building2 />
-          Decision Twin
-        </h2>
-        <p className="font-label-md text-on-surface-variant mt-1 opacity-70">Bengaluru Urban</p>
+    <aside
+      style={{
+        position: 'fixed',
+        left: 0,
+        top: '64px',
+        height: 'calc(100vh - 64px)',
+        width: collapsed ? '56px' : '224px',
+        background: 'rgba(5,10,20,0.97)',
+        borderRight: '1px solid rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(20px)',
+        zIndex: 40,
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'width 200ms ease',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Logo */}
+      <div style={{
+        padding: '12px',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        minHeight: '52px',
+        overflow: 'hidden',
+      }}>
+        <LogoIcon size={28} variant="dark" />
+        {!collapsed && (
+          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>BHAVORA</div>
+            <div style={{ fontSize: '8px', color: '#00D4FF', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Urban Intelligence OS</div>
+          </div>
+        )}
       </div>
-      <nav className="flex-1 overflow-y-auto space-y-1 pr-1 pb-4">
-        {navItems.map((item) => {
-          // Check active state
-          const isActive = pathname === item.path || 
-            (item.path === '/cities' && pathname === '/twin') ||
-            (item.path === '/decision-twin' && pathname === '/scenario-builder');
-          return (
-            <Link 
-              key={item.name} 
-              href={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                isActive 
-                  ? 'bg-primary/10 text-primary font-semibold' 
-                  : 'text-on-surface-variant hover:bg-surface-container-highest'
-              }`}
-            >
-              <span className="flex items-center justify-center w-6 h-6">{item.icon}</span>
-              <span className="text-[13px] font-medium">{item.name}</span>
-            </Link>
-          );
-        })}
+
+      {/* Nav Groups */}
+      <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {NAV_GROUPS.map(group => (
+          <div key={group.label}>
+            {!collapsed && (
+              <div style={{
+                fontSize: '9px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.2)',
+                padding: '0 6px',
+                marginBottom: '3px',
+              }}>
+                {group.label}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+              {group.items.map(item => {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.path}
+                    title={collapsed ? item.name : undefined}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '9px',
+                      padding: collapsed ? '8px 14px' : '7px 9px',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      transition: 'all 120ms ease',
+                      background: isActive ? 'rgba(0,212,255,0.08)' : 'transparent',
+                      borderLeft: isActive ? '2px solid #00D4FF' : '2px solid transparent',
+                      color: isActive ? '#00D4FF' : 'rgba(255,255,255,0.45)',
+                      fontWeight: isActive ? 600 : 400,
+                      fontSize: '13px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span style={{ fontSize: '14px', flexShrink: 0, width: '18px', textAlign: 'center', opacity: isActive ? 1 : 0.7 }}>
+                      {item.emoji}
+                    </span>
+                    {!collapsed && (
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
-      <div className="mt-auto pt-2 border-t border-outline-variant/10">
-        <div className="p-3 bg-primary rounded-xl text-on-primary">
-          <p className="font-label-md mb-1 text-[11px] font-semibold uppercase tracking-wider">Simulation Engine</p>
-          <p className="text-[10px] opacity-80 mb-3 leading-snug">Run urban growth models for 2035 predictions.</p>
-          <Link href="/decision-twin">
-            <button className="w-full bg-white text-primary font-bold py-1.5 px-3 rounded-lg text-xs hover:bg-white/95 active:scale-95 transition-all">
-              Run Simulation
-            </button>
+
+      {/* Simulation CTA */}
+      {!collapsed && (
+        <div style={{ padding: '10px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <Link href="/decision-twin" style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{
+              padding: '12px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.06))',
+              border: '1px solid rgba(0,212,255,0.12)',
+            }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00D4FF', marginBottom: '3px' }}>
+                Simulation Engine
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.4, marginBottom: '8px' }}>
+                Run urban growth models
+              </div>
+              <div style={{
+                padding: '5px 10px',
+                background: '#00D4FF',
+                color: '#050A14',
+                fontSize: '11px',
+                fontWeight: 700,
+                borderRadius: '4px',
+                textAlign: 'center',
+              }}>
+                Run Simulation
+              </div>
+            </div>
           </Link>
         </div>
-      </div>
+      )}
+
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(c => !c)}
+        style={{
+          position: 'absolute',
+          top: '70px',
+          right: '-11px',
+          width: '22px',
+          height: '22px',
+          borderRadius: '50%',
+          background: '#0A1628',
+          border: '1px solid rgba(255,255,255,0.1)',
+          color: 'rgba(255,255,255,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '11px',
+          cursor: 'pointer',
+          zIndex: 50,
+          transition: 'all 150ms',
+        }}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? '›' : '‹'}
+      </button>
     </aside>
   );
 }
-

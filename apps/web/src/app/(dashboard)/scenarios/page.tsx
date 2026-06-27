@@ -1,302 +1,362 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSimulationStore } from '@/store/useSimulationStore';
+import { useScenarioStore, useSimulationStore, useAppStore } from '@/stores';
 import { exportToCSV } from '@/lib/exportUtils';
-import { ArrowRightLeft, BarChart2, Calendar, ChevronRight, Copy, Download, FileSymlink, History, Trash, User } from 'lucide-react';
-
-
-interface SavedScenario {
-  id: string;
-  name: string;
-  creator: string;
-  date: string;
-  version: string;
-  inputs: {
-    evAdoption: number;
-    popGrowth: number;
-    indExpansion: number;
-    metroExpansion: number;
-    renewableGrowth: number;
-    climateEvent: string;
-    disasterEvent: string;
-  };
-  metrics: {
-    energyDemand: number;
-    carbonEmissions: number;
-    trafficCongestion: number;
-    waterDemand: number;
-    jobsCreated: number;
-    infrastructureStress: number;
-  };
-}
-
-interface ComparisonData {
-  name1: string;
-  name2: string;
-  diffs: Array<{
-    label: string;
-    val1: string;
-    val2: string;
-  }>;
-}
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export default function ScenariosPage() {
   const router = useRouter();
-  const store = useSimulationStore();
-  const scenarios = store.savedScenarios;
+  const { scenarios, compareIds, toggleCompare, clearCompare, deleteScenario, archiveScenario, approveScenario, loadScenario } = useScenarioStore();
+  const sim = useSimulationStore();
+  const { addNotification } = useAppStore();
 
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [compareResult, setCompareResult] = useState<ComparisonData | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'approved' | 'archived'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  };
+  // Filtered scenarios
+  const filteredScenarios = useMemo(() => {
+    return scenarios.filter(s => {
+      // Tab filter
+      if (activeTab === 'approved' && s.status !== 'approved') return false;
+      if (activeTab === 'archived' && s.status !== 'archived') return false;
+      if (activeTab === 'all' && s.status === 'archived') return false; // Hide archived from main list
 
-  const handleLoad = (scenario: SavedScenario) => {
-    store.loadScenario(scenario);
-    
-    // session storage fallback for older components
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('simulationResults', JSON.stringify({
-        metrics: scenario.metrics,
-        recommendations: [
-          `Loaded from scenario profile: ${scenario.name}. Confidence score fits historical validation standards.`,
-          "Substation grid stability margins are monitored.",
-        ],
-        timeline: [
-          { year: 2025, energy: 4.2, traffic: 100 },
-          { year: 2035, energy: 4.2 + (scenario.metrics.energyDemand * 0.1), traffic: 100 + (scenario.metrics.trafficCongestion * 0.1) }
-        ]
-      }));
-    }
-    
-    router.push('/simulation-results');
-  };
+      // Search filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q) || s.tags.some(t => t.toLowerCase().includes(q));
+      }
+      return true;
+    });
+  }, [scenarios, activeTab, searchQuery]);
 
-  const handleDuplicate = (scenario: SavedScenario) => {
-    store.saveScenario(
-      `${scenario.name} (Copy)`,
-      "Manual",
-      scenario.inputs,
-      scenario.metrics
-    );
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this scenario?")) {
-      store.deleteScenario(id);
-    }
-  };
+  // Comparison logic details
+  const comparedScenarios = useMemo(() => {
+    return compareIds.map(id => scenarios.find(s => s.id === id)).filter(Boolean);
+  }, [compareIds, scenarios]);
 
   const handleExportCSV = () => {
-    if (scenarios.length === 0) return;
+    if (scenarios.length === 0) {
+      addNotification({ title: 'Export Failed', message: 'No scenarios available to export', severity: 'warning' });
+      return;
+    }
     const data = scenarios.map(s => ({
-      Scenario: s.name,
-      Date: s.date,
-      PopulationGrowth: s.inputs.popGrowth,
-      EVAdoption: s.inputs.evAdoption,
-      MetroExpansion: s.inputs.metroExpansion,
-      CarbonEmissions: s.metrics.carbonEmissions,
-      TrafficCongestion: s.metrics.trafficCongestion
+      ID: s.id,
+      Name: s.name,
+      Description: s.description,
+      CreatedAt: s.createdAt,
+      Status: s.status,
+      MetroExpansion: s.policies.metroExpansion,
+      EVAdoptionRate: s.policies.evAdoptionRate,
+      RoadCapacity: s.policies.roadCapacity,
+      RenewableShare: s.policies.renewableShare,
+      WaterInfrastructure: s.policies.waterInfrastructure,
+      GreenSpaceAllocation: s.policies.greenSpaceAllocation,
+      IndustrialZoning: s.policies.industrialZoning,
+      TrafficCongestionResult: s.results.traffic.after,
+      CO2Result: s.results.co2.after,
+      AQIResult: s.results.aqi.after,
+      GDPResult: s.results.gdp.after,
+      CityHealthResult: s.results.cityHealth.after,
     }));
-    exportToCSV(data, 'scenarios-export.csv');
+    try {
+      exportToCSV(data, `Bhavora_Scenarios_${new Date().toISOString().split('T')[0]}.csv`);
+      addNotification({ title: 'Export Complete', message: 'Scenario Vault CSV downloaded successfully', severity: 'success' });
+    } catch {
+      addNotification({ title: 'Export Failed', message: 'Could not write CSV file', severity: 'critical' });
+    }
   };
 
-  const handleCompare = () => {
-    if (selectedIds.length !== 2) return;
-    const item1 = scenarios.find(x => x.id === selectedIds[0]);
-    const item2 = scenarios.find(x => x.id === selectedIds[1]);
-    if (!item1 || !item2) return;
+  const handleLoad = (id: string) => {
+    loadScenario(id);
+    addNotification({ title: 'Scenario Loaded', message: 'Policy settings applied to Decision Twin', severity: 'success' });
+    router.push('/decision-twin');
+  };
 
-    setCompareResult({
-      name1: item1.name,
-      name2: item2.name,
-      diffs: [
-        { label: "Energy Impact", val1: `${item1.metrics.energyDemand}%`, val2: `${item2.metrics.energyDemand}%` },
-        { label: "CO2 Emissions", val1: `${item1.metrics.carbonEmissions}%`, val2: `${item2.metrics.carbonEmissions}%` },
-        { label: "Traffic Index", val1: `${item1.metrics.trafficCongestion}%`, val2: `${item2.metrics.trafficCongestion}%` },
-        { label: "Urban Stress Score", val1: `${item1.metrics.infrastructureStress}/100`, val2: `${item2.metrics.infrastructureStress}/100` }
-      ]
+  const handleApprove = (id: string, name: string) => {
+    approveScenario(id);
+    addNotification({ title: 'Scenario Approved', message: `"${name}" marked as approved strategy`, severity: 'success' });
+  };
+
+  const handleArchive = (id: string, name: string) => {
+    archiveScenario(id);
+    addNotification({ title: 'Scenario Archived', message: `"${name}" moved to archives`, severity: 'info' });
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    if (confirm(`Are you sure you want to permanently delete scenario "${name}"?`)) {
+      deleteScenario(id);
+      addNotification({ title: 'Scenario Deleted', message: `"${name}" removed from vault`, severity: 'info' });
+    }
+  };
+
+  // Compare results charts helper
+  const comparisonChartData = useMemo(() => {
+    if (comparedScenarios.length === 0) return [];
+    // Convert 2025 to 2050 timeline for compared scenarios into chart arrays
+    const years = [2025, 2030, 2035, 2040, 2045, 2050];
+    return years.map(yr => {
+      const row: any = { year: yr };
+      comparedScenarios.forEach((s: any) => {
+        const state = s.timeline.find((t: any) => t.year === yr);
+        row[s.name] = state ? state.city_health : 64;
+      });
+      return row;
     });
-  };
+  }, [comparedScenarios]);
 
   return (
-    <div className="p-8 max-w-[1440px] mx-auto space-y-8 animate-fade-in">
+    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <nav className="flex items-center gap-2 text-on-surface-variant text-label-md mb-2">
-            <span>Scenario Management</span>
-            <ChevronRight />
-            <span className="text-primary font-bold">Saved Profiles</span>
+          <nav style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>
+            <span style={{ cursor: 'pointer' }} onClick={() => router.push('/overview')}>Command Center</span>
+            {' / '}Scenario Vault
           </nav>
-          <h1 className="font-display-sm text-display-sm text-on-surface">Scenario Library</h1>
-          <p className="text-on-surface-variant font-body-md max-w-xl">
-            Save, load, and run comparative stress tests between configured policy simulations.
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>Scenario Vault</h1>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>
+            Save, load, manage and compare policy scenarios computed by the Bhavora simulation engine.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={handleExportCSV} 
-            className="bg-surface-container text-on-surface-variant px-6 py-2 rounded-lg font-bold text-sm border border-outline-variant/30 hover:bg-surface-container-high transition-all flex items-center gap-2"
-          >
-            <Download />
-            Export Library
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={handleExportCSV} className="btn-ghost" style={{ padding: '8px 14px', fontSize: '12px' }}>
+            ⬇ Export Vault CSV
           </button>
-          <button 
-            disabled={selectedIds.length !== 2}
-            onClick={handleCompare}
-            className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-md disabled:opacity-40 disabled:scale-100 flex items-center gap-1.5"
-          >
-            <ArrowRightLeft />
-            Compare Selected ({selectedIds.length}/2)
+          <button onClick={() => router.push('/decision-twin')} className="btn-primary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+            ➕ Create New Scenario
           </button>
         </div>
       </div>
 
-      {/* Comparisons Alert Details */}
-      {compareResult && (
-        <div className="bg-primary-fixed/20 border border-primary/20 rounded-3xl p-6 relative animate-scale-in">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-primary text-base flex items-center gap-2">
-              <BarChart2 />
-              Comparative Variance Summary
-            </h3>
-            <button 
-              onClick={() => setCompareResult(null)}
-              className="text-on-surface-variant hover:text-primary transition-colors text-xs font-bold underline"
+      {/* Tabs and Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '10px 14px' }}>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {[
+            { id: 'all', label: 'All Scenarios' },
+            { id: 'approved', label: 'Approved Strategies' },
+            { id: 'archived', label: 'Archives' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id as any)}
+              style={{
+                padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                background: activeTab === t.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                color: activeTab === t.id ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+                transition: 'all 120ms',
+              }}
             >
-              Clear Comparison
+              {t.label}
             </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {compareResult.diffs.map((d) => (
-              <div key={d.label} className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant/10 text-center">
-                <div className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-2">{d.label}</div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="border-r border-outline-variant/20 pr-1">
-                    <p className="text-gray-400 font-medium truncate" title={compareResult.name1}>{compareResult.name1}</p>
-                    <p className="font-bold text-on-surface mt-1">{d.val1}</p>
-                  </div>
-                  <div className="pl-1">
-                    <p className="text-primary font-medium truncate" title={compareResult.name2}>{compareResult.name2}</p>
-                    <p className="font-bold text-primary mt-1">{d.val2}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
-      )}
-
-      {/* Scenario List */}
-      <div className="grid grid-cols-1 gap-4">
-        {scenarios.map((scen, i) => {
-          const isSelected = selectedIds.includes(scen.id);
-          return (
-            <div 
-              key={scen.id}
-              className={`bg-white/80 backdrop-blur-xl border rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-300 shadow-sm ${
-                isSelected ? 'border-primary ring-2 ring-primary/10' : 'border-outline-variant/30 hover:shadow-md'
-              }`}
-              style={{ animation: `fade-slide-in 0.4s ease-out ${i * 100}ms both` }}
-            >
-              {/* Checkbox and Details */}
-              <div className="flex items-center gap-4 flex-1">
-                <input 
-                  type="checkbox" 
-                  checked={isSelected}
-                  onChange={() => handleSelect(scen.id)}
-                  className="w-4.5 h-4.5 text-primary border-outline-variant/50 rounded cursor-pointer accent-primary focus:ring-0"
-                />
-                <div className="space-y-1">
-                  <h3 className="font-bold text-on-surface text-base">{scen.name}</h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-on-surface-variant">
-                    <span className="flex items-center gap-1"><User /> {scen.creator}</span>
-                    <span className="flex items-center gap-1"><Calendar /> {scen.date}</span>
-                    <span className="flex items-center gap-1"><History /> Engine {scen.version}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Slider variables values overview */}
-              <div className="flex flex-wrap gap-2 py-2 md:py-0">
-                <span className="px-2.5 py-1 bg-surface-container rounded-lg text-[10px] font-mono text-on-surface-variant font-medium">EV: {scen.inputs.evAdoption}%</span>
-                <span className="px-2.5 py-1 bg-surface-container rounded-lg text-[10px] font-mono text-on-surface-variant font-medium">Pop: +{scen.inputs.popGrowth}%</span>
-                <span className="px-2.5 py-1 bg-surface-container rounded-lg text-[10px] font-mono text-on-surface-variant font-medium">Grid Mix: {scen.inputs.renewableGrowth}%</span>
-              </div>
-
-              {/* Load & Delete Actions */}
-              <div className="flex items-center gap-2 w-full md:w-auto shrink-0 border-t border-outline-variant/10 pt-4 md:border-t-0 md:pt-0">
-                <button 
-                  onClick={() => handleLoad(scen)}
-                  className="w-full md:w-auto px-4 py-2 border border-outline-variant/40 hover:bg-surface-container hover:border-outline-variant/80 rounded-xl text-xs font-bold text-on-surface transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <FileSymlink />
-                  Load Results
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); handleDuplicate(scen); }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center bg-surface hover:bg-primary-container/50 border border-outline-variant/30 text-on-surface-variant transition-colors"
-                  title="Duplicate Scenario"
-                >
-                  <Copy />
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); handleDelete(scen.id); }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center bg-surface hover:bg-error-container border border-outline-variant/30 text-error transition-colors"
-                  title="Delete Scenario"
-                >
-                  <Trash />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        <input
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Filter by name or tags..."
+          className="input-dark"
+          style={{ width: '220px', fontSize: '12px' }}
+        />
       </div>
 
-      {/* Version Logs / Timeline */}
-      <div className="bg-white/80 backdrop-blur-xl border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
-        <h3 className="font-bold text-on-surface text-base mb-4 flex items-center gap-2">
-          <History />
-          Engine Execution History
-        </h3>
-        <div className="relative border-l border-outline-variant/30 pl-6 ml-4 space-y-6 text-xs text-on-surface-variant font-medium">
-          <div className="relative">
-            <span className="absolute -left-[30px] top-0 w-3 h-3 bg-primary border-2 border-white rounded-full"></span>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-on-surface font-bold">Scenario EV Revolution 2035 run successfully</p>
-                <p className="text-[10px] mt-0.5">Parameters: EV Adoption 80%, Renewables 60%</p>
-              </div>
-              <span className="text-[10px] font-mono">Today, 18:20</span>
+      {/* Main Content Layout (Left: Lists, Right: Multi-Comparison Panel) */}
+      <div style={{ display: 'grid', gridTemplateColumns: compareIds.length > 0 ? '1fr 440px' : '1fr', gap: '16px', alignItems: 'start' }}>
+        
+        {/* Scenarios Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '12px' }}>
+          {filteredScenarios.length === 0 ? (
+            <div className="glass-card" style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📂</div>
+              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>No Scenarios Found</h3>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '0 0 16px' }}>
+                {searchQuery ? 'Try adjusting your search query' : 'Create and save your first simulation policy configuration'}
+              </p>
+              <button onClick={() => router.push('/decision-twin')} className="btn-primary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+                Go to Decision Twin
+              </button>
             </div>
-          </div>
-          <div className="relative">
-            <span className="absolute -left-[30px] top-0 w-3 h-3 bg-outline-variant border-2 border-white rounded-full"></span>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-on-surface">Zoning strategy query executed</p>
-                <p className="text-[10px] mt-0.5">District: Hebbal Corridor</p>
-              </div>
-              <span className="text-[10px] font-mono">Yesterday, 10:14</span>
-            </div>
-          </div>
-          <div className="relative">
-            <span className="absolute -left-[30px] top-0 w-3 h-3 bg-outline-variant border-2 border-white rounded-full"></span>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-on-surface">Flood simulation sync failed (Network Timeout)</p>
-                <p className="text-[10px] mt-0.5 text-error">Resolved with localized fallback execution weights</p>
-              </div>
-              <span className="text-[10px] font-mono">Yesterday, 09:42</span>
-            </div>
-          </div>
+          ) : (
+            filteredScenarios.map(s => {
+              const isCompared = compareIds.includes(s.id);
+              const confColor = s.results.confidence >= 0.85 ? '#10B981' : s.results.confidence >= 0.65 ? '#F59E0B' : '#EF4444';
+
+              return (
+                <div
+                  key={s.id}
+                  className="glass-card"
+                  style={{
+                    padding: '16px', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '12px',
+                    borderColor: isCompared ? 'rgba(0, 212, 255, 0.4)' : undefined,
+                    boxShadow: isCompared ? '0 0 8px rgba(0, 212, 255, 0.15)' : undefined,
+                  }}
+                >
+                  {/* Status, tags & date */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      <span style={{
+                        padding: '2px 6px', borderRadius: '4px', fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                        background: s.status === 'approved' ? 'rgba(16,185,129,0.12)' : s.status === 'archived' ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.08)',
+                        color: s.status === 'approved' ? '#10B981' : s.status === 'archived' ? 'rgba(255,255,255,0.4)' : '#00D4FF',
+                        border: `1px solid ${s.status === 'approved' ? 'rgba(16,185,129,0.2)' : s.status === 'archived' ? 'rgba(255,255,255,0.1)' : 'rgba(0,212,255,0.15)'}`
+                      }}>
+                        {s.status}
+                      </span>
+                      {s.tags.slice(0, 3).map(tag => (
+                        <span key={tag} style={{ padding: '2px 5px', borderRadius: '4px', fontSize: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+                      {new Date(s.createdAt).toLocaleDateString('en-IN')}
+                    </span>
+                  </div>
+
+                  {/* Title & description */}
+                  <div>
+                    <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>{s.name}</h3>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.4 }}>{s.description || 'No description provided'}</p>
+                  </div>
+
+                  {/* Metrics preview row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px' }}>
+                    <div>
+                      <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>City Health</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: '#00D4FF', marginTop: '2px' }}>{s.results.cityHealth.after}/100</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>CO2 Delta</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: s.results.co2.delta < 0 ? '#10B981' : '#EF4444', marginTop: '2px' }}>
+                        {s.results.co2.delta > 0 ? '+' : ''}{(s.results.co2.delta / 100).toFixed(0)}kt
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Confidence</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: confColor, marginTop: '2px' }}>{Math.round(s.results.confidence * 100)}%</div>
+                    </div>
+                  </div>
+
+                  {/* Vault Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button onClick={() => handleLoad(s.id)} className="btn-primary" style={{ padding: '5px 10px', fontSize: '11px' }}>
+                        ⚡ Load
+                      </button>
+                      <button
+                        onClick={() => toggleCompare(s.id)}
+                        style={{
+                          padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                          background: isCompared ? 'rgba(0, 212, 255, 0.12)' : 'transparent',
+                          border: `1px solid ${isCompared ? 'rgba(0, 212, 255, 0.3)' : 'rgba(255,255,255,0.08)'}`,
+                          color: isCompared ? '#00D4FF' : 'rgba(255,255,255,0.6)',
+                        }}
+                      >
+                        ⚖ Compare
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {s.status !== 'approved' && (
+                        <button onClick={() => handleApprove(s.id, s.name)} className="btn-ghost" style={{ padding: '5px 8px', fontSize: '11px' }} title="Approve scenario">
+                          ✓
+                        </button>
+                      )}
+                      {s.status !== 'archived' && (
+                        <button onClick={() => handleArchive(s.id, s.name)} className="btn-ghost" style={{ padding: '5px 8px', fontSize: '11px' }} title="Archive scenario">
+                          🗄
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(s.id, s.name)} className="btn-ghost" style={{ padding: '5px 8px', fontSize: '11px', color: '#EF4444' }} title="Delete scenario">
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
+
+        {/* Multi-Comparison Dashboard Panel */}
+        {compareIds.length > 0 && (
+          <div className="glass-card" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(10,22,40,0.9)', position: 'sticky', top: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', margin: 0 }}>Comparative Assessment</h3>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Comparing {comparedScenarios.length} of max 3 profiles</span>
+              </div>
+              <button onClick={clearCompare} style={{ background: 'none', border: 'none', color: '#00D4FF', fontSize: '11px', cursor: 'pointer' }}>
+                Clear comparison
+              </button>
+            </div>
+
+            {/* Compared names */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {comparedScenarios.map((s, idx) => (
+                <div key={s?.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: idx === 0 ? '#00D4FF' : idx === 1 ? '#7C3AED' : '#10B981' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{s?.name}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Metrics Delta list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[
+                { label: 'City Health Index', key: 'cityHealth' },
+                { label: 'Congestion Rate', key: 'traffic' },
+                { label: 'Carbon Emissions', key: 'co2' },
+                { label: 'Water Demand', key: 'water' },
+                { label: 'GDP Growth', key: 'gdp' },
+              ].map(m => (
+                <div key={m.key} style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{m.label}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${comparedScenarios.length}, 1fr)`, gap: '8px' }}>
+                    {comparedScenarios.map((s: any, idx) => (
+                      <div key={s.id} style={{ lineHeight: 1 }}>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: idx === 0 ? '#00D4FF' : idx === 1 ? '#7C3AED' : '#10B981' }}>
+                          {s.results[m.key].after}{s.results[m.key].unit}
+                        </span>
+                        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>
+                          Δ {s.results[m.key].delta > 0 ? '+' : ''}{s.results[m.key].delta}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Multi-Timeline Projection Chart */}
+            <div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '8px' }}>2025–2050 City Health Projection</div>
+              <div style={{ height: '140px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={comparisonChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                    <XAxis dataKey="year" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                    <YAxis domain={[40, 100]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+                    <Tooltip contentStyle={{ background: '#0A1628', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '6px', fontSize: '10px' }} />
+                    {comparedScenarios.map((s, idx) => (
+                      <Line
+                        key={s?.id}
+                        type="monotone"
+                        dataKey={s?.name || ''}
+                        stroke={idx === 0 ? '#00D4FF' : idx === 1 ? '#7C3AED' : '#10B981'}
+                        strokeWidth={1.5}
+                        dot={false}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
