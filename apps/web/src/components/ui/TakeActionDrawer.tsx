@@ -200,7 +200,7 @@ export function TakeActionDrawer() {
         {/* Footer */}
         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)' }}>
           <button
-            onClick={() => saveScenario('Current Interventions', 'Auto-saved from Take Action drawer', ['dashboard', 'interventions'], '')}
+            onClick={() => saveScenario({ name: 'Current Interventions', description: 'Auto-saved from Take Action drawer', category: 'General', targetYear: new Date().getFullYear(), priority: 'Medium', tags: ['dashboard', 'interventions'] })}
             style={{
               width: '100%', padding: '10px', background: 'var(--accent-navy-light)', border: '1px solid var(--border-subtle)',
               borderRadius: '8px', color: 'var(--accent-navy)', fontSize: '12px', fontWeight: 700, cursor: 'pointer',

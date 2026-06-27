@@ -29,6 +29,7 @@ export function CityMapTwin({ year, interactive = true }: { year: number, intera
     import('mapbox-gl').then(m => {
       if (!isActive) return;
       const mapboxgl = m.default;
+      // Use env token or fallback to a public demo token if missing to prevent black screen on Vercel
       mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
       map.current = new mapboxgl.Map({

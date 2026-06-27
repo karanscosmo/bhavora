@@ -7,6 +7,11 @@ interface ConsequenceTreeProps {
   nodes: CascadeNode[];
 }
 
+const formatDelta = (val: number) => {
+  if (val === undefined || val === null) return '0';
+  return Number.isInteger(val) ? val.toString() : Number(val).toFixed(1);
+};
+
 const TreeNode = ({ node, level = 0 }: { node: CascadeNode; level?: number }) => {
   const isPrimary = level === 0;
   
@@ -16,27 +21,27 @@ const TreeNode = ({ node, level = 0 }: { node: CascadeNode; level?: number }) =>
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: level * 0.1 }}
-        className={`relative flex flex-col p-3 rounded-lg border ${
+        className={`relative flex flex-col p-3.5 rounded-lg border shadow-sm ${
           node.type === 'improvement' ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' : 
           node.type === 'deterioration' ? 'bg-[#EF4444]/10 border-[#EF4444]/30 text-[#EF4444]' : 
           'bg-[var(--slate-800)] border-[var(--slate-700)] text-[var(--slate-300)]'
-        } ${isPrimary ? 'mb-2 w-full max-w-sm' : 'mb-2 ml-6 w-full max-w-xs'}`}
+        } ${isPrimary ? 'mb-3 w-full max-w-sm' : 'mb-3 ml-8 w-full max-w-xs'}`}
       >
         {!isPrimary && (
-          <div className="absolute -left-6 top-4 border-l-2 border-b-2 border-[var(--slate-700)] w-5 h-4 rounded-bl-md" />
+          <div className="absolute -left-8 top-4 border-l-2 border-b-2 border-[var(--border-strong)] w-7 h-4 rounded-bl-md" />
         )}
-        <div className="flex justify-between items-start gap-2">
-          <span className="text-xs font-bold">{node.label}</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/20 font-mono">
-            {node.delta > 0 ? '+' : ''}{node.delta} {node.unit}
-          </span>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-bold leading-tight">{node.label}</span>
+          <div className="self-start text-xs px-2 py-1 rounded bg-black/5 font-mono font-bold">
+            {node.delta > 0 ? '+' : ''}{formatDelta(node.delta)} {node.unit}
+          </div>
         </div>
       </motion.div>
       
       {node.children && node.children.length > 0 && (
         <div className="relative flex flex-col">
           {/* Vertical connection line for children */}
-          <div className="absolute left-3 top-0 bottom-6 w-px bg-[var(--slate-700)]" />
+          <div className="absolute left-4 top-0 bottom-8 w-0.5 bg-[var(--border-strong)]" />
           {node.children.map(child => (
             <TreeNode key={child.id} node={child} level={level + 1} />
           ))}

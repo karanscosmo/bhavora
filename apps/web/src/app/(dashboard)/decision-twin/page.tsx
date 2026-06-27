@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useSimulationStore } from '@/stores';
+import { useSimulationStore, useUIStore } from '@/stores';
 import { Train, Zap, Route, Sun, Droplet, Leaf, Factory, Activity, CheckCircle2, AlertTriangle, Play, Map as MapIcon, Database, BarChart3, TrendingDown, TrendingUp } from 'lucide-react';
 import { BlindSpotAlert } from '@/components/ui/BlindSpotAlert';
 import { ConsequenceTree } from '@/components/ui/ConsequenceTree';
@@ -64,6 +64,7 @@ function PolicySlider({
 export default function DecisionTwinPage() {
   const store = useSimulationStore();
   const { activePolicy, setPolicy, results, isComputing } = store;
+  const { openSaveScenario } = useUIStore();
   const [year, setYear] = useState(2025);
 
   const formatDelta = (val: number, unit: string) => {
@@ -94,7 +95,7 @@ export default function DecisionTwinPage() {
             <Database size={14} className="text-[var(--text-muted)]"/>
             <span className="text-xs font-mono font-bold text-[var(--text-primary)]">Confidence: {(results.confidence * 100).toFixed(0)}%</span>
            </div>
-           <Link href="/war-room" className="btn btn-secondary py-1.5 px-3 text-xs">Save Scenario</Link>
+           <button onClick={openSaveScenario} className="btn btn-secondary py-1.5 px-3 text-xs">Save Scenario</button>
         </div>
       </div>
 
@@ -181,27 +182,32 @@ export default function DecisionTwinPage() {
           </div>
           
           {/* BOTTOM FORECAST PANEL */}
-          <div className="h-40 bg-white border border-[var(--border-subtle)] rounded-xl shadow-sm p-4 overflow-x-auto flex gap-4">
-            {results.districts.map(d => (
-              <div key={d.id} className="min-w-[180px] p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-2)] flex flex-col justify-between">
-                 <div>
-                   <h4 className="font-bold text-sm text-[var(--text-primary)]">{d.name}</h4>
-                   <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Impact Score</div>
-                 </div>
-                 <div className="flex items-end justify-between mt-2">
-                   <span className={`text-2xl font-black ${d.impactScore > 60 ? 'text-[var(--accent-primary)]' : 'text-[var(--slate-500)]'}`}>
-                     {d.impactScore}
-                   </span>
-                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                     d.investmentPriority === 'High' ? 'bg-[var(--accent-danger)]/10 text-[var(--accent-danger)]' :
-                     d.investmentPriority === 'Medium' ? 'bg-[var(--accent-warning)]/10 text-[var(--accent-warning)]' :
-                     'bg-[var(--slate-200)] text-[var(--slate-600)]'
-                   }`}>
-                     {d.investmentPriority}
-                   </span>
-                 </div>
-              </div>
-            ))}
+          <div className="h-40 bg-white border border-[var(--border-subtle)] rounded-xl shadow-sm flex flex-col overflow-hidden">
+            <div className="p-3 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-2)] flex justify-between items-center">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">District Forecasts</h3>
+            </div>
+            <div className="flex-1 p-4 overflow-x-auto custom-scrollbar flex gap-4 bg-[var(--bg-base)]">
+              {results.districts.map(d => (
+                <div key={d.id} className="min-w-[200px] p-4 rounded-xl border border-[var(--border-subtle)] bg-white shadow-sm flex flex-col justify-between transition-all hover:border-[var(--accent-primary)] hover:shadow-md">
+                   <div>
+                     <h4 className="font-bold text-[15px] text-[var(--text-primary)]">{d.name}</h4>
+                     <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">Impact Score</div>
+                   </div>
+                   <div className="flex items-end justify-between mt-3">
+                     <span className={`text-3xl font-black tracking-tight ${d.impactScore > 60 ? 'text-[#2563EB]' : 'text-[var(--slate-700)]'}`}>
+                       {d.impactScore}
+                     </span>
+                     <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${
+                       d.investmentPriority === 'High' ? 'bg-[#EF4444]/10 text-[#EF4444]' :
+                       d.investmentPriority === 'Medium' ? 'bg-[#F59E0B]/10 text-[#F59E0B]' :
+                       'bg-[#10B981]/10 text-[#10B981]'
+                     }`}>
+                       {d.investmentPriority}
+                     </span>
+                   </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -11,6 +11,7 @@ const BhavishyavaniPanel = dynamic(() => import('@/components/ui/BhavishyavaniPa
 const Toast = dynamic(() => import('@/components/ui/Toast').then(m => ({ default: m.Toast })));
 const DemoOverlay = dynamic(() => import('@/components/demo/DemoOverlay').then(m => ({ default: m.DemoOverlay })), { ssr: false });
 const DemoModal = dynamic(() => import('@/components/demo/DemoModal').then(m => ({ default: m.DemoModal })), { ssr: false });
+const SaveScenarioModal = dynamic(() => import('@/components/ui/SaveScenarioModal').then(m => ({ default: m.SaveScenarioModal })), { ssr: false });
 
 function DashboardInner({ children }: { children: React.ReactNode }) {
   const { isBhavishyavaniOpen } = useUIStore();
@@ -39,6 +40,9 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
 
       {/* Toast Notifications */}
       <Toast />
+
+      {/* Global Modals */}
+      <SaveScenarioModal />
 
       {/* Demo System */}
       <DemoModal />

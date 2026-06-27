@@ -29,12 +29,16 @@ export interface Scenario {
   id: string;
   name: string;
   description: string;
+  category: string;
+  targetYear: number;
+  priority: string;
   createdAt: string;
   tags: string[];
   status: 'draft' | 'simulated' | 'approved' | 'archived';
   policies: PolicyInput;
   results: SimulationResult;
   timeline: TimelineState[];
+  mapState: any;
   notes: string;
 }
 
@@ -242,7 +246,7 @@ export const useSimulationStore = create<SimulationState>()((set, get) => ({
 interface ScenarioState {
   scenarios: Scenario[];
   compareIds: string[];
-  saveScenario: (name: string, description: string, tags: string[], notes: string) => string;
+  saveScenario: (params: { name: string, description: string, category: string, targetYear: number, priority: string, tags: string[], mapState?: any, notes?: string }) => string;
   loadScenario: (id: string) => void;
   deleteScenario: (id: string) => void;
   archiveScenario: (id: string) => void;
@@ -257,23 +261,27 @@ export const useScenarioStore = create<ScenarioState>()(
       scenarios: [],
       compareIds: [],
 
-      saveScenario: (name, description, tags, notes) => {
+      saveScenario: (params) => {
         const sim = useSimulationStore.getState();
-        const id = `scenario-${Date.now()}`;
+        const id = `SCN-${params.targetYear}-${Math.floor(100 + Math.random() * 900)}`;
         const scenario: Scenario = {
           id,
-          name,
-          description,
+          name: params.name,
+          description: params.description,
+          category: params.category,
+          targetYear: params.targetYear,
+          priority: params.priority,
           createdAt: new Date().toISOString(),
-          tags,
+          tags: params.tags,
           status: 'simulated',
           policies: sim.activePolicy,
           results: sim.results,
           timeline: sim.timeline,
-          notes,
+          mapState: params.mapState || {},
+          notes: params.notes || '',
         };
         set(state => ({ scenarios: [scenario, ...state.scenarios] }));
-        useSimulationStore.getState().setActiveScenario(name);
+        useSimulationStore.getState().setActiveScenario(params.name);
         return id;
       },
 
