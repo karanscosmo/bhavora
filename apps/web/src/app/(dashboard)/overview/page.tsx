@@ -1,17 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { ActionModal } from '@/components/ui/ActionModal';
 import { exportToPDF } from '@/lib/exportUtils';
 import { useRouter } from 'next/navigation';
 import { BadgeCheck, Droplet, Landmark, MoreVertical, Sparkles, TrendingUp, TrendingDown, Zap, Hourglass, Download } from 'lucide-react';
+import type { Map as MapboxMap } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 
 export default function OverviewPage() {
 
   const store = useSimulationStore();
   const router = useRouter();
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
   const { metrics, popGrowth, indExpansion } = store;
   const [timeStr, setTimeStr] = useState("14:32:05");
   
@@ -26,6 +30,80 @@ export default function OverviewPage() {
       setTimeStr(now.toTimeString().split(' ')[0]);
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Mapbox Initializer
+  useEffect(() => {
+    let map: MapboxMap | null = null;
+
+    import('mapbox-gl').then((mapboxglModule) => {
+      const mapboxgl = mapboxglModule.default;
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
+      if (!mapContainerRef.current) return;
+
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [77.5946, 12.9716],
+        zoom: 10.5,
+        pitch: 45,
+        attributionControl: false
+      });
+
+      mapRef.current = map;
+
+      map.on('load', () => {
+        if (!map) return;
+        
+        // Add a simple heatmap layer for traffic
+        map.addSource('traffic-heat', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: Array.from({ length: 50 }).map(() => ({
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [
+                  77.5946 + (Math.random() - 0.5) * 0.2,
+                  12.9716 + (Math.random() - 0.5) * 0.2
+                ]
+              },
+              properties: {
+                weight: Math.random()
+              }
+            })) as any
+          }
+        });
+
+        map.addLayer({
+          id: 'traffic-heat-layer',
+          type: 'heatmap',
+          source: 'traffic-heat',
+          maxzoom: 15,
+          paint: {
+            'heatmap-weight': ['get', 'weight'],
+            'heatmap-intensity': 1,
+            'heatmap-color': [
+              'interpolate',
+              ['linear'],
+              ['heatmap-density'],
+              0, 'rgba(0,0,0,0)',
+              0.2, 'rgba(255,165,0,0.5)',
+              0.6, 'rgba(255,69,0,0.8)',
+              1, 'rgba(255,0,0,1)'
+            ],
+            'heatmap-radius': 15,
+            'heatmap-opacity': 0.8
+          }
+        });
+      });
+    });
+
+    return () => {
+      if (map) map.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -242,7 +320,7 @@ export default function OverviewPage() {
             </div>
           </div>
           <div className="flex-1 min-h-[400px] relative">
-            <div className="w-full h-full bg-cover bg-center absolute inset-0" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWuypSYZ0QS6VzvQZ1E8WSG55OxBmGREGk-oBeUM_rJxPG3eZLWtOEyUTOOD7vH085OC7wd1GGSzCSRWFUZvPnGROa6_kA1gQJrqnG41E2VtmCysv3OZtXIm5oqxnlQZsgMMPTwR14APu6GTogfweayrZ80dpFeE-IfqJ-wFrPkoS3KEDYkQDzseKukhFvMzi5T9hnZearqdJFnYGFEj-kiUnDjSBSl82piBBrOj2lNhvuvr3-P7FdeBkM99Ks6SG8Ando-12H-_Y')" }}></div>
+            <div ref={mapContainerRef} className="w-full h-full bg-gray-900 absolute inset-0" />
             <div className="absolute bottom-6 right-6 flex flex-col gap-3">
               <div className="bg-white/80 backdrop-blur-xl p-4 rounded-xl shadow-lg border border-white/40">
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase mb-1">Avg Speed City-wide</p>
