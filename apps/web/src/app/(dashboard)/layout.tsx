@@ -1,19 +1,18 @@
-"use client";
+'use client';
 
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNav } from '@/components/layout/TopNav';
 import { useUIStore } from '@/stores';
+import { DemoProvider } from '@/lib/demo/DemoContext';
 
 const BhavishyavaniPanel = dynamic(() => import('@/components/ui/BhavishyavaniPanel').then(m => ({ default: m.BhavishyavaniPanel })));
 const Toast = dynamic(() => import('@/components/ui/Toast').then(m => ({ default: m.Toast })));
+const DemoOverlay = dynamic(() => import('@/components/demo/DemoOverlay').then(m => ({ default: m.DemoOverlay })), { ssr: false });
+const DemoModal = dynamic(() => import('@/components/demo/DemoModal').then(m => ({ default: m.DemoModal })), { ssr: false });
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardInner({ children }: { children: React.ReactNode }) {
   const { isBhavishyavaniOpen } = useUIStore();
 
   return (
@@ -28,9 +27,7 @@ export default function DashboardLayout({
         <TopNav />
 
         {/* Main content area */}
-        <main
-          className="flex-1 relative z-1 mt-[64px] overflow-auto"
-        >
+        <main className="flex-1 relative z-1 mt-[64px] overflow-auto">
           {children}
         </main>
       </div>
@@ -40,6 +37,24 @@ export default function DashboardLayout({
 
       {/* Toast Notifications */}
       <Toast />
+
+      {/* Demo System */}
+      <DemoModal />
+      <DemoOverlay />
     </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <DemoProvider>
+      <DashboardInner>
+        {children}
+      </DashboardInner>
+    </DemoProvider>
   );
 }

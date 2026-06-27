@@ -8,6 +8,7 @@ import type { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ShieldAlert, Zap, TrendingUp, TrendingDown, Layers, MapPin, CheckCircle2, Activity, ShieldCheck, ThermometerSun, Droplets, Brain } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { StartDemoButton } from '@/components/demo/StartDemoButton';
 
 const TakeActionDrawer = dynamic(() => import('@/components/ui/TakeActionDrawer').then(m => ({ default: m.TakeActionDrawer })), { ssr: false });
 
@@ -90,17 +91,18 @@ export default function OverviewPage() {
     >
       <div className="p-6 max-w-screen-2xl mx-auto w-full space-y-6">
         
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Executive Command Center</h1>
             <p className="text-sm text-[var(--text-secondary)]">Bengaluru Urban Unified Dashboard</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <StartDemoButton variant="hero" />
             <button onClick={() => openBhavishyavani('executive')} className="btn btn-secondary flex items-center gap-2">
-              <Brain size={16} className="text-[#2563EB]" /> Summon Bhavishyavani
+              <Brain size={16} className="text-[#2563EB]" /> Bhavishyavani
             </button>
             <button onClick={openTakeAction} className="btn-danger flex items-center gap-2">
-              <ShieldAlert size={16} /> Resolve {metrics.activeIncidents} Alerts
+              <ShieldAlert size={16} /> {metrics.activeIncidents} Alerts
             </button>
           </div>
         </div>
