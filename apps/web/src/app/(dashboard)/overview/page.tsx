@@ -98,7 +98,7 @@ export default function OverviewPage() {
           </div>
           <div className="flex gap-3 items-center">
             <StartDemoButton variant="hero" />
-            <button onClick={() => openBhavishyavani('executive')} className="btn btn-secondary flex items-center gap-2">
+            <button data-demo="summon-bhavishyavani" onClick={() => openBhavishyavani('executive')} className="btn btn-secondary flex items-center gap-2">
               <Brain size={16} className="text-[#2563EB]" /> Bhavishyavani
             </button>
             <button onClick={openTakeAction} className="btn-danger flex items-center gap-2">
@@ -109,19 +109,19 @@ export default function OverviewPage() {
 
         {/* TOP: Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <motion.div variants={itemVariants} className="card p-4 border-l-4 border-[#10B981]">
+          <motion.div variants={itemVariants} data-demo="metric-city-health" className="card p-4 border-l-4 border-[#10B981]">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">City Health</div>
             <div className="text-2xl font-bold text-[#10B981]">{metrics.cityHealthScore}/100</div>
           </motion.div>
-          <motion.div variants={itemVariants} className="card p-4 border-l-4 border-[#F59E0B]">
+          <motion.div variants={itemVariants} data-demo="metric-aqi" className="card p-4 border-l-4 border-[#F59E0B]">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">AQI</div>
             <div className="text-2xl font-bold text-[#F59E0B]">{metrics.aqi}</div>
           </motion.div>
-          <motion.div variants={itemVariants} className="card p-4 border-l-4 border-[#EF4444]">
+          <motion.div variants={itemVariants} data-demo="metric-traffic" className="card p-4 border-l-4 border-[#EF4444]">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Traffic</div>
             <div className="text-2xl font-bold text-[#EF4444]">{metrics.congestionIndex}%</div>
           </motion.div>
-          <motion.div variants={itemVariants} className="card p-4 border-l-4 border-[#F59E0B]">
+          <motion.div variants={itemVariants} data-demo="metric-grid" className="card p-4 border-l-4 border-[#F59E0B]">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Grid Load</div>
             <div className="text-2xl font-bold text-[#F59E0B]">{metrics.gridLoad.toFixed(1)}GW</div>
           </motion.div>
@@ -136,7 +136,7 @@ export default function OverviewPage() {
         </div>
 
         {/* CENTER: Main Map */}
-        <motion.div variants={itemVariants} className="card p-2 h-[500px] relative overflow-hidden flex flex-col">
+        <motion.div variants={itemVariants} data-demo="main-map" className="card p-2 h-[500px] relative overflow-hidden flex flex-col">
           <div className="absolute top-4 left-4 z-10 flex gap-2">
             <div className="bg-white/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs font-bold px-4 py-2 rounded-md shadow-sm flex items-center gap-2">
               <Layers size={14} className="text-[#2563EB]" /> Live Telemetry
