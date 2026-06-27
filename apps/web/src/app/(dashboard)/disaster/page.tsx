@@ -328,7 +328,6 @@ function ResourceDrawer({ onClose }: { onClose: () => void }) {
                       width: '32px', height: '32px', borderRadius: '8px',
                       background: `${r.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '16px',
-                      fontSize: '16px',
                     }}>{RESOURCE_ICON_MAP[r.icon] || r.icon}</span>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: 600 }}>{r.type}</div>

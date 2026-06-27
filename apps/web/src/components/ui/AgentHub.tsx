@@ -746,7 +746,7 @@ export function AgentHub() {
                 <div ref={messagesEndRef} />
                   </div>
                   {/* Input */}
-                  <div style={{ padding: '12px 14px', borderTop: '1px solid var(--slate-800)', background: 'var(--slate-900)', shrink: 0 }}>
+                  <div style={{ padding: '12px 14px', borderTop: '1px solid var(--slate-800)', background: 'var(--slate-900)', flexShrink: 0 }}>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <textarea
                         value={input}

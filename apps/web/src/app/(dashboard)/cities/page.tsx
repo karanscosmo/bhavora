@@ -248,7 +248,7 @@ export default function CitiesPage() {
           el.innerHTML = 'M';
           el.addEventListener('click', () => {
             setSelectedMapAsset(station.name);
-            setActiveAssetDetails({ type: 'Metro Station', ...station });
+            setActiveAssetDetails({ assetClass: 'Metro Station', ...station });
           });
           markersRef.current.push(new mapboxgl.Marker(el).setLngLat(station.coordinates as [number, number]).addTo(map));
         });
